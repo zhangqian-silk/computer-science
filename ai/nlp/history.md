@@ -1,477 +1,341 @@
-# NLP 历史：从 N-Gram 到 Transformer
+# NLP 历史：从统计语言模型到预训练 Transformer
 
 ## 概览
 
-自然语言处理（NLP）的主线演进，可以概括为「统计方法 -> 神经网络方法 -> 预训练范式」。如果按关键技术节点来看，一条常见时间线如下：
+自然语言处理的发展主线，可以概括为两个持续推进的问题：
 
-- 1980s-2000s：N-Gram 统计语言模型成为主流
-- 1990：Elman 提出 RNN（序列递归建模起点）
-- 1997：LSTM 提出门控记忆机制（长期依赖建模关键改进）
-- 2003：NPLM 提出分布式词表示与神经概率语言模型
-- 2013：word2vec 推动 embedding 的大规模应用
-- 2013-2014：在 GPU 与大规模数据推动下，RNN/LSTM 在 NLP 任务中进入应用高峰
-- 2014：seq2seq 建立「编码器-解码器」生成框架并带动 LSTM 机器翻译落地
-- 2015：attention 缓解长距离依赖与信息瓶颈
-- 2017：Transformer 以自注意力为核心重构 NLP 基础架构
-- 2018：GPT 与 BERT 分别确立生成式与判别式预训练路线
+- 如何表示语言；
+- 如何建模上下文。
 
-## N-Gram：统计语言模型时代
+如果把近几十年的核心变化压缩成一条主线，那么大致可以写成：
 
-> 相关论文：
-> - Shannon (1948)：提出信息论与有限上下文近似思想，为 n-gram 语言建模奠定理论基础。
-> - Katz (1987)：提出 Katz Backoff，核心是「高频组合用高阶模型，低频组合回退到低阶模型」。
-> - Kneser-Ney (1995)：提出绝对折扣与改进回退分布，显著提升稀疏场景泛化能力。
+- **统计时代**：用离散计数和有限上下文近似语言；
+- **神经网络时代**：用连续向量和可学习参数缓解稀疏性；
+- **序列建模时代**：用 RNN、LSTM、Seq2Seq 处理变长输入输出；
+- **注意力时代**：用 attention 与 self-attention 改写上下文读取方式；
+- **预训练时代**：用 Transformer 作为统一基座，分别走向 BERT 与 GPT 两条主线。
 
-N-gram 是统计语言模型的代表方法，核心是假设当前词仅依赖有限长度历史（马尔可夫假设）：
+从关键节点看，一条更细的时间线如下：
 
-$$
-P(w_t|w_1,\dots,w_{t-1}) \approx P(w_t|w_{t-n+1},\dots,w_{t-1})
-$$
+| 时期 | 代表节点 | 核心变化 |
+| --- | --- | --- |
+| 1980s-2000s | N-Gram | 用有限上下文与计数建模语言 |
+| 1990-1997 | RNN、LSTM | 用递归状态处理序列，开始显式建模长程依赖 |
+| 2003-2014 | NPLM、Embedding、word2vec | 从离散符号转向连续表示 |
+| 2014-2015 | Seq2Seq、Attention | 建立条件序列生成与动态对齐框架 |
+| 2017 | Transformer、Self-Attention、Positional Encoding | 以自注意力重构序列建模主干 |
+| 2018 以后 | BERT、GPT | 预训练成为主流，理解与生成两条路线分化又汇合 |
 
-其训练方式通常是基于计数的最大似然估计：
+---
 
-$$
-P(w_t|w_{t-n+1}^{t-1})=\frac{C(w_{t-n+1}^{t})}{C(w_{t-n+1}^{t-1})}
-$$
+## 一、统计语言模型时代：N-Gram
 
-在工程上，它以实现简单和可解释性强著称，但也受限于数据稀疏、长距离依赖缺失与高阶组合爆炸，这些局限直接推动了后续神经语言模型与预训练范式的发展。
+早期 NLP 的主流思路，是把语言建模为离散符号序列上的概率估计问题。N-Gram 的核心假设是：当前词只依赖有限长度的历史，而不是完整前文。
 
-- 详细说明见：[N-Gram 专题文档](./model/n-gram.md)
+\[
+P(w_t\mid w_1,\dots,w_{t-1})\approx P(w_t\mid w_{t-n+1},\dots,w_{t-1})
+\]
 
-## NPLM：神经语言模型的起点
+这一路线的优点是：
 
-> 相关论文：
-> - Bengio et al. (2003)：首次系统提出基于词向量与前馈网络的神经概率语言模型，证明连续表示可缓解数据稀疏问题，并指出大词表 softmax 的训练瓶颈。
-> - Morin and Bengio (2005)：提出分层 softmax，缓解大词表训练开销问题。
+- 训练方式直接，通常基于计数与平滑；
+- 模型可解释性强；
+- 在语音识别、输入法、早期机器翻译中都很实用。
 
-2003 年，Bengio 等人提出 NPLM（Neural Probabilistic Language Model）。该工作用神经网络学习词的低维连续向量，并在此基础上估计语言模型概率。
+但它的局限也非常明显：
 
-### 原理拆解
+- 词表一大就会严重稀疏；
+- 高阶组合难以可靠估计；
+- 很难处理长距离依赖；
+- 不同词之间无法共享语义结构。
 
-- 输入表示：将上下文词映射为 embedding 并拼接为向量。
+这些问题直接推动了后续神经语言模型与连续表示方法的发展。
 
-$$
-x_t=[e_{t-n+1};e_{t-n+2};\dots;e_{t-1}]
-$$
+- 相关专题：[N-Gram](../model/n-gram.md)
 
-- 前馈建模：通过 MLP 生成隐藏状态，再映射到词表分布。
+---
 
-$$
-h_t=\tanh(W_1x_t+b_1),\quad z_t=W_2h_t+b_2
-$$
+## 二、连续表示与神经语言模型：NPLM、Embedding、word2vec
 
-$$
-P(w_t|w_{t-n+1}^{t-1})=\text{softmax}(z_t)
-$$
+### 1. NPLM：从离散计数到连续参数化
 
-- 优化目标：最大化语料对数似然（等价最小化交叉熵）。
+2003 年，Bengio 等人提出 NPLM（Neural Probabilistic Language Model）。它保留了“预测下一个词”的语言模型目标，但把上下文词映射到低维连续空间，再用前馈神经网络估计条件概率。
 
-$$
-\mathcal{L}=-\sum_{t}\log P(w_t|w_{t-n+1}^{t-1})
-$$
+这一步的历史意义非常大：
 
-- 关键思想：将离散词投影到连续空间，使相似上下文共享统计强度。
-- 主要瓶颈：softmax 需要遍历大词表，训练代价较高。
+- 词不再只是离散符号，而变成可学习向量；
+- 相似上下文开始能够共享统计强度；
+- 语言模型第一次系统进入“embedding + 神经网络”的范式。
 
-- 贡献：首次系统展示神经语言模型优于传统统计方法的潜力
-- 局限：在当时算力条件下训练成本高
+它没有彻底摆脱固定窗口，但已经明确指出：**语言建模的关键，不只是更好的计数，也包括更好的表示。**
 
-## RNN：循环序列建模范式
+- 相关专题：[NPLM](../model/nplm.md)
 
-> 相关论文：
-> - Elman (1990)：提出简单循环网络（SRN），将前一时刻隐状态反馈到当前计算，实现序列上下文建模。
-> - Werbos (1990)：系统化阐述 BPTT（Through Time 反向传播）训练路径。
-> - Bengio et al. (1994)：分析长期依赖下梯度消失/爆炸问题，为后续门控结构提供理论动机。
+### 2. Embedding：离散对象进入连续空间
 
-RNN（Recurrent Neural Network）通过循环连接在时间维度上传递隐藏状态，使模型能够处理变长输入并建模时序依赖。
-其核心思想提出较早（1990），但在 NLP 中的大规模应用高峰主要出现在 2013-2014 年之后。
+随着神经语言模型的发展，Embedding 逐渐成为几乎所有 NLP 模型的标准入口。它解决的是一个更基础的问题：如何让词、子词、位置、类别等离散对象进入可优化的连续向量空间。
 
-### 原理拆解
+Embedding 的作用不只是“降维”，更重要的是：
 
-- 状态递推：
+- 让相似对象在空间中靠近；
+- 让模型可以复用参数；
+- 让后续网络在连续空间中学习语义与结构。
 
-$$
+如果说 N-Gram 的世界是“每个词彼此独立”，那么 embedding 的世界就是“词与词之间存在可学习的几何关系”。
+
+- 相关专题：[Embedding](../representation/embedding.md)
+
+### 3. word2vec：词向量走向大规模实用化
+
+2013 年前后，word2vec 通过 CBOW、Skip-gram、Negative Sampling 等设计，把词向量训练做得足够高效，从而推动 embedding 在大规模语料上的广泛应用。
+
+它的历史价值主要体现在两点：
+
+- 从工程上证明高质量词向量可以被大规模高效学习；
+- 从观念上推动 NLP 社区普遍接受“分布式表示”这一核心思想。
+
+这使得“先学表示，再做任务”逐渐成为主流路线。
+
+- 相关专题：[word2vec](../representation/word2vec.md)
+
+---
+
+## 三、循环序列建模：RNN 与 LSTM
+
+### 1. RNN：让模型显式拥有时间状态
+
+NPLM 虽然引入了连续表示，但仍然依赖固定窗口。RNN 的关键改进在于：模型不再只看固定长度上下文，而是通过递归隐藏状态在时间维度上传递历史信息。
+
+\[
 h_t=\phi(W_{xh}x_t+W_{hh}h_{t-1}+b_h)
-$$
+\]
 
-- 输出映射：
+RNN 的历史意义在于：
 
-$$
-y_t=g(W_{hy}h_t+b_y)
-$$
+- 序列第一次被统一地建模为“状态递推过程”；
+- 模型可以处理变长输入；
+- 语言建模、序列标注、语音等任务开始有了统一神经结构。
 
-- 序列条件概率分解（语言建模）：
+但 RNN 很快暴露出核心缺陷：长序列训练中梯度消失与爆炸严重，远距离依赖难以稳定学习。
 
-$$
-P(w_{1:T})=\prod_{t=1}^{T}P(w_t|w_{<t})
-$$
+- 相关专题：[RNN](../model/rnn.md)
 
-- 训练方式：通过 BPTT 在展开时间轴后反向传播梯度。
-- 主要问题：在长序列上容易出现梯度消失/爆炸，难以稳定学习远距离依赖。
+### 2. LSTM：用门控缓解长期依赖问题
 
-## LSTM：门控记忆机制
+LSTM 通过细胞状态和门控机制，对 RNN 的长程依赖问题做出系统修正。它的关键思想不是单纯“更深”，而是显式控制哪些信息保留、哪些信息遗忘、哪些信息输出。
 
-> 相关论文：
-> - Hochreiter and Schmidhuber (1997)：提出 LSTM，通过记忆单元与门控机制显著缓解长期依赖训练困难。
-> - Gers et al. (2000)：引入 Forget Gate，形成现代 LSTM 常用结构。
+因此，LSTM 在 2010 年代中期成为 NLP 的核心架构之一，尤其在：
 
-LSTM（Long Short-Term Memory）是 RNN 的门控变体，通过显式细胞状态（cell state）与输入/遗忘/输出门控制信息流。
-其结构提出于 1997 年，但真正“火爆”主要发生在 2014 年前后 seq2seq 机器翻译兴起阶段。
+- 语言模型；
+- 机器翻译；
+- 序列标注；
+- 语音识别
 
-### 原理拆解
+等任务中广泛使用。
 
-- 门控与状态更新：
+从历史上看，LSTM 并不是最终答案，但它是 Seq2Seq 与注意力机制普及前最重要的序列主干。
 
-$$
-f_t=\sigma(W_f[x_t,h_{t-1}]+b_f),\quad
-i_t=\sigma(W_i[x_t,h_{t-1}]+b_i)
-$$
+- 相关专题：[LSTM](../model/lstm.md)
 
-$$
-\tilde{c}_t=\tanh(W_c[x_t,h_{t-1}]+b_c),\quad
-c_t=f_t\odot c_{t-1}+i_t\odot\tilde{c}_t
-$$
+---
 
-$$
-o_t=\sigma(W_o[x_t,h_{t-1}]+b_o),\quad
-h_t=o_t\odot\tanh(c_t)
-$$
+## 四、条件生成框架：Seq2Seq
 
-- 核心作用：在时间维度上建立更稳定的误差信号通路，提升长期依赖建模能力。
-- 工程影响：在 Transformer 出现前，LSTM 是机器翻译、语音识别、语言建模等任务的主力序列主干。
+2014 年前后，Seq2Seq 建立了“输入一段序列，输出另一段序列”的统一建模框架。它的核心结构是编码器-解码器：
 
-## Embedding
+- 编码器读取输入序列；
+- 解码器逐步生成输出序列。
 
-> 相关论文：
-> - Collobert et al. (2011)：将词向量作为统一神经 NLP 框架的基础输入表示。
-> - Pennington et al. (2014, GloVe)：用全局共现统计学习词向量，提升语义线性结构质量。
-> - Peters et al. (2018, ELMo)：引入上下文相关词表示，推动动态 embedding 发展。
-> - Devlin et al. (2018, BERT)：将上下文化表示扩展到大规模双向预训练范式。
+\[
+P(Y\mid X)=\prod_{t=1}^{m}P(y_t\mid y_{<t},X)
+\]
 
-Embedding 指将词或子词映射到稠密向量空间，使模型可以通过向量距离表达语义相似性。
+Seq2Seq 的历史意义在于，它让许多原本分散的任务被统一起来，例如：
 
-### 原理拆解
+- 机器翻译；
+- 文本摘要；
+- 对话生成；
+- 改写与纠错。
 
-- 矩阵映射：词表大小为 \(|V|\)，维度为 \(d\)，参数矩阵 \(E\in\mathbb{R}^{|V|\times d}\)。
+不过，早期 Seq2Seq 有一个著名缺陷：编码器常常必须用单个固定长度向量压缩整段输入。这在长句场景下会形成明显的信息瓶颈。
 
-$$
-e_w = E^\top x_w
-$$
+- 相关专题：[Seq2Seq](../model/seq2seq.md)
 
-- 相似度度量：语义相近词通常具有更高余弦相似度。
+---
 
-$$
-\cos(e_i,e_j)=\frac{e_i^\top e_j}{\|e_i\|\|e_j\|}
-$$
+## 五、动态对齐机制：Attention
 
-- 学习方式：embedding 参数在下游任务损失反向传播中联合更新。
-- 表示演进：
-- 静态 embedding：同一词在任意上下文对应同一个向量。
-- 上下文 embedding：同一词在不同上下文有不同向量（如 ELMo、BERT）。
-- 分布语义关系：在 SGNS 等目标下，词向量内积与 PMI 存在近似关系。
+Attention 的出现，本质上是对 Seq2Seq 固定向量瓶颈的修正。它让解码器在每一步都可以回看输入序列的不同部分，而不是只能依赖单一压缩向量。
 
-$$
-u_w^\top v_c \approx PMI(w,c)-\log k
-$$
+\[
+c_t=\sum_{i=1}^{n}\alpha_{t,i}h_i
+\]
 
-## word2vec：高效词向量学习
+其中，\(\alpha_{t,i}\) 表示当前输出步对输入位置 \(i\) 的关注程度。
 
-> 相关论文：
-> - Mikolov et al. (2013, ICLR Workshop)：提出 CBOW 与 Skip-gram 两类高效词向量训练目标。
-> - Mikolov et al. (2013, NIPS)：提出负采样与子采样，显著提升大规模训练效率。
-> - Mikolov et al. (2013)：展示词向量线性结构（类比关系），推动 embedding 在工业系统中落地。
+这一机制的历史价值体现在：
 
-2013 年，Mikolov 等人提出 word2vec，主要包含 CBOW 与 Skip-gram 两种训练目标，并结合负采样等技巧，大幅提升训练效率。
+- 输入输出之间的对齐关系开始被显式建模；
+- 长句翻译和长序列生成效果显著提升；
+- “根据当前需求动态读取信息”成为后续架构的重要思想。
 
-### 原理拆解
+从这里开始，NLP 的重心不再只是“如何压缩历史”，而逐渐转向“如何按需读取上下文”。
 
-- CBOW：用上下文预测中心词。
+- 相关专题：[Attention](../mechanism/attention.md)
 
-$$
-\max \sum_{t}\log P(w_t|w_{t-m},\dots,w_{t-1},w_{t+1},\dots,w_{t+m})
-$$
+---
 
-- Skip-gram：用中心词预测上下文词。
+## 六、自注意力与位置信息：Self-Attention、Positional Encoding
 
-$$
-\max \sum_{t}\sum_{-m\le j\le m,j\ne 0}\log P(w_{t+j}|w_t)
-$$
+### 1. Self-Attention：序列内部的全局交互
 
-- softmax 形式：
+Attention 最初用于“解码器读取编码器输出”，而 self-attention 进一步把这一思想推广到序列内部：每个位置都可以直接查看整段序列中的其他位置。
 
-$$
-P(w_o|w_c)=\frac{\exp(u_o^\top v_c)}{\sum_{w\in V}\exp(u_w^\top v_c)}
-$$
+这带来两个决定性变化：
 
-- Negative Sampling：将多分类近似为二分类，降低训练成本。
+- 任意两个位置之间的依赖路径大幅缩短；
+- 整段序列的关系可以并行计算。
 
-$$
-\log \sigma(u_o^\top v_c)+\sum_{i=1}^{k}\log \sigma(-u_i^\top v_c)
-$$
+这使得模型不再必须依赖 RNN 那样的时间递归主干。
 
-- 高频词子采样：降低高频噪声词影响。
+- 相关专题：[Self-Attention](../mechanism/self-attention.md)
 
-$$
-P_{discard}(w)=1-\sqrt{\frac{t}{f(w)}}
-$$
+### 2. Positional Encoding：为注意力补上顺序坐标
 
-- 训练流程：滑动窗口采样正样本 -> 构造负样本 -> SGD 更新输入/输出词向量。
+Self-attention 的代价是：它本身不天然携带顺序信息。因此，Transformer 时代必须显式加入位置编码，让模型知道“谁在前、谁在后、相距多远”。
 
-## seq2seq：端到端生成范式
+从历史上看，位置编码不是附属技巧，而是 self-attention 成为序列模型后所必须补上的结构性组件。
 
-> 相关论文：
-> - Sutskever et al. (2014)：提出 Encoder-Decoder LSTM 框架，统一建模变长输入输出序列；并以端到端学习替代传统 SMT 多模块流水线，同时指出源序列反转可改善优化路径并提升训练效果。
-> - Cho et al. (2014)：提出 RNN Encoder-Decoder，为端到端序列转换提供早期实证基础。
+- 相关专题：[Positional Encoding](../mechanism/positional-encoding.md)
 
-2014 年，seq2seq（Sequence-to-Sequence）架构提出后，机器翻译等任务从「流水线模块拼接」转向「端到端建模」。
+---
 
-### 原理拆解
+## 七、Transformer：序列建模主干的重构
 
-- 概率分解：目标序列按自回归方式生成。
+2017 年，Transformer 提出“Attention Is All You Need”，将 self-attention 从辅助机制提升为主干架构。它的核心变化是：
 
-$$
-P(y|x)=\prod_{t=1}^{T_y}P(y_t|y_{<t},x)
-$$
+- 用 multi-head self-attention 替代递归状态传递；
+- 用 position-wise FFN 补充非线性变换；
+- 用残差连接、层归一化和位置编码形成稳定深层结构。
 
-- 编码器递推（RNN/LSTM 抽象）：
+Transformer 的历史地位之所以关键，是因为它同时解决了两个长期问题：
 
-$$
-h_t=f_{enc}(h_{t-1},x_t)
-$$
+- **建模能力**：远距离依赖可以直接建立；
+- **训练效率**：整段序列可以高度并行。
 
-- 解码器递推（无 attention 时）：
+从此以后，NLP 的基础设施发生了实质性变化：模型设计不再围绕“怎样改进 RNN”，而是围绕“怎样扩展 Transformer”展开。
 
-$$
-s_t=f_{dec}(s_{t-1},y_{t-1},c),\quad c=h_{T_x}
-$$
+- 相关专题：[Transformer](../model/transformer.md)
 
-- 输出分布：
+---
 
-$$
-P(y_t|y_{<t},x)=\text{softmax}(W_os_t+b_o)
-$$
+## 八、预训练范式：BERT 与 GPT
 
-- 训练目标（Teacher Forcing）：
+### 1. BERT：双向编码预训练路线
 
-$$
-\mathcal{L}=-\sum_{t=1}^{T_y}\log P(y_t^\*|y_{<t}^\*,x)
-$$
+BERT 把 Transformer 编码器与遮蔽语言模型结合起来，建立了“预训练 + 微调”的统一理解框架。它的核心不在于生成文本，而在于学习可迁移的上下文化表示。
 
-- 推理：贪心搜索或束搜索（Beam Search）；束搜索常用长度归一化分数：
+其影响主要体现在：
 
-$$
-score(y)=\frac{1}{|y|^\alpha}\sum_{t}\log P(y_t|y_{<t},x)
-$$
+- 双向上下文表示成为主流；
+- 大量理解任务可以共享同一个预训练主干；
+- NLP 从“任务定制模型”明显转向“通用预训练表示”。
 
-## Attention：解决长依赖与信息瓶颈
+BERT 代表的是**编码器预训练路线**，更偏语言理解、分类、匹配、抽取与检索。
 
-> 相关论文：
-> - Bahdanau et al. (2015)：提出 Additive Attention，实现对齐与翻译的联合学习。
-> - Luong et al. (2015)：提出多种打分函数与全局/局部注意力机制，推进工程应用。
-> - Bahdanau et al. (2015) 与 Luong et al. (2015)：注意力权重提供了源词与目标词软对齐的可解释视角。
+- 相关专题：[BERT](../model/bert.md)
 
-2015 年，Bahdanau Attention 被引入 seq2seq。在解码每一步时，模型不再只依赖单一全局向量，而是对输入序列进行动态加权。
+### 2. GPT：自回归生成预训练路线
 
-### 原理拆解
+GPT 则把 Transformer 解码器与下一词预测结合起来，建立了生成式预训练路线。它的核心是：
 
-- Additive Attention 打分：
+\[
+P(X)=\prod_{t=1}^{n}P(x_t\mid x_{<t})
+\]
 
-$$
-e_{t,i}=v^\top\tanh(W_s s_{t-1}+W_h h_i)
-$$
+这一路线的关键优势在于：
 
-- 权重归一化：
+- 训练目标统一；
+- 文本生成天然成立；
+- 很多任务都可以通过 prompt 改写为“给定前缀继续生成”。
 
-$$
-\alpha_{t,i}=\frac{\exp(e_{t,i})}{\sum_j\exp(e_{t,j})}
-$$
+随着模型规模、数据规模和对齐技术不断扩展，GPT 逐渐从“语言模型”演化为“通用生成式基础模型”。
 
-- 上下文向量：
+- 相关专题：[GPT](../model/gpt.md)
 
-$$
-c_t=\sum_i\alpha_{t,i}h_i
-$$
+---
 
-- 输出预测：
+## 九、主线关系总结
 
-$$
-P(y_t|y_{<t},x)=\text{softmax}(W_o[s_t;c_t]+b_o)
-$$
+把整条历史主线压缩成几个核心转变，可以概括为：
 
-- Dot-Product（Luong）变体：
+### 1. 从离散计数到连续表示
 
-$$
-e_{t,i}=s_t^\top W h_i
-$$
+N-Gram 的本质是离散统计；NPLM、Embedding、word2vec 的本质是让词进入连续空间，从而共享统计强度并缓解稀疏性。
 
-- 本质变化：从「单向量压缩」转为「每步按需读取输入序列」，显著改善长句翻译。
+### 2. 从固定窗口到可学习历史状态
 
-## Transformer：自注意力成为主干
+RNN 与 LSTM 让模型不再依赖固定上下文窗口，而是通过递归状态处理变长序列。
 
-> 相关论文：
-> - Vaswani et al. (2017)：提出 Transformer，以多头自注意力替代 RNN/CNN 主干并显著提升并行性，并在机器翻译任务上以更低训练成本取得更优效果。
-> - Shaw et al. (2018)：提出相对位置表示，改进长序列位置建模方式。
+### 3. 从固定压缩到动态读取
 
-2017 年，《Attention Is All You Need》提出 Transformer，核心改动是用多头自注意力替代循环结构，并通过位置编码注入顺序信息。
+Seq2Seq 建立了条件生成框架，但早期版本受限于固定向量瓶颈；Attention 则把输入读取变成动态对齐过程。
 
-### 原理拆解
+### 4. 从递归主干到自注意力主干
 
-- Scaled Dot-Product Attention：
+Self-attention 与 Transformer 让序列模型不再以时间递归为主，而以全局交互为主。
 
-$$
-\text{Attention}(Q,K,V)=\text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
-$$
+### 5. 从任务专用模型到预训练基础模型
 
-- Multi-Head Attention：
+BERT 和 GPT 共同推动了预训练范式成为主流，只是路线不同：
 
-$$
-\text{head}_i=\text{Attention}(QW_i^Q,KW_i^K,VW_i^V)
-$$
+- BERT 偏表示学习与理解；
+- GPT 偏生成建模与统一提示接口。
 
-$$
-\text{MHA}(Q,K,V)=\text{Concat}(\text{head}_1,\dots,\text{head}_h)W^O
-$$
+---
 
-- 前馈网络（Position-wise FFN）：
+## 十、建议阅读顺序
 
-$$
-\text{FFN}(x)=W_2\,\sigma(W_1x+b_1)+b_2
-$$
+如果希望按知识依赖顺序阅读本仓库中的相关文档，可以参考以下路径：
 
-- 位置编码（正余弦）：
+1. [N-Gram](../model/n-gram.md)
+2. [NPLM](../model/nplm.md)
+3. [Embedding](../representation/embedding.md)
+4. [word2vec](../representation/word2vec.md)
+5. [RNN](../model/rnn.md)
+6. [LSTM](../model/lstm.md)
+7. [Seq2Seq](../model/seq2seq.md)
+8. [Attention](../mechanism/attention.md)
+9. [Self-Attention](../mechanism/self-attention.md)
+10. [Positional Encoding](../mechanism/positional-encoding.md)
+11. [Transformer](../model/transformer.md)
+12. [BERT](../model/bert.md)
+13. [GPT](../model/gpt.md)
 
-$$
-PE(pos,2i)=\sin\left(\frac{pos}{10000^{2i/d}}\right),\quad
-PE(pos,2i+1)=\cos\left(\frac{pos}{10000^{2i/d}}\right)
-$$
-
-- 解码器因果 Mask：确保位置 \(t\) 只能访问 \(\le t\) 的 token。
-- 复杂度特征：单层自注意力时间复杂度约为 \(O(n^2d)\)，并行性显著优于 RNN。
-
-## BERT：双向编码预训练范式
-
-> 相关论文：
-> - Devlin et al. (2018)：提出「预训练 + 微调」统一范式，通过 MLM+NSP 的双向预训练提升语言理解能力，并在 GLUE、SQuAD 等基准上刷新当时 SOTA。
-> - Liu et al. (2019, RoBERTa)：验证并改进 BERT 训练策略，强化预训练规模与稳定性。
-
-BERT（Bidirectional Encoder Representations from Transformers）由 Devlin 等人在 2018 年提出，核心是通过 Transformer Encoder 双向建模大规模预训练，再迁移到下游任务。
-
-### 原理拆解
-
-- 输入表示：token、segment、position 三种 embedding 相加。
-
-$$
-h_i^{(0)}=E_{token}(x_i)+E_{segment}(x_i)+E_{position}(i)
-$$
-
-- MLM 目标：随机 mask 部分 token，预测被遮蔽词。
-
-$$
-\mathcal{L}_{MLM}=-\sum_{i\in M}\log P(x_i|x_{\backslash M})
-$$
-
-- NSP 目标：判断句子 B 是否为句子 A 的下一句。
-
-$$
-\mathcal{L}_{NSP}=-\big[y\log p+(1-y)\log(1-p)\big]
-$$
-
-- 总损失：
-
-$$
-\mathcal{L}=\mathcal{L}_{MLM}+\mathcal{L}_{NSP}
-$$
-
-- 微调机制：在预训练参数上接轻量任务头，端到端微调。
-- 能力侧重：更偏语言理解任务（分类、序列标注、抽取式问答）。
-
-## GPT：自回归生成预训练范式
-
-> 相关论文：
-> - Radford et al. (2018)：提出 GPT-1，验证生成式预训练对多类 NLP 任务的迁移能力。
-> - Radford et al. (2019)：提出 GPT-2，展示规模扩展带来的强零样本生成能力。
-> - Brown et al. (2020)：提出 GPT-3，系统展示 in-context learning 与 few-shot 能力。
-
-GPT（Generative Pre-trained Transformer）由 OpenAI 在 2018 年提出，核心是基于 Decoder-only Transformer 的单向自回归建模。
-
-### 原理拆解
-
-- 自回归语言建模：
-
-$$
-P(x)=\prod_{t=1}^{T}P(x_t|x_{<t})
-$$
-
-- 训练损失：
-
-$$
-\mathcal{L}=-\sum_{t=1}^{T}\log P(x_t|x_{<t})
-$$
-
-- 因果 Mask 注意力：
-
-$$
-\text{Attn}(Q,K,V)=\text{softmax}\left(\frac{QK^\top+M}{\sqrt{d_k}}\right)V
-$$
-
-- 其中 \(M_{ij}=-\infty\)（当 \(j>i\)）用于屏蔽未来位置。
-- 迁移路径：
-- GPT-1：预训练后微调。
-- GPT-2/3：通过规模扩展与 prompt 完成 zero-shot/few-shot 迁移。
-- 能力侧重：更偏自然语言生成、续写、对话与通用指令跟随。
-
-## 模型关系与对比
-
-1. 从离散统计到连续表示：
-N-Gram 依赖离散计数与局部上下文；NPLM、Embedding、word2vec 将词映射到连续向量空间，使语义相近样本可共享统计强度，显著缓解稀疏问题。
-
-2. 从固定压缩到动态对齐：
-RNN/LSTM 为 seq2seq 提供了可学习的序列编码与解码骨架；seq2seq 先以单一向量压缩源序列，再逐步生成目标序列；Attention 通过每步动态读取输入，直接缓解长句场景下的信息瓶颈。
-
-3. 从循环结构到自注意力主干：
-Transformer 去除了 RNN 的时间递归路径，以并行自注意力作为统一基础模块，为大规模预训练提供了更高效的基础设施。
-
-4. 从通用预训练到任务分化：
-BERT 与 GPT 均建立在 Transformer 之上，但建模方向不同。BERT 偏双向理解（判别式任务），GPT 偏单向生成（生成式任务），两者共同推动了“预训练 + 迁移”成为主流范式。
-
-## 小结
-
-从历史脉络看，NLP 的核心转变是「如何表示语言」与「如何建模上下文」：
-
-- N-Gram：基于离散计数的局部上下文建模
-- NPLM 与 embedding：进入连续表示空间
-- RNN 与 LSTM：建立循环序列建模与门控记忆机制
-- word2vec：高效学习通用词向量
-- seq2seq 与 attention：建立可学习的序列生成与对齐机制
-- Transformer：统一并放大上下文建模能力，成为现代 NLP 基座
-- BERT：以双向编码预训练强化语言理解
-- GPT：以自回归预训练强化语言生成与通用能力
+---
 
 ## Ref
 
 - Shannon, C. E. (1948). A Mathematical Theory of Communication.
 - Katz, S. M. (1987). Estimation of Probabilities from Sparse Data for the Language Model Component of a Speech Recognizer.
-- Kneser, R., and Ney, H. (1995). Improved Backing-Off for M-gram Language Modeling.
-- Bengio, Y., Ducharme, R., Vincent, P., and Janvin, C. (2003). A Neural Probabilistic Language Model.
 - Elman, J. L. (1990). Finding Structure in Time.
 - Werbos, P. J. (1990). Backpropagation Through Time: What It Does and How to Do It.
 - Bengio, Y., Simard, P., and Frasconi, P. (1994). Learning Long-Term Dependencies with Gradient Descent is Difficult.
+- Kneser, R., and Ney, H. (1995). Improved Backing-Off for M-gram Language Modeling.
 - Hochreiter, S., and Schmidhuber, J. (1997). Long Short-Term Memory.
 - Gers, F. A., Schmidhuber, J., and Cummins, F. (2000). Learning to Forget: Continual Prediction with LSTM.
+- Bengio, Y., Ducharme, R., Vincent, P., and Janvin, C. (2003). A Neural Probabilistic Language Model.
 - Morin, F., and Bengio, Y. (2005). Hierarchical Probabilistic Neural Network Language Model.
-- Collobert, R. et al. (2011). Natural Language Processing (Almost) from Scratch.
 - Mikolov, T., Chen, K., Corrado, G., and Dean, J. (2013). Efficient Estimation of Word Representations in Vector Space.
 - Mikolov, T. et al. (2013). Distributed Representations of Words and Phrases and their Compositionality.
-- Pennington, J., Socher, R., and Manning, C. D. (2014). GloVe: Global Vectors for Word Representation.
-- Cho, K. et al. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation.
 - Sutskever, I., Vinyals, O., and Le, Q. V. (2014). Sequence to Sequence Learning with Neural Networks.
+- Cho, K. et al. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation.
 - Bahdanau, D., Cho, K., and Bengio, Y. (2015). Neural Machine Translation by Jointly Learning to Align and Translate.
 - Luong, M.-T., Pham, H., and Manning, C. D. (2015). Effective Approaches to Attention-based Neural Machine Translation.
 - Vaswani, A. et al. (2017). Attention Is All You Need.
-- Shaw, P., Uszkoreit, J., and Vaswani, A. (2018). Self-Attention with Relative Position Representations.
 - Peters, M. E. et al. (2018). Deep Contextualized Word Representations.
-- Devlin, J. et al. (2018). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.
-- Liu, Y. et al. (2019). RoBERTa: A Robustly Optimized BERT Pretraining Approach.
 - Radford, A. et al. (2018). Improving Language Understanding by Generative Pre-Training.
+- Devlin, J. et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.
 - Radford, A. et al. (2019). Language Models are Unsupervised Multitask Learners.
+- Liu, Y. et al. (2019). RoBERTa: A Robustly Optimized BERT Pretraining Approach.
 - Brown, T. B. et al. (2020). Language Models are Few-Shot Learners.
