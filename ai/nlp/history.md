@@ -83,7 +83,7 @@ Embedding 的作用不只是“降维”，更重要的是：
 
 如果说 N-Gram 的世界是“每个词彼此独立”，那么 embedding 的世界就是“词与词之间存在可学习的几何关系”。
 
-- 相关专题：[Embedding](../model/embedding.md)
+- 相关专题：[Embedding](../representation/embedding.md)
 
 ### 3. word2vec：词向量走向大规模实用化
 
@@ -96,7 +96,7 @@ Embedding 的作用不只是“降维”，更重要的是：
 
 这使得“先学表示，再做任务”逐渐成为主流路线。
 
-- 相关专题：[word2vec](../model/word2vec.md)
+- 相关专题：[word2vec](../representation/word2vec.md)
 
 ---
 
@@ -181,7 +181,7 @@ c_t=\sum_{i=1}^{n}\alpha_{t,i}h_i
 
 从这里开始，NLP 的重心不再只是“如何压缩历史”，而逐渐转向“如何按需读取上下文”。
 
-- 相关专题：[Attention](../model/attention.md)
+- 相关专题：[Attention](../mechanism/attention.md)
 
 ---
 
@@ -198,7 +198,7 @@ Attention 最初用于“解码器读取编码器输出”，而 self-attention 
 
 这使得模型不再必须依赖 RNN 那样的时间递归主干。
 
-- 相关专题：[Self-Attention](../model/self-attention.md)
+- 相关专题：[Self-Attention](../mechanism/self-attention.md)
 
 ### 2. Positional Encoding：为注意力补上顺序坐标
 
@@ -206,7 +206,7 @@ Self-attention 的代价是：它本身不天然携带顺序信息。因此，Tr
 
 从历史上看，位置编码不是附属技巧，而是 self-attention 成为序列模型后所必须补上的结构性组件。
 
-- 相关专题：[Positional Encoding](../model/positional-encoding.md)
+- 相关专题：[Positional Encoding](../mechanism/positional-encoding.md)
 
 ---
 
@@ -300,14 +300,14 @@ BERT 和 GPT 共同推动了预训练范式成为主流，只是路线不同：
 
 1. [N-Gram](../model/n-gram.md)
 2. [NPLM](../model/nplm.md)
-3. [Embedding](../model/embedding.md)
-4. [word2vec](../model/word2vec.md)
+3. [Embedding](../representation/embedding.md)
+4. [word2vec](../representation/word2vec.md)
 5. [RNN](../model/rnn.md)
 6. [LSTM](../model/lstm.md)
 7. [Seq2Seq](../model/seq2seq.md)
-8. [Attention](../model/attention.md)
-9. [Self-Attention](../model/self-attention.md)
-10. [Positional Encoding](../model/positional-encoding.md)
+8. [Attention](../mechanism/attention.md)
+9. [Self-Attention](../mechanism/self-attention.md)
+10. [Positional Encoding](../mechanism/positional-encoding.md)
 11. [Transformer](../model/transformer.md)
 12. [BERT](../model/bert.md)
 13. [GPT](../model/gpt.md)
