@@ -10,6 +10,8 @@
 
 ## 0. 符号约定与公式索引
 
+本篇是跨多篇经典文献的训练机制综述。除专门保留原始算法记号的地方外，下文优先使用统一教学记号；若某一公式对应特定算法原式，则尽量与原论文一致。
+
 符号如下：
 
 | 符号 | 含义 |
@@ -25,6 +27,10 @@
 | \(\mathcal{L}\) | 损失函数值 |
 | \(\theta\) | 模型参数集合 |
 | \(\eta\) | 学习率 |
+| \(u_t\) | Momentum 中第 \(t\) 步的速度项 |
+| \(g_t\) | 第 \(t\) 步的梯度 |
+| \(m_t,v_t\) | Adam 中梯度一阶矩与二阶矩的指数滑动估计 |
+| \(\hat{m}_t,\hat{v}_t\) | Adam 中偏置校正后的一阶矩与二阶矩 |
 
 核心公式如下：
 
@@ -99,13 +105,16 @@ a^{(l)}=f(z^{(l)})
 
 14. Momentum 更新：
 \[
-v_t=\beta v_{t-1}+\nabla_{\theta}\mathcal{L},\quad \theta \leftarrow \theta-\eta v_t
+u_t=\beta u_{t-1}+\nabla_{\theta}\mathcal{L},\quad \theta \leftarrow \theta-\eta u_t
 \]
 
 15. Adam 更新：
 \[
 m_t=\beta_1 m_{t-1}+(1-\beta_1)g_t,\quad
-s_t=\beta_2 s_{t-1}+(1-\beta_2)g_t^2
+v_t=\beta_2 v_{t-1}+(1-\beta_2)g_t^2,\quad
+\hat{m}_t=\frac{m_t}{1-\beta_1^t},\quad
+\hat{v}_t=\frac{v_t}{1-\beta_2^t},\quad
+\theta_t=\theta_{t-1}-\eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\varepsilon}
 \]
 
 16. 学习率调度的一般形式：
@@ -355,19 +364,27 @@ z^{(2)}=W^{(2)}a^{(1)}+b^{(2)}, \quad \hat{y}=g(z^{(2)})
 Momentum 方法常写为：
 
 \[
-v_t=\beta v_{t-1}+\nabla_{\theta}\mathcal{L},\quad \theta \leftarrow \theta-\eta v_t
+u_t=\beta u_{t-1}+\nabla_{\theta}\mathcal{L},\quad \theta \leftarrow \theta-\eta u_t
 \]
 
-其中，\(v_t\) 是第 \(t\) 步的速度项，\(\beta\) 控制历史梯度的保留程度。它的作用可以理解为：若多个 step 的梯度方向相近，则更新会逐渐积累；若梯度在某个方向上频繁来回摆动，则震荡会被削弱。
+其中，\(u_t\) 是第 \(t\) 步的速度项，\(\beta\) 控制历史梯度的保留程度。它的作用可以理解为：若多个 step 的梯度方向相近，则更新会逐渐积累；若梯度在某个方向上频繁来回摆动，则震荡会被削弱。
 
-Adam（Adaptive Moment Estimation）进一步同时估计梯度的一阶矩与二阶矩。若记当前梯度为 \(g_t\)，则其核心更新形式为：
+Adam（Adaptive Moment Estimation）进一步同时估计梯度的一阶矩与二阶矩。若直接按 Kingma and Ba 的原始记号，记当前梯度为 \(g_t\)，则核心更新形式为：
 
 \[
 m_t=\beta_1 m_{t-1}+(1-\beta_1)g_t,\quad
-s_t=\beta_2 s_{t-1}+(1-\beta_2)g_t^2
+v_t=\beta_2 v_{t-1}+(1-\beta_2)g_t^2
 \]
 
-其中，\(g_t\) 表示第 \(t\) 步的当前梯度，\(m_t\) 表示梯度一阶矩的指数滑动估计，\(s_t\) 表示梯度二阶矩的指数滑动估计。Adam 的直观作用是：在梯度较大方向上适当缩小步长，在梯度较小方向上适当放大步长，从而提高不同参数维度上的更新稳定性。
+随后还需进行偏置校正并更新参数：
+
+\[
+\hat{m}_t=\frac{m_t}{1-\beta_1^t},\quad
+\hat{v}_t=\frac{v_t}{1-\beta_2^t},\quad
+\theta_t=\theta_{t-1}-\eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\varepsilon}
+\]
+
+其中，\(g_t\) 表示第 \(t\) 步的当前梯度，\(m_t\) 表示梯度一阶矩的指数滑动估计，\(v_t\) 表示梯度二阶矩的指数滑动估计。Adam 的直观作用是：在梯度较大方向上适当缩小步长，在梯度较小方向上适当放大步长，从而提高不同参数维度上的更新稳定性。
 
 梯度下降及其变体并不改变反向传播本身。反向传播负责计算梯度，优化器负责决定如何使用这些梯度更新参数。
 

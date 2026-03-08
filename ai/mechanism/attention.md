@@ -8,6 +8,8 @@
 
 ## 0. 符号约定与公式索引
 
+本篇是跨 Bahdanau、Luong 与 Transformer 的综述性机制文档。除专门标注来源的公式外，下文先使用统一教学记号 \(q,k_i,v_i\) 组织叙述，以避免不同论文之间的原始记号互相冲突。
+
 符号如下：
 
 | 符号 | 含义 |
@@ -15,8 +17,8 @@
 | \(q\in\mathbb{R}^d\) | query，表示“当前需要什么信息” |
 | \(k_i\in\mathbb{R}^d\) | 第 \(i\) 个 key，表示“第 \(i\) 个位置提供什么信息索引” |
 | \(v_i\in\mathbb{R}^{d_v}\) | 第 \(i\) 个 value，表示“第 \(i\) 个位置实际携带的信息” |
-| \(K=[k_1,\dots,k_n]\) | 所有 key 的集合 |
-| \(V=[v_1,\dots,v_n]\) | 所有 value 的集合 |
+| \(\mathcal{K}=\{k_1,\dots,k_n\}\) | 所有 key 的集合 |
+| \(\mathcal{V}=\{v_1,\dots,v_n\}\) | 所有 value 的集合 |
 | \(\alpha_i\) | 对第 \(i\) 个位置的注意力权重 |
 | \(s(q,k_i)\) | query 与 key 的匹配分数 |
 | \(c\) | attention 输出的上下文向量 |
