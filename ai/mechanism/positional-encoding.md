@@ -16,10 +16,13 @@
 | \(p_t\in\mathbb{R}^d\) | 第 \(t\) 个位置的编码向量 |
 | \(z_t\in\mathbb{R}^d\) | 注入位置信息后的输入表示 |
 | \(d\) | 表示维度 |
+| \(d_{model}\) | Transformer 原始论文中的表示维度记号 |
+| \(pos\) | Transformer 原始论文中的位置索引 |
 | \(t\) | 位置索引，通常从 0 或 1 开始 |
 | \(i\) | 维度索引 |
 | \(Q,K,V\) | 注意力中的 query、key、value 矩阵 |
 | \(q_t,k_t,v_t\) | 第 \(t\) 个位置对应的 query、key、value 向量 |
+| \(d_k\) | 缩放点积注意力中 key / query 的维度 |
 | \(\Delta=t-s\) | 两个位置之间的相对距离 |
 | \(\mathrm{Attn}(\cdot)\) | 注意力计算函数 |
 
@@ -32,13 +35,13 @@ z_t = x_t + p_t
 
 2. Transformer 原始正弦位置编码：
 \[
-\mathrm{PE}(t,2i)=\sin\left(\frac{t}{10000^{2i/d}}\right),\quad
-\mathrm{PE}(t,2i+1)=\cos\left(\frac{t}{10000^{2i/d}}\right)
+\mathrm{PE}(pos,2i)=\sin\left(\frac{pos}{10000^{2i/d_{model}}}\right),\quad
+\mathrm{PE}(pos,2i+1)=\cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
 \]
 
 3. 缩放点积注意力：
 \[
-\mathrm{Attn}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V
+\mathrm{Attn}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
 \]
 
 4. 带相对位置信息的打分形式：
@@ -104,11 +107,11 @@ z_t = x_t + p_t
 | **可学习绝对位置编码** | 把每个位置当作一个可训练参数 | 灵活，但长度外推能力通常较弱 |
 | **固定绝对位置编码** | 由预定义函数直接生成 | 无需学习，可能更易外推 |
 
-Transformer 原始论文采用的是固定的正弦-余弦位置编码：
+Transformer 原始论文采用的是固定的正弦-余弦位置编码。这里保留原论文中的 \(pos\)、\(i\) 与 \(d_{model}\) 记号，便于直接对照 Vaswani et al. (2017)：
 
 \[
-\mathrm{PE}(t,2i)=\sin\left(\frac{t}{10000^{2i/d}}\right),\quad
-\mathrm{PE}(t,2i+1)=\cos\left(\frac{t}{10000^{2i/d}}\right)
+\mathrm{PE}(pos,2i)=\sin\left(\frac{pos}{10000^{2i/d_{model}}}\right),\quad
+\mathrm{PE}(pos,2i+1)=\cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
 \]
 
 它的直观含义是：
