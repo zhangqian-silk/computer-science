@@ -1,0 +1,21 @@
+{
+  "name": "computer-science",
+  "private": true,
+  "version": "0.1.0",
+  "description": "计算机科学知识库站点",
+  "scripts": {
+    "docs:dev": "vitepress dev .",
+    "docs:build": "vitepress build .",
+    "docs:preview": "vitepress preview ."
+  },
+  "devDependencies": {
+    "katex": "^0.16.22",
+    "markdown-it-texmath": "^1.0.0",
+    "mermaid": "^11.12.0",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

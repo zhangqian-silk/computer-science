@@ -22,7 +22,7 @@
 
 ## 实现映射（基于 demo 代码）
 
-参考实现：[`src/rete_engine.go`](./src/rete_engine.go)。
+参考实现：`src/rete_engine.go`。
 
 | 工程对象 | 对应实现 | 说明 |
 | :--- | :--- | :--- |
