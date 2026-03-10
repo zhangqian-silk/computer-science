@@ -186,5 +186,5 @@ func min64(a, b int64) int64 {
 
 ## 关联专题
 
-- 支付业务专题：`system_design/scenarios/payment/TOPICS.md`
-- 营销业务专题：`system_design/scenarios/marketing/TOPICS.md`
+- 支付业务专题：[`system_design/scenarios/payment/TOPICS.md`](../../system_design/scenarios/payment/TOPICS.md)
+- 营销业务专题：[`system_design/scenarios/marketing/TOPICS.md`](../../system_design/scenarios/marketing/TOPICS.md)

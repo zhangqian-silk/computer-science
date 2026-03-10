@@ -14,17 +14,17 @@
 
 ## 业务专题清单
 
-- 营销系统：[已覆盖] `marketing/`
-- 聊天（IM）：[待补充] `chat/`
-- 支付系统：[待补充] `payment/`
-- 广告系统：[待补充] `advertising/`
-- 电商交易：[待补充] `ecommerce/`
+- 营销系统：[已覆盖] [`marketing/TOPICS.md`](./marketing/TOPICS.md)
+- 聊天（IM）：[待补充] [`chat/TOPICS.md`](./chat/TOPICS.md)
+- 支付系统：[待补充] [`payment/TOPICS.md`](./payment/TOPICS.md)
+- 广告系统：[待补充] [`advertising/TOPICS.md`](./advertising/TOPICS.md)
+- 电商交易：[待补充] [`ecommerce/TOPICS.md`](./ecommerce/TOPICS.md)
 - 推荐系统：[未建专题]
-- 搜索系统：[待补充] `search/`
-- 云盘系统：[待补充] `cloud_drive/`
-- 地图系统：[待补充] `map/`
-- 预定系统：[待补充] `booking/`
-- 排行榜系统：[待补充] `leaderboard/`
+- 搜索系统：[待补充] [`search/TOPICS.md`](./search/TOPICS.md)
+- 云盘系统：[待补充] [`cloud_drive/TOPICS.md`](./cloud_drive/TOPICS.md)
+- 地图系统：[待补充] [`map/TOPICS.md`](./map/TOPICS.md)
+- 预定系统：[待补充] [`booking/TOPICS.md`](./booking/TOPICS.md)
+- 排行榜系统：[待补充] [`leaderboard/TOPICS.md`](./leaderboard/TOPICS.md)
 - 风控系统：[未建专题]
 
 ---

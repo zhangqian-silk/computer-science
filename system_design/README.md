@@ -28,31 +28,31 @@
 
 ## 当前目录映射
 
-- 方法论层：`设计可扩展分布式系统的方法论.md`
-- 通用机制层：`base/`
+- 方法论层：[`设计可扩展分布式系统的方法论.md`](./设计可扩展分布式系统的方法论.md)
+- 通用机制层：[`base/TOPICS.md`](./base/TOPICS.md)
 - 组件能力层：`components/`
-- 工程治理层：`governance/`
-- 业务专题层：`scenarios/`（专题清单见 `scenarios/TOPICS.md`）
+- 工程治理层：[`governance/TOPICS.md`](./governance/TOPICS.md)
+- 业务专题层：[`scenarios/TOPICS.md`](./scenarios/TOPICS.md)
 
 ---
 
 ## 各模块知识点目录
 
-- 通用机制层：`base/TOPICS.md`
+- 通用机制层：[`base/TOPICS.md`](./base/TOPICS.md)
 - 组件能力层：`components/TOPICS.md`
-- 工程治理层：`governance/TOPICS.md`
-- 业务专题层：`scenarios/TOPICS.md`
+- 工程治理层：[`governance/TOPICS.md`](./governance/TOPICS.md)
+- 业务专题层：[`scenarios/TOPICS.md`](./scenarios/TOPICS.md)
 
 ---
 
 ## 学习重点主题（建议优先）
 
 - 限流机制：从算法、部署位置与治理口径三个维度掌握系统过载防护。
-	- 通用机制层参考：`base/high_availability/rate_limiting.md`
+	- 通用机制层参考：[`base/high_availability/rate_limiting.md`](./base/high_availability/rate_limiting.md)
 - 短链组件：关注短码生成、解析链路、风控与统计指标的一体化设计。
-	- 组件能力层参考：`components/short_link/TOPICS.md`
+	- 组件能力层参考：[`components/short_link/TOPICS.md`](./components/short_link/TOPICS.md)
 - 聊天（IM）专题：综合应用消息可靠投递、在线状态、会话读写分离与限流治理。
-	- 业务专题层参考：`scenarios/chat/TOPICS.md`
+	- 业务专题层参考：[`scenarios/chat/TOPICS.md`](./scenarios/chat/TOPICS.md)
 
 ---
 

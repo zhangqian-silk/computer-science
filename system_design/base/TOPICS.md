@@ -26,10 +26,10 @@
 
 ## 高可用与稳定性
 
-- 负载均衡：[已覆盖] `high_availability/load_balancing.md`
-- 限流：[已覆盖] `high_availability/rate_limiting.md`
-- 降级：[已覆盖] `high_availability/degradation.md`
-- 熔断：[已覆盖] `high_availability/circuit_breaker.md`
+- 负载均衡：[已覆盖] [`high_availability/load_balancing.md`](./high_availability/load_balancing.md)
+- 限流：[已覆盖] [`high_availability/rate_limiting.md`](./high_availability/rate_limiting.md)
+- 降级：[已覆盖] [`high_availability/degradation.md`](./high_availability/degradation.md)
+- 熔断：[已覆盖] [`high_availability/circuit_breaker.md`](./high_availability/circuit_breaker.md)
 - 超时与重试预算：[未建专题]
 - 隔离与舱壁模式：[未建专题]
 - 故障注入与稳定性验证：[未建专题]
@@ -38,18 +38,18 @@
 
 ## 一致性与数据可靠性
 
-- 幂等机制：[已覆盖] `idempotence.md`
-- 分布式事务（TCC、SAGA、Outbox）：[待补充] `distributed_transaction.md`
-- 缓存一致性与缓存失效策略：[待补充] `cache_consistency.md`
-- 消息可靠性（重试、死信、去重）：[待补充] `message_reliability.md`
-- 分片与扩容迁移：[待补充] `sharding_and_migration.md`
+- 幂等机制：[已覆盖] [`idempotence.md`](./idempotence.md)
+- 分布式事务（TCC、SAGA、Outbox）：[待补充] [`distributed_transaction.md`](./distributed_transaction.md)
+- 缓存一致性与缓存失效策略：[待补充] [`cache_consistency.md`](./cache_consistency.md)
+- 消息可靠性（重试、死信、去重）：[待补充] [`message_reliability.md`](./message_reliability.md)
+- 分片与扩容迁移：[待补充] [`sharding_and_migration.md`](./sharding_and_migration.md)
 
 ---
 
 ## 安全机制
 
-- 认证（Session/JWT/SSO/OIDC/MFA）：[已覆盖] `security/authentication.md`
-- 授权（RBAC/ABAC/ACL/OAuth）：[已覆盖] `security/authorization.md`
+- 认证（Session/JWT/SSO/OIDC/MFA）：[已覆盖] [`security/authentication.md`](./security/authentication.md)
+- 授权（RBAC/ABAC/ACL/OAuth）：[已覆盖] [`security/authorization.md`](./security/authorization.md)
 - 密钥管理与轮换策略：[未建专题]
 - 服务间身份认证（mTLS、SPIFFE）：[未建专题]
 
