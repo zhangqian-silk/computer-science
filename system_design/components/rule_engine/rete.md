@@ -14,9 +14,9 @@
 
 ## 与 rule_engine.md 的关系
 
-- `rule_engine.md`：规则引擎整体设计、模块职责、发布治理。
+- [`rule_engine.md`](./rule_engine.md)：规则引擎整体设计、模块职责、发布治理。
 - 本文：Rete 子模块的工程实现细节。
-- 基础算法文档：`../../../fundamentals/algorithms/rete.md`。
+- 基础算法文档：[`../../../fundamentals/algorithms/rete.md`](../../../fundamentals/algorithms/rete.md)。
 
 ---
 

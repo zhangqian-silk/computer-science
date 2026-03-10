@@ -132,5 +132,5 @@ end function
 
 ## 关联阅读
 
-- 规则引擎工程化落地：`system_design/components/rule_engine/rete.md`
-- 规则引擎整体设计：`system_design/components/rule_engine/rule_engine.md`
+- 规则引擎工程化落地：[`system_design/components/rule_engine/rete.md`](../../system_design/components/rule_engine/rete.md)
+- 规则引擎整体设计：[`system_design/components/rule_engine/rule_engine.md`](../../system_design/components/rule_engine/rule_engine.md)

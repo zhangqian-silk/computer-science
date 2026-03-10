@@ -15,7 +15,7 @@
 
 ## 发布治理
 
-- 灰度发布与回滚：[已覆盖] `release_and_rollback.md`
+- 灰度发布与回滚：[已覆盖] [`release_and_rollback.md`](./release_and_rollback.md)
 - 变更准入与风险评审：[部分覆盖]
 - 配置变更治理：[未建专题]
 - 数据库变更治理（expand/contract）：[未建专题]
@@ -24,17 +24,17 @@
 
 ## 运行治理
 
-- 可观测性治理：[已覆盖] `observability.md`
-- 事件响应与故障处置：[待补充] `incident_response.md`
-- 故障演练与混沌工程：[待补充] `chaos_engineering.md`
+- 可观测性治理：[已覆盖] [`observability.md`](./observability.md)
+- 事件响应与故障处置：[待补充] [`incident_response.md`](./incident_response.md)
+- 故障演练与混沌工程：[待补充] [`chaos_engineering.md`](./chaos_engineering.md)
 - Runbook 与值班机制：[未建专题]
 
 ---
 
 ## 质量治理
 
-- 容量规划与压测：[待补充] `capacity_and_stress_testing.md`
-- SLA/SLO 管理：[待补充] `sla_slo_management.md`
+- 容量规划与压测：[待补充] [`capacity_and_stress_testing.md`](./capacity_and_stress_testing.md)
+- SLA/SLO 管理：[待补充] [`sla_slo_management.md`](./sla_slo_management.md)
 - 稳定性评审与质量门禁：[未建专题]
 
 ---

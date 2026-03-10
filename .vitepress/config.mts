@@ -98,6 +98,72 @@ function buildItems(relativeDir: string, depth = 0): DefaultTheme.SidebarItem[] 
 	return items
 }
 
+function installBracketMathBlock(md: {
+	core: {
+		ruler: {
+			before: (
+				beforeName: string,
+				ruleName: string,
+				rule: (state: { src: string }) => void
+			) => void
+		}
+	}
+}) {
+	md.core.ruler.before('normalize', 'normalize_bracket_math_block', (state) => {
+		const lines = state.src.split('\n')
+		const normalized: string[] = []
+		let inFence = false
+
+		for (let index = 0; index < lines.length; index += 1) {
+			const line = lines[index]
+			const trimmed = line.trim()
+
+			if (/^(```|~~~)/.test(trimmed)) {
+				inFence = !inFence
+				normalized.push(line)
+				continue
+			}
+
+			if (!inFence && trimmed === '\\[') {
+				const formulaLines: string[] = []
+				let cursor = index + 1
+
+				while (cursor < lines.length && lines[cursor].trim() !== '\\]') {
+					formulaLines.push(lines[cursor])
+					cursor += 1
+				}
+
+				if (cursor < lines.length) {
+					const formula = formulaLines.join(' ').trim()
+					let previousIndex = normalized.length - 1
+
+					while (previousIndex >= 0 && normalized[previousIndex].trim() === '') {
+						previousIndex -= 1
+					}
+
+					const previousLine = previousIndex >= 0 ? normalized[previousIndex] : ''
+					const isListContext = /^\s*(?:[-+*]|\d+\.)\s+/.test(previousLine)
+
+					if (isListContext) {
+						normalized[previousIndex] = `${previousLine} $${formula}$`
+					} else {
+						normalized.push('$$')
+						normalized.push(...formulaLines)
+						normalized.push('$$')
+					}
+
+					index = cursor
+					continue
+				}
+			}
+
+			normalized.push(line)
+		}
+
+		state.src = normalized.join('\n')
+	})
+}
+
 const sidebar = Object.fromEntries(
 	sectionMeta.map(({ key }) => [`/${key}/`, buildItems(key)])
 )
@@ -114,15 +180,30 @@ export default withMermaid(
 			/^https?:\/\//
 		],
 		markdown: {
+			languages: ['proto'],
+			languageAlias: {
+				thrift: 'proto'
+			},
 			lineNumbers: true,
 			config(md) {
+				installBracketMathBlock(md)
+
 				md.use(texmath, {
 					engine: katex,
 					delimiters: ['brackets', 'dollars', 'beg_end'],
 					katexOptions: {
-						output: 'html'
+						output: 'html',
+						throwOnError: false,
+						strict: 'ignore'
 					}
 				})
+			}
+		},
+		vue: {
+			template: {
+				compilerOptions: {
+					isCustomElement: (tag) => tag === 'eq' || tag === 'eqn'
+				}
 			}
 		},
 		themeConfig: {
