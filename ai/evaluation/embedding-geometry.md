@@ -11,24 +11,24 @@
 
 | 符号 | 含义 |
 | --- | --- |
-| \(u,v\in\mathbb{R}^d\) | 两个向量表示 |
-| \(d\) | 向量维度 |
-| \(u\cdot v\) | 向量点积 |
-| \(\lVert u\rVert\) | 向量范数 |
-| \(\cos(u,v)\) | 余弦相似度 |
-| \(E\in\mathbb{R}^{\lvert V\rvert\times d}\) | embedding 矩阵 |
+| $u,v\in\mathbb{R}^d$ | 两个向量表示 |
+| $d$ | 向量维度 |
+| $u\cdot v$ | 向量点积 |
+| $\lVert u\rVert$ | 向量范数 |
+| $\cos(u,v)$ | 余弦相似度 |
+| $E\in\mathbb{R}^{\lvert V\rvert\times d}$ | embedding 矩阵 |
 
 核心公式如下：
 
 1. 余弦相似度：
-\[
+$$
 \cos(u,v)=\frac{u\cdot v}{\lVert u\rVert\lVert v\rVert}
-\]
+$$
 
 2. 线性类比形式：
-\[
+$$
 u_a-u_b+u_c\approx u_d
-\]
+$$
 
 ---
 
@@ -46,11 +46,11 @@ u_a-u_b+u_c\approx u_d
 
 ## 邻域分析与余弦相似度
 
-最直接的分析方法，是观察某个向量的最近邻。对于两个向量 \(u\) 与 \(v\)，常用余弦相似度衡量方向上的接近程度：
+最直接的分析方法，是观察某个向量的最近邻。对于两个向量 $u$ 与 $v$，常用余弦相似度衡量方向上的接近程度：
 
-\[
+$$
 \cos(u,v)=\frac{u\cdot v}{\lVert u\rVert\lVert v\rVert}
-\]
+$$
 
 若该值更接近 1，说明两者夹角更小，方向更接近。与欧氏距离相比，余弦相似度更强调“方向是否相似”，因此常用于分析词义邻近、功能相似或上下文角色相近的对象。
 
@@ -82,9 +82,9 @@ u_a-u_b+u_c\approx u_d
 
 另一类更强的表示分析，是检验空间中是否出现近似线性的关系。例如：
 
-\[
+$$
 \mathrm{vec}(\text{“国王”})-\mathrm{vec}(\text{“男人”})+\mathrm{vec}(\text{“女人”})\approx \mathrm{vec}(\text{“女王”})
-\]
+$$
 
 这表明某些抽象属性可能在向量空间中对应为方向或位移。若一类属性在多个词对之间表现出相似位移，则说明表示空间中可能存在更高层次的结构规律。
 
