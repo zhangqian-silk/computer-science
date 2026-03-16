@@ -9,6 +9,7 @@ import AttentionScoreMatrixExplorer from './components/AttentionScoreMatrixExplo
 import AttentionTradeoffExplorer from './components/AttentionTradeoffExplorer.vue'
 import MaskPositionExplorer from './components/MaskPositionExplorer.vue'
 import MultiHeadAttentionExplorer from './components/MultiHeadAttentionExplorer.vue'
+import NGramWorkflowExplorer from './components/NGramWorkflowExplorer.vue'
 import TransformerBlockExplorer from './components/TransformerBlockExplorer.vue'
 
 export default {
@@ -21,6 +22,7 @@ export default {
 		app.component('AttentionTradeoffExplorer', AttentionTradeoffExplorer)
 		app.component('MaskPositionExplorer', MaskPositionExplorer)
 		app.component('MultiHeadAttentionExplorer', MultiHeadAttentionExplorer)
+		app.component('NGramWorkflowExplorer', NGramWorkflowExplorer)
 		app.component('TransformerBlockExplorer', TransformerBlockExplorer)
 	}
 } satisfies Theme
