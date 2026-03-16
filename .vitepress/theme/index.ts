@@ -21,6 +21,7 @@ import NGramSmoothingExplorer from './components/NGramSmoothingExplorer.vue'
 import NGramWorkflowExplorer from './components/NGramWorkflowExplorer.vue'
 import NPLMStructureExplorer from './components/NPLMStructureExplorer.vue'
 import RNNStructureExplorer from './components/RNNStructureExplorer.vue'
+import RNNTrainingDynamicsExplorer from './components/RNNTrainingDynamicsExplorer.vue'
 import Seq2SeqWorkflowExplorer from './components/Seq2SeqWorkflowExplorer.vue'
 import TransformerBlockExplorer from './components/TransformerBlockExplorer.vue'
 import VectorRetrievalPipelineExplorer from './components/VectorRetrievalPipelineExplorer.vue'
@@ -49,6 +50,7 @@ export default {
 		app.component('NGramWorkflowExplorer', NGramWorkflowExplorer)
 		app.component('NPLMStructureExplorer', NPLMStructureExplorer)
 		app.component('RNNStructureExplorer', RNNStructureExplorer)
+		app.component('RNNTrainingDynamicsExplorer', RNNTrainingDynamicsExplorer)
 		app.component('Seq2SeqWorkflowExplorer', Seq2SeqWorkflowExplorer)
 		app.component('TransformerBlockExplorer', TransformerBlockExplorer)
 		app.component('VectorRetrievalPipelineExplorer', VectorRetrievalPipelineExplorer)
