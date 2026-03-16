@@ -12,6 +12,7 @@ import LSTMStructureExplorer from './components/LSTMStructureExplorer.vue'
 import MaskPositionExplorer from './components/MaskPositionExplorer.vue'
 import MultiHeadAttentionExplorer from './components/MultiHeadAttentionExplorer.vue'
 import NGramWorkflowExplorer from './components/NGramWorkflowExplorer.vue'
+import NPLMStructureExplorer from './components/NPLMStructureExplorer.vue'
 import RNNStructureExplorer from './components/RNNStructureExplorer.vue'
 import Seq2SeqWorkflowExplorer from './components/Seq2SeqWorkflowExplorer.vue'
 import TransformerBlockExplorer from './components/TransformerBlockExplorer.vue'
@@ -29,6 +30,7 @@ export default {
 		app.component('MaskPositionExplorer', MaskPositionExplorer)
 		app.component('MultiHeadAttentionExplorer', MultiHeadAttentionExplorer)
 		app.component('NGramWorkflowExplorer', NGramWorkflowExplorer)
+		app.component('NPLMStructureExplorer', NPLMStructureExplorer)
 		app.component('RNNStructureExplorer', RNNStructureExplorer)
 		app.component('Seq2SeqWorkflowExplorer', Seq2SeqWorkflowExplorer)
 		app.component('TransformerBlockExplorer', TransformerBlockExplorer)
