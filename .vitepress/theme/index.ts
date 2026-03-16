@@ -16,6 +16,8 @@ import LSTMStructureExplorer from './components/LSTMStructureExplorer.vue'
 import MaskPositionExplorer from './components/MaskPositionExplorer.vue'
 import MultiHeadAttentionExplorer from './components/MultiHeadAttentionExplorer.vue'
 import MultimodalEmbeddingExplorer from './components/MultimodalEmbeddingExplorer.vue'
+import NGramEvolutionExplorer from './components/NGramEvolutionExplorer.vue'
+import NGramSmoothingExplorer from './components/NGramSmoothingExplorer.vue'
 import NGramWorkflowExplorer from './components/NGramWorkflowExplorer.vue'
 import NPLMStructureExplorer from './components/NPLMStructureExplorer.vue'
 import RNNStructureExplorer from './components/RNNStructureExplorer.vue'
@@ -41,6 +43,8 @@ export default {
 		app.component('MaskPositionExplorer', MaskPositionExplorer)
 		app.component('MultiHeadAttentionExplorer', MultiHeadAttentionExplorer)
 		app.component('MultimodalEmbeddingExplorer', MultimodalEmbeddingExplorer)
+		app.component('NGramEvolutionExplorer', NGramEvolutionExplorer)
+		app.component('NGramSmoothingExplorer', NGramSmoothingExplorer)
 		app.component('NGramWorkflowExplorer', NGramWorkflowExplorer)
 		app.component('NPLMStructureExplorer', NPLMStructureExplorer)
 		app.component('RNNStructureExplorer', RNNStructureExplorer)
