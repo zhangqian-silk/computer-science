@@ -24,6 +24,7 @@ import RNNStructureExplorer from './components/RNNStructureExplorer.vue'
 import Seq2SeqWorkflowExplorer from './components/Seq2SeqWorkflowExplorer.vue'
 import TransformerBlockExplorer from './components/TransformerBlockExplorer.vue'
 import VectorRetrievalPipelineExplorer from './components/VectorRetrievalPipelineExplorer.vue'
+import Word2VecLandscapeExplorer from './components/Word2VecLandscapeExplorer.vue'
 import Word2VecTrainingExplorer from './components/Word2VecTrainingExplorer.vue'
 
 export default {
@@ -51,6 +52,7 @@ export default {
 		app.component('Seq2SeqWorkflowExplorer', Seq2SeqWorkflowExplorer)
 		app.component('TransformerBlockExplorer', TransformerBlockExplorer)
 		app.component('VectorRetrievalPipelineExplorer', VectorRetrievalPipelineExplorer)
+		app.component('Word2VecLandscapeExplorer', Word2VecLandscapeExplorer)
 		app.component('Word2VecTrainingExplorer', Word2VecTrainingExplorer)
 	}
 } satisfies Theme
