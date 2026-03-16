@@ -1,5 +1,11 @@
 # Seq2Seq：从输入序列到输出序列的条件生成框架
 
+如果希望先建立对 Seq2Seq 整体流程的直观认识，可以先阅读下面的交互式结构图。该图概括了编码器、条件传递、解码器、attention 与搜索策略之间的关系：
+
+<Seq2SeqWorkflowExplorer />
+
+---
+
 > 相关文献：
 > - Sutskever, Vinyals, and Le (2014)：提出基于编码器-解码器的序列到序列学习框架。
 > - Cho et al. (2014)：提出 RNN Encoder-Decoder，系统化编码器-解码器结构。

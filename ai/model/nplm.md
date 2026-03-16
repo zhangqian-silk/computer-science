@@ -1,5 +1,11 @@
 # NPLM：神经概率语言模型
 
+如果希望先建立对 NPLM 整体结构的直观认识，可以先阅读下面的交互式结构图。该图概括了固定窗口、embedding、隐藏层组合与全词表 softmax 输出之间的关系：
+
+<NPLMStructureExplorer />
+
+---
+
 > 相关论文：
 > - Bengio, Ducharme, Vincent, and Janvin (2003)：系统提出 Neural Probabilistic Language Model，用连续词表示与前馈网络估计条件概率，直接回应 n-gram 的数据稀疏问题。
 > - Morin and Bengio (2005)：提出分层 softmax，缓解大词表归一化的计算瓶颈。
