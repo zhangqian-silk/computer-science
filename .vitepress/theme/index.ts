@@ -20,6 +20,9 @@ import NGramEvolutionExplorer from './components/NGramEvolutionExplorer.vue'
 import NGramSmoothingExplorer from './components/NGramSmoothingExplorer.vue'
 import NGramWorkflowExplorer from './components/NGramWorkflowExplorer.vue'
 import NPLMStructureExplorer from './components/NPLMStructureExplorer.vue'
+import PositionEncodingCompareExplorer from './components/PositionEncodingCompareExplorer.vue'
+import PositionEncodingRoadmap from './components/PositionEncodingRoadmap.vue'
+import PositionRotationExplorer from './components/PositionRotationExplorer.vue'
 import RNNStructureExplorer from './components/RNNStructureExplorer.vue'
 import RNNTrainingDynamicsExplorer from './components/RNNTrainingDynamicsExplorer.vue'
 import Seq2SeqWorkflowExplorer from './components/Seq2SeqWorkflowExplorer.vue'
@@ -49,6 +52,9 @@ export default {
 		app.component('NGramSmoothingExplorer', NGramSmoothingExplorer)
 		app.component('NGramWorkflowExplorer', NGramWorkflowExplorer)
 		app.component('NPLMStructureExplorer', NPLMStructureExplorer)
+		app.component('PositionEncodingCompareExplorer', PositionEncodingCompareExplorer)
+		app.component('PositionEncodingRoadmap', PositionEncodingRoadmap)
+		app.component('PositionRotationExplorer', PositionRotationExplorer)
 		app.component('RNNStructureExplorer', RNNStructureExplorer)
 		app.component('RNNTrainingDynamicsExplorer', RNNTrainingDynamicsExplorer)
 		app.component('Seq2SeqWorkflowExplorer', Seq2SeqWorkflowExplorer)
