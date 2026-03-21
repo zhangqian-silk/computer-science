@@ -1,4 +1,6 @@
-# GPT：基于自回归解码器预训练的生成式语言模型
+# GPT：基于 Decoder-only Transformer 的自回归语言模型
+
+<TransformerBlockExplorer />
 
 > 相关文献：
 > - Radford et al. (2018)：提出 GPT，展示基于 Transformer Decoder 的统一生成式预训练框架。
@@ -6,207 +8,663 @@
 > - Brown et al. (2020)：提出 GPT-3，系统展示大模型的上下文学习与少样本泛化现象。
 > - Ouyang et al. (2022)：提出 InstructGPT，展示指令微调与人类反馈优化对对话能力的提升。
 
-## 符号约定与核心公式
+GPT 的数学本质，不是“会聊天”，而是学习一个离散序列上的条件概率族。给定 token 序列
 
-符号如下：
+$$
+X=(x_1,x_2,\dots,x_T)
+$$
+
+GPT 试图逼近的目标是
+
+$$
+P_\theta(X)=\prod_{t=1}^{T}P_\theta(x_t\mid x_{<t})
+$$
+
+也就是说，它把“生成一段文本”分解为一连串更小的问题：在只看见左侧前缀的条件下，下一个 token 的概率分布是什么。整个 Decoder-only Transformer 的所有矩阵运算，最终都服务于这个目标。
+
+为统一叙述，本文主要采用现代 GPT 类模型中更常见的 **pre-LN** 写法展开，同时用最标准的 **masked self-attention + FFN + residual + LayerNorm** 骨架组织内容。原始 GPT、GPT-2 / GPT-3 与后续 LLaMA 类模型在位置编码、激活函数、是否共享输出层权重等实现上并不完全相同，但共享同一条数学主线。
+
+---
+
+## 0. 路线图与符号约定
+
+若把整篇文档压缩成一条主线，那么 GPT 的内部逻辑可以概括为：
+
+1. 把文本离散化为 token 序列。
+2. 把 token 映射到向量空间，并注入位置信息。
+3. 用带因果掩码的 Decoder block 逐层构造前缀的上下文化表示。
+4. 把最后隐藏状态投影到词表，得到下一个 token 的概率分布。
+5. 用最大似然训练，在推理时自回归地逐 token 解码。
+
+下图给出全文的阅读路线：
+
+```mermaid
+flowchart TD
+	A["建模目标：Pθ(X)=∏t Pθ(xt | x<t)"] --> B["输入表示：token embedding + position"]
+	B --> C["Decoder Block：masked attention + FFN + residual + LN"]
+	C --> D["输出层：logits → softmax"]
+	D --> E["训练：cross-entropy / maximum likelihood"]
+	E --> F["推理：sampling + KV cache"]
+	F --> G["规模：参数量与显存复杂度"]
+```
+
+本文统一使用如下记号：
 
 | 符号 | 含义 |
 | --- | --- |
-| $X=(x_1,\dots,x_n)$ | 输入 token 序列 |
-| $x_{<t}$ | 位置 $t$ 之前的前缀 token |
-| $h_t^{(l)}$ | 第 $l$ 层中位置 $t$ 的隐藏表示 |
+| $X=(x_1,\dots,x_T)$ | 一个 token 序列 |
+| $x_{<t}$ | 位置 $t$ 之前的前缀 |
+| $|V|$ | 词表大小 |
+| $u_t\in\mathbb{R}^{|V|}$ | 位置 $t$ 的 one-hot token 向量 |
+| $U\in\mathbb{R}^{T\times |V|}$ | 序列的 one-hot 矩阵表示 |
+| $d_{\mathrm{model}}$ | 模型隐藏维度 |
+| $d_k,d_v$ | 单头 attention 中 key / value 的维度 |
+| $h$ | 注意力头数 |
+| $L$ | Transformer block 层数 |
+| $E\in\mathbb{R}^{|V|\times d_{\mathrm{model}}}$ | token embedding 矩阵 |
+| $W_P\in\mathbb{R}^{T_{\max}\times d_{\mathrm{model}}}$ | 位置参数矩阵 |
+| $P\in\mathbb{R}^{T\times d_{\mathrm{model}}}$ | 当前序列对应的位置矩阵 |
+| $H^{(\ell)}\in\mathbb{R}^{T\times d_{\mathrm{model}}}$ | 第 $\ell$ 层输出矩阵 |
 | $Q,K,V$ | query、key、value 矩阵 |
-| $M$ | 因果掩码，阻止位置看到未来 token |
-| $p_t$ | 第 $t$ 个位置的位置编码 |
-| $d_k$ | attention 中 key / query 的维度 |
-| $P(x_t\mid x_{<t})$ | 基于前缀预测第 $t$ 个 token 的条件概率 |
-| $\mathcal{L}_{LM}$ | 自回归语言模型损失 |
-| $\theta$ | 模型参数 |
-| $\hat{x}_{t}$ | 模型在位置 $t$ 预测的 token |
+| $M\in\mathbb{R}^{T\times T}$ | 因果掩码矩阵 |
+| $A$ | attention 权重矩阵 |
+| $W_{\mathrm{out}}\in\mathbb{R}^{d_{\mathrm{model}}\times |V|}$ | 输出投影矩阵 |
+| $o_t\in\mathbb{R}^{|V|}$ | 位置 $t$ 的词表 logits |
+| $p_\theta(\cdot\mid x_{<t})$ | 模型输出的条件概率分布 |
+| $\mathcal{L}_{\mathrm{LM}}$ | 语言模型损失 |
+| $\theta$ | 全部可训练参数 |
 
-核心公式如下：
+本文会反复用到以下核心公式：
 
 1. 自回归分解：
 $$
-P(X)=\prod_{t=1}^{n}P(x_t\mid x_{<t})
+P_\theta(X)=\prod_{t=1}^{T}P_\theta(x_t\mid x_{<t})
 $$
 
-2. GPT 输入表示：
+2. 输入表示：
 $$
-z_t = e_t + p_t
-$$
-
-3. 带因果掩码的 self-attention：
-$$
-\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
+H^{(0)}=UE+P
 $$
 
-4. 语言模型损失：
+3. 单头 masked attention：
 $$
-\mathcal{L}_{LM}=-\sum_{t=1}^{n}\log P(x_t\mid x_{<t})
+\mathrm{Attn}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
 $$
 
-5. 下一个 token 的输出概率：
+4. 多头注意力：
 $$
-P(x_t\mid x_{<t})=\mathrm{softmax}(W_o h_t^{(L)} + b)
+\mathrm{MHA}(X)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)W^O
+$$
+
+5. 前馈网络：
+$$
+\mathrm{FFN}(x)=W_2\phi(W_1x+b_1)+b_2
+$$
+
+6. 现代常见的 pre-LN block：
+$$
+U^{(\ell)}=H^{(\ell-1)}+\mathrm{MHA}(\mathrm{LN}(H^{(\ell-1)}))
+$$
+
+$$
+H^{(\ell)}=U^{(\ell)}+\mathrm{FFN}(\mathrm{LN}(U^{(\ell)}))
+$$
+
+7. 输出层：
+$$
+O=H^{(L)}W_{\mathrm{out}}
+$$
+
+8. 语言模型损失：
+$$
+\mathcal{L}_{\mathrm{LM}}=-\sum_{t=1}^{T}\log P_\theta(x_t\mid x_{<t})
 $$
 
 ---
 
-## 模型定位与自回归假设
+## 1. 建模目标：GPT 学的到底是什么
 
-GPT（Generative Pretrained Transformer）是一类基于 **Transformer Decoder** 的自回归语言模型。它的核心任务，是根据已有前缀逐步预测下一个 token，并通过大规模文本预训练学习语言的统计结构、知识模式与生成能力。
+### 1.1 从联合分布到条件分布
 
-它与 BERT 的关键区别在于：BERT 主要面向双向编码与理解任务，而 GPT 把“下一词预测”作为统一训练目标，因此天然适合文本续写、对话、摘要、代码生成等生成式任务。
+GPT 的出发点是概率论中的链式法则。对任意离散序列分布，都有：
 
-GPT 通常建立在以下假设之上：
+$$
+P(X)=P(x_1)P(x_2\mid x_1)\cdots P(x_T\mid x_{<T})
+$$
 
-- **自回归分解假设**：一段文本的联合概率可以拆成逐步条件概率的连乘；
-- **前缀决定后续假设**：只要模型足够强，前文中包含的信息就足以支撑后续生成；
-- **大规模预训练迁移假设**：在足够大语料上学到的生成式语言模型，可迁移到多种任务与场景；
-- **统一提示接口假设**：很多任务都可以通过自然语言提示改写为“给定前缀，继续生成”的形式。
+也就是：
 
-例如，在前缀「今天天气很好，所以我决定」之后，GPT 会根据语料中学到的语言模式，预测诸如「去散步」「出门跑步」「晒太阳」之类更可能出现的后续文本。
+$$
+P(X)=\prod_{t=1}^{T}P(x_t\mid x_{<t})
+$$
+
+这一步本身没有任何神经网络成分，它只是把整体生成问题拆成一串局部条件分布。真正困难的地方在于，这些条件分布无法靠显式计数表存下，于是需要用共享参数的函数逼近器来近似：
+
+$$
+f_\theta:x_{<t}\mapsto P_\theta(\cdot\mid x_{<t})
+$$
+
+这里输入是前缀，输出是整个词表上的概率分布。GPT 所做的事，就是把这个函数实现成一个深层的 Decoder-only Transformer。
+
+### 1.2 为什么训练目标是最大似然
+
+给定训练语料
+
+$$
+\mathcal{D}=\{X^{(1)},\dots,X^{(N)}\}
+$$
+
+最大似然目标为：
+
+$$
+\max_\theta \sum_{n=1}^{N}\log P_\theta(X^{(n)})
+$$
+
+代入自回归分解后得到：
+
+$$
+\max_\theta \sum_{n=1}^{N}\sum_{t=1}^{T_n}\log P_\theta(x_t^{(n)}\mid x_{<t}^{(n)})
+$$
+
+等价地，也可以写成最小化负对数似然：
+
+$$
+\mathcal{L}_{\mathrm{NLL}}(\theta)
+=-\sum_{n=1}^{N}\sum_{t=1}^{T_n}\log P_\theta(x_t^{(n)}\mid x_{<t}^{(n)})
+$$
+
+这就是语言模型训练里的 cross-entropy loss。由于真实标签是 one-hot 分布，交叉熵与负对数似然在这里完全等价。
+
+### 1.3 为什么训练样本会“整体右移一位”
+
+若原始序列为：
+
+$$
+[x_1,x_2,\dots,x_T]
+$$
+
+则训练时常构造成：
+
+- 输入：$[\text{BOS},x_1,x_2,\dots,x_{T-1}]$
+- 目标：$[x_1,x_2,\dots,x_T]$
+
+因此，模型在位置 $t$ 接收到的是左侧前缀，而监督信号是当前位置应预测的真实 token。这就是 **teacher forcing**：训练时前缀来自真实数据，而不是模型自己刚采样出来的输出。
+
+### 1.4 困惑度只是平均负对数似然的指数化
+
+若平均每个 token 的负对数似然为：
+
+$$
+\bar{\mathcal{L}}=\frac{1}{T}\mathcal{L}_{\mathrm{LM}}
+$$
+
+则困惑度定义为：
+
+$$
+\mathrm{PPL}=\exp(\bar{\mathcal{L}})
+$$
+
+PPL 越低，说明模型在平均意义下把概率质量压得越集中，对真实下一个 token 的预测越好。
 
 ---
 
-## 自回归建模与解码器结构
+## 2. 前向传播第一步：从离散 token 到输入矩阵
 
-GPT 的主干是多层 Transformer Decoder。与完整的 encoder-decoder Transformer 不同，GPT 通常只保留解码器部分，并依赖**因果掩码的 self-attention** 确保每个位置只能看到自己之前的上下文。
+### 2.1 Tokenization 决定了模型实际处理的离散对象
 
-### 自回归概率建模
-
-GPT 的核心目标可以写为：
+GPT 并不直接处理“词”或“句子”的抽象意义，而是处理 tokenizer 产生的离散 token。若 tokenizer 把文本映射成 id 序列：
 
 $$
-P(X)=\prod_{t=1}^{n}P(x_t\mid x_{<t})
+(i_1,i_2,\dots,i_T),\qquad i_t\in\{1,2,\dots,|V|\}
 $$
 
-这表示文本不是被一次性整体生成，而是按顺序逐 token 展开。模型在位置 $t$ 只能利用之前的前缀 $x_{<t}$ 来预测当前 token。
-
-这种建模方式的直接含义是：
-
-- 训练目标统一简单；
-- 文本生成过程与概率分解一致；
-- 推理时可自然地一步步续写。
-
-### 输入表示与位置编码
-
-与其他 Transformer 变体类似，GPT 的输入首先由 token embedding 与位置编码构成：
+则每个 token 都可以写成 one-hot 向量 $u_t$。将整段序列按行堆叠，就得到：
 
 $$
-z_t = e_t + p_t
+U\in\mathbb{R}^{T\times |V|}
 $$
 
-这对应于 Radford et al. (2018) 在论文中写的 $h_0 = U W_e + W_p$。这里改写成逐位置形式 $z_t=e_t+p_t$，只是把矩阵写法展开到 token 级别，语义保持一致。
+### 2.2 Token embedding 是 one-hot 与矩阵的乘法
+
+设 token embedding 矩阵为：
+
+$$
+E\in\mathbb{R}^{|V|\times d_{\mathrm{model}}}
+$$
+
+则第 $t$ 个 token 的 embedding 写为：
+
+$$
+e_t=u_tE
+$$
+
+整段序列的 embedding 矩阵写为：
+
+$$
+H_{\mathrm{token}}=UE\in\mathbb{R}^{T\times d_{\mathrm{model}}}
+$$
+
+这与工程实现中的“查表”完全等价。因为 one-hot 向量只有一维为 1，所以矩阵乘法的结果，本质上就是从 $E$ 中选出对应那一行。
+
+若词表大小为
+
+$$
+|V|=50257
+$$
+
+隐藏维度为
+
+$$
+d_{\mathrm{model}}=768
+$$
+
+则：
+
+$$
+E\in\mathbb{R}^{50257\times 768}
+$$
+
+这就是常说的 `50257 × 768`。它表示词表中每个离散 token 都对应一个 768 维稠密向量。
+
+### 2.3 位置编码用来打破 attention 的顺序对称性
+
+如果只有 token embedding，而没有任何位置信号，那么 self-attention 只知道“有哪些 token”，却不知道“谁在前谁在后”。因此必须把位置信息显式写入输入表示。
+
+若采用原始 GPT 中常见的**可学习绝对位置向量**，设位置参数矩阵为：
+
+$$
+W_P\in\mathbb{R}^{T_{\max}\times d_{\mathrm{model}}}
+$$
+
+对于长度为 $T$ 的序列，取出前 $T$ 行组成位置矩阵：
+
+$$
+P\in\mathbb{R}^{T\times d_{\mathrm{model}}}
+$$
+
+于是初始输入表示为：
+
+$$
+H^{(0)}=UE+P
+$$
+
+逐位置写开就是：
+
+$$
+h_t^{(0)}=u_tE+W_P[t]
+$$
+
+这对应于“token 语义向量 + 位置向量”的逐元素相加。
+
+对于原始 GPT，这种可学习位置向量是常见写法。对于后续一些模型，位置机制也可能变成正余弦位置编码或 RoPE，但它们改变的是“位置信息如何注入”，而不是 GPT 的自回归建模本质。
+
+### 2.4 词嵌入与输出层常常共享权重
+
+若输出投影矩阵写为：
+
+$$
+W_{\mathrm{out}}\in\mathbb{R}^{d_{\mathrm{model}}\times |V|}
+$$
+
+则一个常见技巧是 **weight tying**：
+
+$$
+W_{\mathrm{out}}=E^\top
+$$
+
+这样做既能减少参数量，也让“输入空间”和“输出词表空间”在几何上保持更紧密的联系。
+
+---
+
+## 3. Decoder Block：GPT 的核心计算单元
+
+GPT 的主干是一串只含解码器的 Transformer block。若采用现代 GPT 类模型中更常见的 pre-LN 写法，则第 $\ell$ 层可写为：
+
+$$
+U^{(\ell)}=H^{(\ell-1)}+\mathrm{MHA}(\mathrm{LN}(H^{(\ell-1)}))
+$$
+
+$$
+H^{(\ell)}=U^{(\ell)}+\mathrm{FFN}(\mathrm{LN}(U^{(\ell)}))
+$$
+
+这说明每一层都在做两件事：
+
+- 通过 masked self-attention 让每个位置从可见前缀中读取相关信息。
+- 通过 FFN 对每个位置做共享参数的非线性重写。
+
+从数据流角度看，attention 的矩阵主线可以先用下图建立整体理解：
+
+<AttentionMathFlow />
+
+### 3.1 单头 masked self-attention
+
+设某一层输入为
+
+$$
+X\in\mathbb{R}^{T\times d_{\mathrm{model}}}
+$$
+
+先做三组线性投影：
+
+$$
+Q=XW^Q,\qquad K=XW^K,\qquad V=XW^V
+$$
+
+其中：
+
+$$
+W^Q,W^K\in\mathbb{R}^{d_{\mathrm{model}}\times d_k},\qquad
+W^V\in\mathbb{R}^{d_{\mathrm{model}}\times d_v}
+$$
+
+因此：
+
+$$
+Q\in\mathbb{R}^{T\times d_k},\qquad
+K\in\mathbb{R}^{T\times d_k},\qquad
+V\in\mathbb{R}^{T\times d_v}
+$$
+
+然后构造打分矩阵：
+
+$$
+S=\frac{QK^\top}{\sqrt{d_k}}+M
+$$
 
 这里：
 
-- $e_t$ 表示当前 token 的内容；
-- $p_t$ 表示当前位置。
-
-因为 self-attention 本身不感知顺序，所以位置编码仍是必要的。
-
-### 因果 self-attention
-
-GPT 使用带因果掩码的 self-attention：
-
 $$
-\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
+QK^\top\in\mathbb{R}^{T\times T}
 $$
 
-其中掩码矩阵 $M$ 的作用是：
+其中每个元素 $S_{ij}$ 表示“位置 $i$ 对位置 $j$ 的注意力打分”。
 
-- 允许当前位置看见自己和过去；
-- 阻止当前位置看见未来 token。
+再对每一行做 softmax：
 
-这是 GPT 区别于 BERT 的结构关键：BERT 的编码器能双向访问上下文，而 GPT 必须严格维持单向生成约束。
+$$
+A_{ij}=\frac{\exp(S_{ij})}{\sum_{m=1}^{T}\exp(S_{im})}
+$$
 
-若采用语言模型训练中常见的「输入整体右移一位」实现，那么位置 $t$ 的最终表示 $h_t^{(L)}$ 恰好用于预测当前位置目标 $x_t$；因此这里不再写成 $h_{t-1}^{(L)}$，以免把实现细节与模型索引混在一起。
+最终输出为：
 
-### Decoder-only 结构
+$$
+O=AV
+$$
 
-GPT 的每个 block 一般包含：
+第 $i$ 行输出 $o_i$ 就是所有 value 向量的加权和。
 
-- masked multi-head self-attention；
-- feed-forward network；
-- residual connection；
-- layer normalization。
+### 3.2 为什么要除以 $\sqrt{d_k}$
 
-整个模型通过多层堆叠，让每个位置在遵守因果约束的前提下逐层吸收更长范围的前缀信息。由于不需要 encoder，也不需要 cross-attention，结构相对统一，非常适合扩大规模。
+若 $q_i$ 和 $k_j$ 的各分量独立、均值为 0、方差为 1，则点积
 
-### 预训练与指令化扩展
+$$
+q_i^\top k_j=\sum_{m=1}^{d_k}q_{i,m}k_{j,m}
+$$
 
-早期 GPT 主要依赖纯语言模型目标进行预训练。随着模型规模和应用需求增长，GPT 系列通常还会结合：
+的方差大致与 $d_k$ 成正比：
 
-- supervised fine-tuning；
-- instruction tuning；
-- preference modeling；
-- RLHF 或其替代对齐方法。
+$$
+\mathrm{Var}(q_i^\top k_j)\approx d_k
+$$
 
-这些阶段并不改变其自回归主干，而是让模型从“会续写文本”进一步变成“更符合任务要求与人类偏好的对话系统”。
+当 $d_k$ 较大时，未经缩放的打分很容易让 softmax 进入饱和区，使梯度过小、训练不稳定。除以 $\sqrt{d_k}$ 的作用，就是把 logits 的尺度压回更可控的范围内。
+
+### 3.3 因果掩码把“不能偷看未来”写进结构
+
+GPT 不是双向编码器，而是严格的自回归模型。因此在预测位置 $i$ 时，只允许它访问位置 $1$ 到 $i$，不能访问未来 token。
+
+这通过因果掩码矩阵实现：
+
+$$
+M_{ij}=
+\begin{cases}
+0, & j\le i \\
+-\infty, & j>i
+\end{cases}
+$$
+
+于是 softmax 中未来位置会被压成 0：
+
+$$
+e^{-\infty}=0
+$$
+
+在实际代码里，$-\infty$ 常用极小负数近似，例如 $-10^9$，但数学含义不变。
+
+下面这个交互组件可以直观看到 mask 如何改变可见范围：
+
+<MaskPositionExplorer />
+
+### 3.4 多头注意力不是简单重复，而是子空间分工
+
+单头 attention 的表达能力有限，因此 GPT 通常使用多头注意力。对第 $r$ 个头：
+
+$$
+\mathrm{head}_r=
+\mathrm{Attn}(XW_r^Q,XW_r^K,XW_r^V)
+$$
+
+再把所有头拼接后投影回模型维度：
+
+$$
+\mathrm{MHA}(X)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)W^O
+$$
+
+多头的意义不在于“把同一个运算重复很多遍”，而在于让不同头在不同线性子空间中学习不同类型的相关性。例如：
+
+- 有的头更偏向近邻语法依赖。
+- 有的头更偏向长距离指代。
+- 有的头更偏向分隔符、列表结构或代码括号配对。
+
+### 3.5 FFN 负责逐位置的非线性重写
+
+Attention 负责跨位置的信息交互，但每个 token 还需要在本地做通道混合与非线性变换。最基础的前馈网络写为：
+
+$$
+\mathrm{FFN}(x)=W_2\phi(W_1x+b_1)+b_2
+$$
+
+其中：
+
+$$
+W_1\in\mathbb{R}^{d_{\mathrm{model}}\times d_{\mathrm{ff}}},\qquad
+W_2\in\mathbb{R}^{d_{\mathrm{ff}}\times d_{\mathrm{model}}}
+$$
+
+它对每个位置独立作用，但参数在所有位置共享。
+
+若写成早期 GPT 中常见的形式，则常见表达为：
+
+$$
+\mathrm{FFN}(x)=\mathrm{GELU}(xW_1+b_1)W_2+b_2
+$$
+
+其中 GELU 的精确定义为：
+
+$$
+\mathrm{GELU}(x)=x\Phi(x)
+$$
+
+这里 $\Phi(x)$ 是标准正态分布的累积分布函数。它可以理解为一种平滑的、带概率意味的门控。
+
+一些现代大模型则常把 FFN 换成门控 MLP，例如 SwiGLU：
+
+$$
+\mathrm{SwiGLU}(x)=\bigl((xW_a)\odot \mathrm{swish}(xW_b)\bigr)W_c
+$$
+
+具体非线性形式可以变化，但 FFN 在 GPT 中的角色很稳定：**在 attention 聚合之后，对每个位置做更强的局部特征重组。**
+
+### 3.6 残差连接与 LayerNorm 让深层网络可训练
+
+LayerNorm 的标准写法为：
+
+$$
+\mathrm{LN}(h)=\gamma\odot \frac{h-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta
+$$
+
+其中 $\mu,\sigma^2$ 是在特征维上计算的均值与方差，$\gamma,\beta$ 是可学习参数。
+
+残差连接写为：
+
+$$
+y=x+F(x)
+$$
+
+它在反向传播中的关键意义是：根据链式法则，
+
+$$
+\frac{\partial y}{\partial x}=I+\frac{\partial F(x)}{\partial x}
+$$
+
+这意味着梯度除了沿复杂非线性支路传播，还额外拥有一条恒等映射路径。
+
+若完全去掉残差连接，在几十层甚至近百层网络中，反向传播需要连续乘上很多层 Jacobian：
+
+$$
+\frac{\partial \mathcal{L}}{\partial x^{(1)}}
+=
+\frac{\partial \mathcal{L}}{\partial x^{(L)}}
+\left(\prod_{\ell=2}^{L}\frac{\partial x^{(\ell)}}{\partial x^{(\ell-1)}}\right)
+$$
+
+当这些导数矩阵的谱范数长期小于 1 时，梯度会迅速衰减；长期大于 1 时，又可能爆炸。因此，超深层网络最典型的风险就是**梯度消失**与**梯度爆炸**。残差连接并不能从数学上保证梯度永不衰减，但它显著改善了深层训练的可行性。
+
+如果用很多教材中更常见的 **Add & Norm** 写法来表示，则子层也常写成：
+
+$$
+\mathrm{Output}=\mathrm{LN}(x+\mathrm{Sublayer}(x))
+$$
+
+这对应 **post-LN**。而现代大模型实现里更常见的是 **pre-LN**：
+
+$$
+\mathrm{Output}=x+\mathrm{Sublayer}(\mathrm{LN}(x))
+$$
+
+二者共享同一个残差骨架，只是 LayerNorm 放在子层前还是子层后的差别。pre-LN 在深层训练中通常更稳定，因此现代 GPT 中更常见。
 
 ---
 
-## 训练过程与生成方式
+## 4. 从隐藏状态到词表概率
 
-GPT 的训练和推理都围绕“前缀预测下一个 token”这一统一逻辑展开。
-
-### 预训练阶段
-
-典型预训练流程如下：
-
-1. 将文本切分为 token 序列；
-2. 把整个序列输入 decoder-only Transformer；
-3. 对每个位置预测下一个 token；
-4. 计算自回归语言模型损失；
-5. 反向传播更新参数。
-
-其损失函数为：
+经过 $L$ 层 block 后，得到最终隐藏状态矩阵：
 
 $$
-\mathcal{L}_{LM}=-\sum_{t=1}^{n}\log P(x_t\mid x_{<t})
+H^{(L)}\in\mathbb{R}^{T\times d_{\mathrm{model}}}
 $$
 
-这一步并不要求显式人工标注，因为文本本身就提供了监督信号：前文是输入，后一个 token 就是标签。
+输出层把它映射回词表空间：
 
-### 微调与对齐阶段
+$$
+O=H^{(L)}W_{\mathrm{out}}
+$$
 
-在实际系统中，预训练后通常还会有若干后续阶段，例如：
+其中：
 
-1. 在高质量指令数据上做监督微调；
-2. 训练偏好模型，学习人类对输出质量的比较判断；
-3. 通过 RLHF、DPO 等方式进一步调整模型行为。
+$$
+W_{\mathrm{out}}\in\mathbb{R}^{d_{\mathrm{model}}\times |V|},\qquad
+O\in\mathbb{R}^{T\times |V|}
+$$
 
-这一阶段的主要作用是：
+逐位置写开就是：
 
-- 提升指令跟随能力；
-- 降低无关续写与偏题回答；
-- 改善安全性、帮助性与可控性。
+$$
+o_t=h_t^{(L)}W_{\mathrm{out}}+b
+$$
 
-### 推理阶段
+再经过 softmax，就得到下一个 token 的概率分布：
 
-推理时，GPT 采用自回归生成：
+$$
+P_\theta(x_t=v\mid x_{<t})
+=\frac{\exp(o_{t,v})}{\sum_{u\in V}\exp(o_{t,u})}
+$$
 
-1. 用户输入提示词作为前缀；
-2. 模型预测下一个 token 的概率分布；
-3. 根据解码策略选择一个 token；
-4. 将该 token 接到前缀末尾；
-5. 重复上述过程直到结束。
+这说明 GPT 并不是“直接输出一个词”，而是先输出一个 $|V|$ 维实数向量，再把它解释为词表上的离散概率分布。
 
-常见解码策略包括：
+### 4.1 输出矩阵的形状如何确定
 
-- Greedy decoding；
-- Beam search；
-- Top-k sampling；
-- Top-p sampling；
-- Temperature scaling。
+若最后一层隐藏状态矩阵为：
 
-推理时还高度依赖 KV cache，以避免每一步重复计算历史前缀的 key 与 value。
+$$
+H_{\mathrm{final}}\in\mathbb{R}^{n\times 768}
+$$
 
----
+而词表大小为：
 
-## 最小推演：前缀如何扩展为下一个 token
+$$
+|V|=50257
+$$
+
+那么为了得到每个位置对 50257 个词的得分，输出矩阵必须满足：
+
+$$
+H_{\mathrm{final}}W_{\mathrm{out}}\in\mathbb{R}^{n\times 50257}
+$$
+
+因此：
+
+$$
+W_{\mathrm{out}}\in\mathbb{R}^{768\times 50257}
+$$
+
+这就是常说的 `768 × 50257`。
+
+若使用前文提到的 weight tying，则：
+
+$$
+W_{\mathrm{out}}=E^\top
+$$
+
+因为
+
+$$
+E\in\mathbb{R}^{50257\times 768}
+$$
+
+所以它的转置恰好满足输出层所需形状。
+
+### 4.2 交叉熵损失与梯度
+
+若真实标签在位置 $t$ 上对应 one-hot 向量 $y_t$，模型预测为
+
+$$
+\hat{y}_t=\mathrm{softmax}(o_t)
+$$
+
+则位置级交叉熵损失为：
+
+$$
+\mathcal{L}_t=-\sum_{j=1}^{|V|}y_{t,j}\log \hat{y}_{t,j}
+$$
+
+因为 $y_t$ 是 one-hot，上式等价于：
+
+$$
+\mathcal{L}_t=-\log \hat{y}_{t,x_t}
+$$
+
+整段序列损失就是：
+
+$$
+\mathcal{L}_{\mathrm{LM}}=\sum_{t=1}^{T}\mathcal{L}_t
+$$
+
+softmax 与交叉熵组合后，最经典的梯度结果是：
+
+$$
+\frac{\partial \mathcal{L}_t}{\partial o_t}=\hat{y}_t-y_t
+$$
+
+这意味着：
+
+- 若某个错误 token 的预测概率过高，则对应梯度为正，优化会压低它。
+- 若真实 token 的预测概率不够高，则对应梯度为负，优化会抬高它。
+
+随后，这个梯度会沿着输出层、FFN、残差连接、LayerNorm、attention 以及 embedding 一路反向传播，更新整套参数 $\theta$。
+
+### 4.3 一个最小推演：从前缀到下一个 token
 
 考虑前缀：
 
@@ -214,96 +672,509 @@ $$
 [\text{我},\ \text{喜欢},\ \text{吃}]
 $$
 
-模型需要预测下一个 token。若训练语料中常见搭配包括：
+假设最后位置某一注意力头的未掩码原始打分为：
 
-- 「吃 苹果」
-- 「吃 面条」
-- 「吃 米饭」
+$$
+[0.8,\ 1.6,\ 1.1,\ 2.3]
+$$
 
-则 GPT 在当前位置会根据前缀语义、常见搭配以及更广泛语言统计，为下一个 token 分配概率。
+其中第 4 个位置代表未来 token，因此被因果掩码改写为：
 
-| 步骤 | 当前状态 | GPT 内部在做什么 | 结果 |
-| --- | --- | --- | --- |
-| 1 | 输入前缀「我 喜欢 吃」 | token embedding 与位置编码相加 | 形成带顺序信息的输入表示 |
-| 2 | 多层 masked self-attention | 每个位置只能看左侧上下文 | 构造前缀的上下文化表示 |
-| 3 | 最后位置输出层 | 计算下一个 token 的词表分布 | 「苹果」「面条」「米饭」概率较高 |
-| 4 | 采样或贪心选择 | 选出一个 token，如「苹果」 | 生成结果扩展为「我 喜欢 吃 苹果」 |
-| 5 | 继续下一步 | 新 token 回填为输入前缀的一部分 | 进入下一轮预测 |
+$$
+[0.8,\ 1.6,\ 1.1,\ -\infty]
+$$
 
-这个例子体现了 GPT 的核心机制：
+softmax 后可得到近似权重：
 
-- 它不需要先整体“理解完一句话”再输出；
-- 它是在不断更新前缀条件的过程中逐步生成文本；
-- 表达能力来自大规模预训练中学到的统计规律与上下文模式。
+$$
+[0.22,\ 0.49,\ 0.29,\ 0]
+$$
 
----
+若前三个可见位置的 value 向量分别为 $v_1,v_2,v_3$，则该头输出为：
 
-## 优势、局限与工程要点
+$$
+o=0.22v_1+0.49v_2+0.29v_3
+$$
 
-GPT 之所以强大，是因为它把大量语言任务统一成“给定前缀，继续生成”这一简单而通用的接口，并通过大规模预训练获得广泛迁移能力。
+多头拼接、输出投影、FFN 和后续层继续处理后，最后得到当前位置隐藏状态。假设输出层在候选 token $\{\text{苹果},\text{面条},\text{米饭}\}$ 上给出的 logits 为：
 
-它的主要优势包括：
+$$
+[2.4,\ 1.2,\ 0.3]
+$$
 
-- **生成能力强**：天然适合续写、对话、摘要、代码生成等任务；
-- **任务接口统一**：许多任务都可通过 prompt 改写为文本生成；
-- **可扩展性强**：decoder-only 架构简单，便于扩大参数规模与数据规模；
-- **上下文学习能力突出**：大模型可通过提示在上下文中适应任务格式；
-- **工程生态成熟**：从训练到推理已有大量优化手段。
+则 softmax 概率近似为：
 
-但它也存在明显局限：
+$$
+[0.70,\ 0.21,\ 0.09]
+$$
 
-- **单向建模不如双向编码细致**：在纯理解任务上，未必总优于专门编码器模型；
-- **生成成本高**：输出必须逐 token 展开，延迟较高；
-- **易产生幻觉**：模型可能生成流畅但不真实的内容；
-- **上下文窗口有限**：虽然已大幅增长，但长上下文仍受算力与记忆限制。
-
-训练与工程上的典型难点包括：
-
-- 预训练需要极大规模数据、算力与系统工程支持；
-- 模型越大，优化稳定性、通信开销与存储压力越突出；
-- 自回归推理吞吐受限，尤其在长输出场景中；
-- 对齐阶段需要平衡帮助性、真实性、安全性与创造性。
-
-常见缓解手段包括：
-
-- 使用更高效的 attention、并行训练与推理缓存；
-- 结合检索增强、工具调用与外部记忆缓解幻觉；
-- 采用指令微调、偏好优化和安全约束提升可控性；
-- 在部署中使用量化、蒸馏、投机解码等优化手段。
+于是模型更倾向于输出「苹果」。这个例子体现了 GPT 的真实工作方式：它不是靠规则模板生成，而是在连续向量空间里用一连串矩阵运算逼近条件概率分布。
 
 ---
 
-## 历史位置与相关模型
+## 5. 训练闭环：误差如何传回整张网络
 
-GPT 的历史位置非常清晰：它把 Transformer 解码器、自回归语言建模和大规模预训练结合起来，推动 NLP 从“任务特定架构”进一步走向“统一生成式模型”。
+### 5.1 小批量训练的矩阵形式
 
-在它之前，主流路径大致包括：
+若一个 mini-batch 中共有 $B$ 条序列，每条长度补齐到 $T$，则输入张量可记为：
 
-- 静态词向量与浅层神经语言模型；
-- RNN/LSTM 语言模型与 Seq2Seq；
-- BERT 这类以编码器为核心的预训练表示模型。
+$$
+X\in\mathbb{N}^{B\times T}
+$$
 
-GPT 相对这些方法的关键变化在于：
+训练时通常还需要 padding mask，使补齐位置不参与损失。于是批量损失常写为：
 
-- 不再优先为理解任务设计专门目标；
-- 直接以下一词预测作为统一训练目标；
-- 把多种任务改写为自然语言提示下的生成问题。
+$$
+\mathcal{L}
+=-\sum_{b=1}^{B}\sum_{t=1}^{T}m_{b,t}\log P_\theta(x_{b,t}\mid x_{b,<t})
+$$
 
-可以用下表概括其位置：
+其中 $m_{b,t}\in\{0,1\}$ 指示该位置是否为有效 token。
 
-| 模型 | 主干结构 | 训练目标 | 主要强项 | 典型局限 |
+### 5.2 参数在所有位置共享更新
+
+GPT 的一个关键特点是：同一个 $W^Q,W^K,W^V,W_1,W_2$ 会同时服务于不同句子、不同位置、不同语境。因此单个 batch 中各位置产生的误差信号，会共同更新同一套参数。
+
+从优化角度看，训练本质上就是：
+
+$$
+\theta\leftarrow \theta-\eta \nabla_\theta \mathcal{L}
+$$
+
+实践中常用 AdamW 这一类优化器，但它们只是更新规则的具体实现；真正定义 GPT 学什么的，仍然是自回归似然目标。
+
+### 5.3 训练与推理并不完全一致
+
+训练时，模型看到的历史前缀来自真实数据；推理时，模型必须把自己刚刚生成的 token 再喂回去。因此二者之间存在典型的 **exposure bias**：
+
+- 训练时前缀总是正确的。
+- 推理时一旦早期生成错误，后续条件分布也会随之偏移。
+
+这也是为什么现代系统除了预训练，往往还会结合指令微调、偏好优化、拒答策略与外部工具，以减轻长链生成中的误差累积。
+
+---
+
+## 6. 推理与解码：模型如何真正“选”出下一个词
+
+推理时，GPT 并不是一次性输出整句，而是不断重复以下过程：
+
+1. 读入当前前缀。
+2. 计算最后位置的词表分布。
+3. 按某种解码策略选出一个 token。
+4. 把该 token 接到前缀末尾。
+5. 继续下一轮。
+
+用《算法导论》风格伪代码，可写为：
+
+```text
+AUTOREGRESSIVE-GENERATE(prefix, T_max)
+    X ← prefix
+    for t ← 1 to T_max do
+        logits ← GPT(X)
+        p ← softmax(logits[last])
+        x_new ← SAMPLE(p)
+        X ← CONCAT(X, x_new)
+        if x_new = EOS then
+            return X
+        end if
+    end for
+    return X
+```
+
+### 6.1 贪心、温度、Top-k 与 Top-p
+
+若直接选择最大概率 token，就是贪心解码：
+
+$$
+\hat{x}_t=\arg\max_{v\in V}P_\theta(v\mid x_{<t})
+$$
+
+这种做法每一步都取局部最优，但生成结果往往更容易出现：
+
+- 表达过于机械。
+- 候选多样性迅速塌缩。
+- 高频短语被不断重复，从而形成循环。
+
+为了保留随机性，可先用温度参数 $\tau$ 调整分布尖锐程度：
+
+$$
+P_\tau(i)=\frac{\exp(o_i/\tau)}{\sum_j\exp(o_j/\tau)}
+$$
+
+其中：
+
+- $\tau=1$ 时，为原始 softmax。
+- $\tau\to 0^+$ 时，分布逼近 one-hot，行为近似贪心。
+- $\tau>1$ 时，分布更平滑，低概率 token 更容易进入候选集合。
+
+在此基础上，常见的截断采样包括：
+
+- **Top-k**：只保留概率最高的前 $k$ 个 token。
+- **Top-p**：保留累计概率达到阈值 $p$ 的最小候选集合。
+
+若把 Top-k 写成数学形式，设保留集合为 $V_k$，则：
+
+$$
+P_k(i)=
+\begin{cases}
+\dfrac{P(i)}{\sum_{j\in V_k}P(j)}, & i\in V_k \\
+0, & i\notin V_k
+\end{cases}
+$$
+
+Top-p 则构造最小集合 $V_p$，满足：
+
+$$
+\sum_{j\in V_p}P(j)\ge p
+$$
+
+然后重新归一化：
+
+$$
+P_p(i)=
+\begin{cases}
+\dfrac{P(i)}{\sum_{j\in V_p}P(j)}, & i\in V_p \\
+0, & i\notin V_p
+\end{cases}
+$$
+
+因此：
+
+- Top-k 是“固定候选数”的硬截断。
+- Top-p 是“固定累计质量”的动态截断。
+
+它们通常与温度一起使用：先用温度改变分布形状，再做截断采样，以在确定性与多样性之间折中。
+
+若任务要求输出尽可能保守、稳定，例如高风险领域中的结构化草稿，通常会把温度设得较低，使分布更尖锐。但要强调：**较低温度只能减少随机性，不能从数学上保证事实正确或消除幻觉**，因为它仍然只是在既有模型分布中选择更高概率的 token，而不是在外部世界中做事实验证。
+
+### 6.2 KV Cache 为什么能显著提速
+
+若每一步都从头重算整个前缀，代价会非常高。设第 $\ell$ 层当前步新产生的 query、key、value 为：
+
+$$
+q_t^{(\ell)},\quad k_t^{(\ell)},\quad v_t^{(\ell)}
+$$
+
+KV cache 的做法是保存历史：
+
+$$
+K_{\mathrm{cache}}^{(\ell)}\leftarrow
+\mathrm{Concat}(K_{\mathrm{cache}}^{(\ell)},k_t^{(\ell)})
+$$
+
+$$
+V_{\mathrm{cache}}^{(\ell)}\leftarrow
+\mathrm{Concat}(V_{\mathrm{cache}}^{(\ell)},v_t^{(\ell)})
+$$
+
+它之所以成立，是因为在因果掩码下，历史位置的 $K,V$ 只依赖它们各自左侧的前缀，不依赖未来 token。因此当序列从长度 $t$ 扩展到 $t+1$ 时，前 $t$ 个位置已经算出的 $K,V$ 数值不会因为新 token 的加入而改变。
+
+若记历史缓存为：
+
+$$
+K_{\mathrm{past}}^{(\ell)}\in\mathbb{R}^{t\times d_k},\qquad
+V_{\mathrm{past}}^{(\ell)}\in\mathbb{R}^{t\times d_v}
+$$
+
+则新 token 到来后有：
+
+$$
+K_{\mathrm{total}}^{(\ell)}=
+\bigl[K_{\mathrm{past}}^{(\ell)};\ k_{t+1}^{(\ell)}\bigr]
+\in\mathbb{R}^{(t+1)\times d_k}
+$$
+
+$$
+V_{\mathrm{total}}^{(\ell)}=
+\bigl[V_{\mathrm{past}}^{(\ell)};\ v_{t+1}^{(\ell)}\bigr]
+\in\mathbb{R}^{(t+1)\times d_v}
+$$
+
+当前步真正要做的 attention 计算则变成：
+
+$$
+\mathrm{Attn}\bigl(q_{t+1}^{(\ell)},K_{\mathrm{total}}^{(\ell)},V_{\mathrm{total}}^{(\ell)}\bigr)
+=
+\mathrm{softmax}\left(
+\frac{q_{t+1}^{(\ell)}(K_{\mathrm{total}}^{(\ell)})^\top}{\sqrt{d_k}}
+\right)V_{\mathrm{total}}^{(\ell)}
+$$
+
+这里的 query 只对应当前一个新位置，因此分数向量的形状是：
+
+$$
+q_{t+1}^{(\ell)}(K_{\mathrm{total}}^{(\ell)})^\top\in\mathbb{R}^{1\times (t+1)}
+$$
+
+它不再是训练阶段那种完整的 $(t+1)\times (t+1)$ 打分矩阵。
+
+若完全不使用 KV cache，生成第 $1$ 到第 $T$ 个 token 的累计 attention 代价近似为：
+
+$$
+\sum_{t=1}^{T}\mathcal{O}(t^2d)=\mathcal{O}(T^3d)
+$$
+
+而使用 KV cache 后，累计代价近似降为：
+
+$$
+\sum_{t=1}^{T}\mathcal{O}(td)=\mathcal{O}(T^2d)
+$$
+
+因此，KV cache 的核心收益不是改变模型条件分布，而是把解码中的大量重复前缀计算消掉。
+
+### 6.3 KV Cache 的显存为什么是 $\mathcal{O}(L)$
+
+KV cache 提升了解码速度，但它不是免费的。缓存中的 $K,V$ 张量必须真实存放在显存里，因此长上下文与高并发推理时，KV cache 往往会成为部署瓶颈。
+
+若单层、单序列、单头的 cache 长度为 $L$，则：
+
+$$
+K\in\mathbb{R}^{L\times d_k},\qquad
+V\in\mathbb{R}^{L\times d_v}
+$$
+
+这一头需要存储的标量数就是：
+
+$$
+L(d_k+d_v)
+$$
+
+若对整个模型计数，设 batch 大小为 $B$，层数为 $N_{\mathrm{layer}}$，头数为 $h$，并取常见情形 $d_k=d_v=d_{\mathrm{model}}/h$，则 KV cache 的总标量数近似为：
+
+$$
+B\cdot N_{\mathrm{layer}}\cdot h\cdot L\cdot (d_k+d_v)
+=
+2B\,N_{\mathrm{layer}}\,L\,d_{\mathrm{model}}
+$$
+
+因此，**KV cache 的存储量随序列长度 $L$ 线性增长，即 $\mathcal{O}(L)$**，而不是平方级增长。
+
+需要与之区分的是训练时常见的 attention 权重矩阵：
+
+$$
+A\in\mathbb{R}^{L\times L}
+$$
+
+它才是典型的 $\mathcal{O}(L^2)$ 内存项。也就是说：
+
+- KV cache 存储的是历史 token 的表示，规模是线性的。
+- attention 权重矩阵描述的是位置两两关系，规模是平方级的。
+
+虽然 KV cache 只是线性增长，但常数项很大，因为它还要乘上 batch、层数、隐藏维度以及数据类型字节数。因此在数万到数十万 token 上下文、或高并发服务场景中，它依然会迅速吃满显存。
+
+### 6.4 长上下文的瓶颈仍然来自 attention
+
+设序列长度为 $T$，隐藏维度量级记为 $d$。训练时，每层 self-attention 的主要时间复杂度约为：
+
+$$
+\mathcal{O}(T^2d)
+$$
+
+因为要形成 $T\times T$ 的相关性矩阵。对应的训练期 attention 权重显存也会随 $T^2$ 增长。
+
+这解释了两个事实：
+
+- GPT 很适合利用并行硬件做训练，因为整段序列可并行前向。
+- 但长上下文会让计算和显存迅速上涨，因此上下文窗口不是“想加多大就加多大”。
+
+---
+
+## 7. 参数量估算：175B 从哪里来
+
+GPT 的参数量，本质上就是所有可训练矩阵中标量元素的总数。若忽略 bias 和 LayerNorm 中相对微小的参数，则一个标准 dense GPT block 的主导参数来自两部分：
+
+- multi-head attention 的线性投影矩阵。
+- FFN 的升维与降维矩阵。
+
+### 7.1 单层 attention 的参数量
+
+设隐藏维度为 $d$。若输入和输出维度都保持为 $d$，则 attention 中四个核心投影矩阵为：
+
+$$
+W_Q,W_K,W_V,W_O\in\mathbb{R}^{d\times d}
+$$
+
+每个矩阵都有 $d^2$ 个参数，因此 attention 部分总参数量约为：
+
+$$
+4d^2
+$$
+
+以 GPT-3 级别的隐藏维度
+
+$$
+d=12288
+$$
+
+为例，单独一个 $W_Q$ 的形状就是：
+
+$$
+12288\times 12288
+$$
+
+它包含的参数数目为：
+
+$$
+12288^2=150{,}994{,}944
+$$
+
+约为 1.51 亿个参数。
+
+### 7.2 单层 FFN 的参数量
+
+在标准 GPT 结构中，FFN 常把通道宽度扩展到 $4d$，再压回 $d$。因此：
+
+$$
+W_1\in\mathbb{R}^{d\times 4d},\qquad
+W_2\in\mathbb{R}^{4d\times d}
+$$
+
+它们的参数量分别为：
+
+$$
+4d^2,\qquad 4d^2
+$$
+
+所以 FFN 部分总共约为：
+
+$$
+8d^2
+$$
+
+### 7.3 单个 Transformer block 的主导参数公式
+
+把 attention 与 FFN 相加，就得到一个标准 dense GPT block 的主导参数量：
+
+$$
+\mathrm{Params}_{\mathrm{layer}}
+=4d^2+8d^2
+=12d^2
+$$
+
+代入 $d=12288$：
+
+$$
+12\times 12288^2
+=1{,}811{,}939{,}328
+$$
+
+约为：
+
+$$
+1.81\times 10^9
+$$
+
+也就是单层约 18.1 亿参数。
+
+### 7.4 从单层堆到 GPT-3 级别
+
+若堆叠 96 层，则主干 Transformer 的参数量近似为：
+
+$$
+96\times 1.811939328\times 10^9
+=1.73946175488\times 10^{11}
+$$
+
+约为：
+
+$$
+173.95\text{B}
+$$
+
+这已经非常接近“175B”这个量级。
+
+### 7.5 词嵌入、输出层与其余参数
+
+若词表大小取：
+
+$$
+|V|=50257
+$$
+
+则输入 embedding 矩阵的参数量为：
+
+$$
+|V|d=50257\times 12288=617{,}558{,}016
+$$
+
+约为：
+
+$$
+0.618\text{B}
+$$
+
+若输出层不与 embedding 共享权重，则还要再加一份同规模矩阵：
+
+$$
+W_{\mathrm{out}}\in\mathbb{R}^{12288\times 50257}
+$$
+
+再增加约 $0.618\text{B}$ 参数。位置嵌入、LayerNorm、bias 等参数也会贡献少量增量，但相对于百亿级主干权重来说都不是主导项。
+
+因此，“GPT-3 是 175B 参数”可以理解为：
+
+- 绝大多数参数来自 96 层 block 中的 $12d^2$ 主项。
+- embedding 和输出层再补上数亿量级。
+- 在不同是否共享权重、是否计入某些小项的口径下，都会落在约 175B 的同一数量级上。
+
+这也解释了一个常被忽视的事实：大模型的参数量主要不是来自词表，而是来自**层内 dense 线性变换的重复堆叠**。
+
+---
+
+## 8. GPT 为什么有效，以及它的边界在哪里
+
+GPT 的有效性，主要来自以下几条机制层面的叠加：
+
+- **统一目标函数**：所有位置都用同一个下一 token 预测目标训练，监督信号密集且稳定。
+- **全局前缀可见性**：在因果约束下，每个位置都能直接连接到任意历史位置，不再需要像 RNN 那样沿时间链条逐步传播信息。
+- **参数共享**：同一套变换在海量上下文中反复使用，统计规律可以不断累积。
+- **规模扩展性**：Decoder-only 结构相对简单，便于扩大参数量、数据量和上下文长度。
+
+但它也有清晰边界：
+
+- **训练目标不等于事实约束**：最大化文本似然会让模型更擅长生成“像真的话”，却不保证内容真实。
+- **训练与推理存在分布偏移**：teacher forcing 与自回归采样之间有天然鸿沟。
+- **长上下文成本高**：标准 attention 的二次复杂度始终存在。
+- **上下文窗口有限**：若窗口长度为 $W$，则模型实际近似的是
+
+$$
+P_\theta(x_t\mid x_{t-W},\dots,x_{t-1})
+$$
+
+而不是无限历史上的真正条件分布。
+
+因此，GPT 很强，但它不是“显式知识库”或“逻辑证明器”的直接替代。很多现代系统会把 GPT 与检索、工具调用、外部记忆、程序执行器结合起来，正是为了补这些边界。
+
+---
+
+## 9. 与 BERT、Encoder-Decoder 路线的区别
+
+GPT、BERT 和 T5 / BART 一类模型都建立在 Transformer 上，但它们优化的概率对象并不相同。
+
+| 模型路线 | 结构 | 训练目标 | 可见性 | 更擅长什么 |
 | --- | --- | --- | --- | --- |
-| **NPLM / RNN LM** | 前馈或递归网络 | 下一词预测 | 语言建模起点 | 表达能力与规模有限 |
-| **Seq2Seq** | 编码器-解码器 | 条件生成 | 翻译、摘要 | 常需任务特定结构 |
-| **BERT** | Transformer Encoder | MLM 等理解导向目标 | 表示学习、理解任务 | 不擅长开放式生成 |
-| **GPT** | Transformer Decoder | 自回归语言建模 | 生成、提示学习、对话 | 逐 token 推理成本高 |
+| GPT | Decoder-only | 自回归下一 token 预测 | 只能看左侧前缀 | 续写、对话、代码生成 |
+| BERT | Encoder-only | MLM 等掩码重建目标 | 双向可见 | 表示学习、判别理解任务 |
+| T5 / BART | Encoder-Decoder | 条件生成 | 编码器双向，解码器单向 | 翻译、摘要、条件生成 |
 
-因此，GPT 不是简单地“把 Transformer 用来生成文本”，而是把生成式预训练发展成一种足够通用的基础模型路线。后续的大模型、对话模型、代码模型和多模态生成模型，大多都与这一条路线直接相关。
+从数学上说：
+
+- GPT 学的是 $P(x_t\mid x_{<t})$。
+- BERT 更接近学习“给定被遮蔽上下文，恢复缺失 token”的条件分布。
+- Encoder-Decoder 模型则学习 $P(y_t\mid y_{<t},x)$ 这类带显式输入条件的生成分布。
+
+因此，GPT 的关键辨识度不在于它“用了 Transformer”，而在于它选择了 **Decoder-only 结构与纯自回归目标** 这条路线。
 
 ---
 
 ## 总结
 
-GPT 的最关键思想，是利用 decoder-only Transformer 和自回归下一词预测目标，在大规模文本上学习统一的生成式语言模型。
+GPT 的内部数学链条，可以压缩成 5 步：
 
-在模型演化史上，它继承了 language modeling、attention 与 Transformer 的技术基础，但把这些元素组织成了可扩展的生成式预训练框架。随着模型规模、训练数据与对齐方法不断演进，GPT 不仅成为文本生成的核心路线，也成为当前通用大模型体系的重要代表。
+1. 把离散 token 映射到 embedding 空间，并加入位置信息。
+2. 用带因果掩码的 self-attention 在前缀内部做动态信息聚合。
+3. 用 FFN、残差连接与 LayerNorm 逐层重写隐藏表示。
+4. 把最后隐藏状态投影回词表，并用 softmax 得到条件概率分布。
+5. 用最大似然训练，在推理时通过采样策略与 KV cache 实现高效自回归生成。
+
+如果只记住一句话，那么 GPT 不是“一个会说话的黑箱”，而是一个在高维向量空间中执行大规模条件概率近似的序列模型。它之所以能表现出续写、对话、总结、代码生成等多种能力，本质上都来自这一条统一的数学主干。
