@@ -3,5 +3,12 @@
 	"code-runner.fileDirectoryAsCwd": true,
 	"code-runner.executorMap": {
 		"go": "cd $dir && go run ."
-	}
+	},
+	"http.proxy": "http://127.0.0.1:7890",
+	"http.proxySupport": "override",
+	"http.systemCertificates": true,
+	"http.noProxy": [
+		"127.0.0.1",
+		"localhost"
+	]
 }
