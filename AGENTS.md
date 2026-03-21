@@ -77,6 +77,14 @@ ALGORITHM-NAME(arg1, arg2, ...)
 - 数组索引：`A[i]` 或 `A[1..n]`
 - 数学运算：`⌊⌋` `⌈⌉` `mod` `and` `or` `not`
 
+## 权限规范
+
+- 涉及提权执行时，应优先提交覆盖面适中、语义清晰、可复用的 `prefix_rule`
+- `prefix_rule` 应尽量保持“短而稳”，优先使用稳定命令前缀，而不是把整条命令原样提交为长期批准规则
+- 适合长期批准的前缀，应限定在低风险、常复用、边界清晰的命令范围内，例如 `git status`、`git diff`、`gh pr view`、`npm run build`
+- 不应为高风险或破坏性操作申请宽泛前缀，例如 `git push`、`git reset`、`npm publish`、删除类命令
+- 若某条命令包含临时参数、具体路径、一次性上下文或 heredoc，通常不应直接作为 `prefix_rule` 持久批准
+
 ## 提交规范
 
 Conventional Commits: `<type>(<scope>): <description>`
