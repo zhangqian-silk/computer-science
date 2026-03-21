@@ -13,7 +13,7 @@
 > - Radford et al. (2018, 2019) 与 Brown et al. (2020)：以 GPT 系列展示 decoder-only Transformer 在自回归生成上的扩展性。
 > - Raffel et al. (2020)：以 T5 系统化 encoder-decoder Transformer 在统一文本到文本任务中的作用。
 
-## 导论：Transformer 的范式转变
+## 问题背景与范式转变
 
 Transformer（变换器）是一类以 **self-attention 为核心计算单元** 的神经网络架构，用于处理文本、语音、图像 patch、蛋白质序列等具有离散位置结构的数据。
 
@@ -41,7 +41,7 @@ Transformer 的核心改写则是：
 
 ---
 
-## 符号约定与阅读路径
+## 符号约定与核心公式
 
 本文统一采用 $d_{\mathrm{model}}$ 表示模型维度，序列长度记为 $n$，头数记为 $h$。若无特殊说明，输入矩阵按“序列长度在前、特征维在后”的形式书写。
 
@@ -58,12 +58,7 @@ Transformer 的核心改写则是：
 | $\mathrm{LN}(\cdot)$ | Layer Normalization |
 | $H^{(\ell)}$ | 第 $\ell$ 层 Transformer block 的输出 |
 
-本文建议按以下顺序阅读：
-
-1. 先理解 Transformer 为什么会替代递归主干；
-2. 再理解 attention 从 $Q,K,V$ 到权重矩阵的数学主线；
-3. 随后看位置机制、mask 与多头注意力如何把公式变成可用模块；
-4. 最后再进入编码器、解码器、训练推理与工程瓶颈。
+下文依次讨论 Transformer 对递归主干的替代逻辑、attention 的数学主线、位置机制与 mask、多头注意力、编码器与解码器结构，以及训练推理中的工程瓶颈。
 
 在进入正文前，可以先记住 6 个核心公式：
 
