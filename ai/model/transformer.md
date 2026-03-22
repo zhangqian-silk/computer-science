@@ -60,40 +60,25 @@ Transformer 的核心改写则是：
 | $\mathrm{LN}(\cdot)$ | Layer Normalization |
 | $H^{(\ell)}$ | 第 $\ell$ 层 Transformer block 的输出 |
 
-若只记住 6 个核心公式，通常已经足够把握 Transformer 主干：
+若只记住 3 个结构公式，通常已经足够把握 Transformer 主干：
 
 1. 输入表示与位置向量结合：
 $$
 z_t = x_t + p_t
 $$
 
-2. 线性投影得到 $Q,K,V$：
-$$
-Q = XW_Q,\quad K = XW_K,\quad V = XW_V
-$$
-
-3. 缩放点积 attention：
-$$
-\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
-$$
-
-4. 带掩码 attention：
-$$
-\mathrm{MaskedAttention}(Q,K,V) = \mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V
-$$
-
-5. 多头注意力：
-$$
-\mathrm{MultiHead}(Q,K,V) = \mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)W_O
-$$
-
-6. 现代常见的 pre-LN Transformer block：
+2. 现代常见的 pre-LN Transformer block：
 $$
 \tilde{H}^{(\ell)} = H^{(\ell-1)} + \mathrm{MHA}(\mathrm{LN}(H^{(\ell-1)}))
 $$
 
 $$
 H^{(\ell)} = \tilde{H}^{(\ell)} + \mathrm{FFN}(\mathrm{LN}(\tilde{H}^{(\ell)}))
+$$
+
+3. Encoder-Decoder 条件生成接口：
+$$
+P(Y\mid X)=\prod_{t=1}^{m}P(y_t\mid y_{<t},X)
 $$
 
 ---
@@ -138,37 +123,17 @@ flowchart LR
 
 ## 四、Attention、位置与可见性约束
 
-如果希望从运算顺序理解 attention，可以先看下面的交互式流程图：
-
-<AttentionMathFlow />
-
 Transformer 之所以成立，不是因为单独发明了 attention，而是因为它把以下 3 个问题稳定地组织在同一个主干里：
 
 - **内容相关读取**：当前位置应该从哪里读取信息；
 - **顺序信息补回**：模型如何知道谁在前、谁在后；
 - **可见性约束**：哪些位置可以互相看到，哪些位置必须被屏蔽。
 
-### Q、K、V 的角色分解
+在架构层，Transformer 并不需要再次完整展开 attention 的一般数学。只需记住：
 
-设输入矩阵为 $X$，Transformer 先通过三组可学习参数得到：
-$$
-Q = XW_Q,\quad K = XW_K,\quad V = XW_V
-$$
-
-这一步的关键，不是“同一个向量复制三次”，而是把同一位置拆成 3 种功能角色：
-
-- **Query**：当前位置正在寻找什么样的上下文；
-- **Key**：当前位置可以向别的位置暴露哪些可匹配特征；
-- **Value**：当前位置真正被读取、被聚合的内容表示。
-
-### 缩放点积 attention
-
-原始 Transformer 使用的 attention 形式是：
-$$
-\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
-$$
-
-它的含义可以压缩成一句话：**每个位置先算出它与整段序列中其他位置的相关性，再按相关性对所有 value 做加权聚合。**
+- 注意力子层负责按内容相关性读取信息；
+- 位置机制负责补回顺序；
+- 掩码负责定义不同结构中的可见边界。
 
 ### 位置机制与掩码
 
@@ -180,7 +145,7 @@ $$
 - 掩码机制解决“哪些位置此刻允许互相读取”；
 - 三类 attention 结构差异，本质上对应不同的信息流边界。
 
-这两部分的完整数学细节属于机制层，因此主文档只保留最小必要概览；若希望继续深入，应分别阅读 [positional-encoding.md](../mechanism/positional-encoding.md) 与 [self-attention.md](../mechanism/self-attention.md)。
+这几部分的完整数学细节属于机制层，因此主文档只保留最小必要概览；若希望继续深入，应分别阅读 [attention.md](../mechanism/attention.md)、[self-attention.md](../mechanism/self-attention.md) 与 [positional-encoding.md](../mechanism/positional-encoding.md)。
 
 ---
 

@@ -36,12 +36,12 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [ai/mechanism/positional-encoding.md](./mechanism/positional-encoding.md) | 位置机制总览 | 是 | 1593 | 首轮拆分已完成，但正文体量仍大，后续仍需继续压缩摘要与交叉引用 | 否 | 维持总览角色，后续配合 `transformer.md`、`gpt.md` 回收重复解释 | P1 | 已完成首轮拆分 |
 | [ai/representation/embedding.md](./representation/embedding.md) | Embedding 统一定义与表示入口 | 是 | 323 | 首轮拆分已完成，后续仍需继续压缩与 `word2vec.md`、模型文档的重复背景说明 | 是 | 已拆出 `text-embedding-training.md`、`retrieval-embedding.md` 与 `multimodal-alignment.md`，下一轮转入边界对齐与摘要压缩 | P0 | 已完成首轮拆分 |
-| [ai/model/transformer.md](./model/transformer.md) | Transformer 主干与架构主文档 | 是 | 460 | 首轮拆分已完成，后续仍需继续与 `attention.md`、`self-attention.md` 对齐公共机制边界 | 是 | 已拆出 `transformer-extensions.md`，下一轮转入公共机制重复回收与边界压缩 | P0 | 已完成首轮拆分 |
+| [ai/model/transformer.md](./model/transformer.md) | Transformer 主干与架构主文档 | 是 | 425 | 首轮边界对齐已完成，后续仍需继续配合目录级引用做统一收口 | 是 | 已压缩机制层数学复述，保留 block、结构路线与训练推理骨架 | P0 | 已完成首轮边界对齐 |
 | [ai/model/bert.md](./model/bert.md) | BERT 本体与训练范式主文档 | 是 | 338 | 首轮拆分已完成，后续仍需继续压缩与 `gpt.md`、表示层文档的交叉背景说明 | 是 | 已拆出 `bert-family.md`，下一轮转入公共比较段落回收与边界压缩 | P0 | 已完成首轮拆分 |
 | [ai/model/gpt.md](./model/gpt.md) | Decoder-only Transformer 与自回归语言模型主文档 | 是 | 387 | 首轮重复回收已完成，后续仍需继续与表示层文档压缩交叉背景说明 | 否 | 已压缩公共机制复述，下一轮转入与 `embedding.md` 的交叉背景收缩 | P1 | 已完成首轮重复回收 |
-| [ai/model/seq2seq.md](./model/seq2seq.md) | Encoder-Decoder 条件生成框架主文档 | 是 | 940 | 首轮重复回收已完成，后续仍需继续与 `attention.md`、`transformer.md` 对齐边界 | 否 | 已压缩 attention 数学复述，下一轮转入机制边界对齐 | P1 | 已完成首轮重复回收 |
-| [ai/mechanism/attention.md](./mechanism/attention.md) | 一般 attention 机制主文档 | 是 | 962 | 与 `self-attention.md`、`transformer.md` 在 Q/K/V、mask、多头层面仍有明显重复 | 否 | 保留抽象与数学骨架，后续回收其他文档中可替代的大段说明 | P1 | 待对齐边界 |
-| [ai/mechanism/self-attention.md](./mechanism/self-attention.md) | 序列内部 attention 的特化机制文档 | 是 | 311 | 篇幅已可控，但仍需进一步固化与 `attention.md`、`transformer.md` 的边界 | 否 | 强化“序列内部特化”定位，避免继续吸收 block 级与整机级内容 | P2 | 待对齐边界 |
+| [ai/model/seq2seq.md](./model/seq2seq.md) | Encoder-Decoder 条件生成框架主文档 | 是 | 940 | 首轮重复回收已完成，后续仍需继续压缩与条件生成类文档的交叉背景说明 | 否 | 已压缩 attention 数学复述，保留 encoder-decoder 主线与最小闭环 | P1 | 已完成首轮重复回收 |
+| [ai/mechanism/attention.md](./mechanism/attention.md) | 一般 attention 机制主文档 | 是 | 631 | 首轮边界对齐已完成，后续仍需继续观察与位置机制文档的摘要交叉引用 | 否 | 已回收位置编码、block 结构与系统层展开，保留统一抽象与数学骨架 | P1 | 已完成首轮边界对齐 |
+| [ai/mechanism/self-attention.md](./mechanism/self-attention.md) | 序列内部 attention 的特化机制文档 | 是 | 283 | 首轮边界对齐已完成，后续仍需继续维持与 `attention.md`、`transformer.md` 的职责稳定 | 否 | 已聚焦“同序列内部交互 + 可见性边界”，减少结构层与系统层展开 | P2 | 已完成首轮边界对齐 |
 
 ---
 
@@ -49,11 +49,10 @@
 
 按当前优先级，下一轮正文改造建议按以下顺序推进：
 
-1. 对齐 [ai/mechanism/attention.md](./mechanism/attention.md)、[ai/mechanism/self-attention.md](./mechanism/self-attention.md)、[ai/model/transformer.md](./model/transformer.md) 的边界；
-2. 补齐 `evaluation/` 目录的专题层；
-3. 做全目录一致性复查与最终构建验证。
+1. 补齐 `evaluation/` 目录的专题层；
+2. 做全目录一致性复查与最终构建验证。
 
-这一定序与 [refactor-plan.md](./refactor-plan.md) 中第 12-15 步保持一致。当前第 11 步已完成，因此下一轮最应立即进入的重构任务是第 12 步，也就是对齐 `attention.md`、`self-attention.md` 与 `transformer.md` 的边界。
+这一定序与 [refactor-plan.md](./refactor-plan.md) 中第 13-15 步保持一致。当前第 12 步已完成，因此下一轮最应立即进入的重构任务是第 13 步，也就是补齐 `evaluation/` 目录的专题层。
 
 ---
 
