@@ -6,6 +6,8 @@
 > - Vaswani et al. (2017)：以 self-attention 为核心构建 Transformer，使 attention 从辅助模块上升为主干机制。
 > - Shaw, Uszkoreit, and Vaswani (2018)：把相对位置信息引入 attention，增强序列关系建模。
 
+本文主要负责说明一般 attention 的统一抽象、数学骨架与典型变体，重点回答“attention 是什么、如何计算、为什么重要”。若关注序列内部的特化形式，应进一步阅读 [Self-Attention](./self-attention.md)；若关注 attention 如何被组织成完整主干架构，应进一步阅读 [Transformer](../model/transformer.md)。
+
 ## 问题背景与机制转向
 
 Attention 的核心贡献，不只是“让模型看得更远”，而是把序列建模中的一个基本问题彻底改写了。

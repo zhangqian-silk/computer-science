@@ -13,6 +13,8 @@
 > - Radford et al. (2018, 2019) 与 Brown et al. (2020)：以 GPT 系列展示 decoder-only Transformer 在自回归生成上的扩展性。
 > - Raffel et al. (2020)：以 T5 系统化 encoder-decoder Transformer 在统一文本到文本任务中的作用。
 
+本文主要负责说明 Transformer 作为完整架构时的主干逻辑，包括 block 结构、三类结构路线、训练推理骨架与历史位置。attention、自注意力、位置机制的完整数学细节分别以 [Attention](../mechanism/attention.md)、[Self-Attention](../mechanism/self-attention.md) 与 [Positional Encoding](../mechanism/positional-encoding.md) 为主文档；ViT、多模态连接器与更大范围的扩展路线后续应逐步迁往独立专题。
+
 ## 问题背景与范式转变
 
 Transformer（变换器）是一类以 **self-attention 为核心计算单元** 的神经网络架构，用于处理文本、语音、图像 patch、蛋白质序列等具有离散位置结构的数据。

@@ -6,6 +6,8 @@
 > - Liu et al. (2019)：提出 RoBERTa，系统分析并强化 BERT 的训练策略。
 > - Clark et al. (2020)：分析 BERT 中不同注意力头与层的语言学行为，帮助理解其内部机制。
 
+本文主要负责说明 BERT 本体：双向编码器结构、输入表示、MLM / NSP 预训练与微调范式。Transformer 主干本身以 [Transformer](./transformer.md) 为主文档；与 GPT、T5 / BART 及 BERT 家族变体的系统比较，后续应逐步收束为表格化概览或迁往独立专题文档。
+
 ## 符号约定与核心公式
 
 本文统一使用以下记号：

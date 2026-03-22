@@ -8,6 +8,8 @@
 > - Brown et al. (2020)：提出 GPT-3，系统展示大模型的上下文学习与少样本泛化现象。
 > - Ouyang et al. (2022)：提出 InstructGPT，展示指令微调与人类反馈优化对对话能力的提升。
 
+本文主要负责说明 GPT 作为 decoder-only Transformer 语言模型的建模目标、训练闭环、推理解码与参数规模逻辑。Transformer block、自注意力、位置机制等公共结构以 [Transformer](./transformer.md)、[Self-Attention](../mechanism/self-attention.md) 与 [Positional Encoding](../mechanism/positional-encoding.md) 为主文档；本文不再承担这些公共机制的完整总览职责。
+
 从数学上看，GPT 的核心任务并非“会聊天”，而是对离散序列上的条件概率分布族进行参数化建模。给定 token 序列
 
 $$
