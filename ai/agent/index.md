@@ -23,6 +23,25 @@
 
 ---
 
+## 主题入口
+
+如果希望直接进入某一类 Agent 能力，可从下列入口开始：
+
+| 主题 | 推荐入口 | 适合先看什么 |
+| --- | --- | --- |
+| 工具调用 | [Agent Arch](./arch.md) | 优先阅读其中的 `Tool-Calling` 一节，理解模型如何把自然语言目标转成可执行工具请求 |
+| RAG | [Agent Arch](./arch.md) | 优先阅读其中的 `RAG` 一节，理解检索如何进入 Agent 的长期记忆与外部知识访问 |
+| 规划 | [Agent Arch](./arch.md) | 优先阅读其中的 `Plan-and-Execute`、`Reflexion` 一节，理解多步任务如何被拆解、执行与重规划 |
+| 协议与集成 | [Agent Arch](./arch.md) | 优先阅读其中的 `MCP` 一节，理解模型与工具、外部系统之间的上下文协议 |
+
+如果需要配合相关基础主题一起看，也可以交叉阅读：
+
+- [Retrieval Embedding](../representation/retrieval-embedding.md)
+- [检索评估](../evaluation/retrieval-evaluation.md)
+- [生成评估](../evaluation/generation-evaluation.md)
+
+---
+
 ## 推荐阅读顺序
 
 1. [GPT](../model/gpt.md)
@@ -45,4 +64,4 @@
 - 机制能力：模型如何接入记忆、检索、工具；
 - 系统能力：多个组件如何被编排成稳定流程。
 
-当前本目录先从架构总览切入，后续可以继续扩展为更细的 Agent 专题层。
+当前本目录已能作为 Agent 主题入口页使用，后续仍可继续拆出更细的专题，如 Tool Use、Planning、Memory、RAG 与 Multi-Agent。

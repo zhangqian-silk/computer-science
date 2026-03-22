@@ -36,7 +36,7 @@ flowchart TD
 | [ai/representation](./representation/index.md) | 表示是什么、如何学习、如何用于检索与对齐 | 想理解 embedding 与表示学习时 |
 | [ai/mechanism](./mechanism/index.md) | attention、位置机制、LoRA、MoE 等通用机制 | 想理解模块级原理时 |
 | [ai/model](./model/index.md) | N-Gram、RNN、Transformer、BERT、GPT 等完整模型 | 想系统理解某个模型时 |
-| [ai/evaluation](./evaluation/index.md) | 如何评估语言模型与向量表示 | 想比较方法优劣时 |
+| [ai/evaluation](./evaluation/index.md) | 如何评估语言模型、检索、生成与表示 | 想比较方法优劣时 |
 | [ai/agent](./agent/index.md) | Agent 系统的结构、规划、工具与工作流 | 想从模型走向系统时 |
 
 ---
@@ -61,7 +61,8 @@ flowchart TD
 2. [Text Embedding Training](./representation/text-embedding-training.md)
 3. [Retrieval Embedding](./representation/retrieval-embedding.md)
 4. [向量表示分析](./evaluation/embedding-geometry.md)
-5. [语言模型评估](./evaluation/language-model-evaluation.md)
+5. [检索评估](./evaluation/retrieval-evaluation.md)
+6. [语言模型评估](./evaluation/language-model-evaluation.md)
 
 ### 路线三：从序列模型到 Transformer
 
