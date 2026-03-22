@@ -38,7 +38,7 @@
 | [ai/representation/embedding.md](./representation/embedding.md) | Embedding 统一定义与表示入口 | 是 | 323 | 首轮拆分已完成，后续仍需继续压缩与 `word2vec.md`、模型文档的重复背景说明 | 是 | 已拆出 `text-embedding-training.md`、`retrieval-embedding.md` 与 `multimodal-alignment.md`，下一轮转入边界对齐与摘要压缩 | P0 | 已完成首轮拆分 |
 | [ai/model/transformer.md](./model/transformer.md) | Transformer 主干与架构主文档 | 是 | 460 | 首轮拆分已完成，后续仍需继续与 `attention.md`、`self-attention.md` 对齐公共机制边界 | 是 | 已拆出 `transformer-extensions.md`，下一轮转入公共机制重复回收与边界压缩 | P0 | 已完成首轮拆分 |
 | [ai/model/bert.md](./model/bert.md) | BERT 本体与训练范式主文档 | 是 | 338 | 首轮拆分已完成，后续仍需继续压缩与 `gpt.md`、表示层文档的交叉背景说明 | 是 | 已拆出 `bert-family.md`，下一轮转入公共比较段落回收与边界压缩 | P0 | 已完成首轮拆分 |
-| [ai/model/gpt.md](./model/gpt.md) | Decoder-only Transformer 与自回归语言模型主文档 | 是 | 1182 | 对 Transformer block、位置机制与表示层公共内容重复较多 | 否 | 压缩公共机制复述，聚焦自回归目标、推理流程与能力演化 | P1 | 待回收重复 |
+| [ai/model/gpt.md](./model/gpt.md) | Decoder-only Transformer 与自回归语言模型主文档 | 是 | 387 | 首轮重复回收已完成，后续仍需继续与表示层文档压缩交叉背景说明 | 否 | 已压缩公共机制复述，下一轮转入与 `embedding.md` 的交叉背景收缩 | P1 | 已完成首轮重复回收 |
 | [ai/model/seq2seq.md](./model/seq2seq.md) | Encoder-Decoder 条件生成框架主文档 | 是 | 950 | attention 数学展开过深，削弱了 Seq2Seq 框架本体的辨识度 | 否 | 收缩 attention 细节，保留“为什么需要 + 如何接入”的最小闭环 | P1 | 待回收重复 |
 | [ai/mechanism/attention.md](./mechanism/attention.md) | 一般 attention 机制主文档 | 是 | 962 | 与 `self-attention.md`、`transformer.md` 在 Q/K/V、mask、多头层面仍有明显重复 | 否 | 保留抽象与数学骨架，后续回收其他文档中可替代的大段说明 | P1 | 待对齐边界 |
 | [ai/mechanism/self-attention.md](./mechanism/self-attention.md) | 序列内部 attention 的特化机制文档 | 是 | 311 | 篇幅已可控，但仍需进一步固化与 `attention.md`、`transformer.md` 的边界 | 否 | 强化“序列内部特化”定位，避免继续吸收 block 级与整机级内容 | P2 | 待对齐边界 |
@@ -49,13 +49,12 @@
 
 按当前优先级，下一轮正文改造建议按以下顺序推进：
 
-1. 清理 [ai/model/gpt.md](./model/gpt.md) 中的公共机制重复；
-2. 清理 [ai/model/seq2seq.md](./model/seq2seq.md) 中的 attention 重复；
-3. 对齐 [ai/mechanism/attention.md](./mechanism/attention.md)、[ai/mechanism/self-attention.md](./mechanism/self-attention.md)、[ai/model/transformer.md](./model/transformer.md) 的边界；
-4. 补齐 `evaluation/` 目录的专题层；
-5. 做全目录一致性复查与最终构建验证。
+1. 清理 [ai/model/seq2seq.md](./model/seq2seq.md) 中的 attention 重复；
+2. 对齐 [ai/mechanism/attention.md](./mechanism/attention.md)、[ai/mechanism/self-attention.md](./mechanism/self-attention.md)、[ai/model/transformer.md](./model/transformer.md) 的边界；
+3. 补齐 `evaluation/` 目录的专题层；
+4. 做全目录一致性复查与最终构建验证。
 
-这一定序与 [refactor-plan.md](./refactor-plan.md) 中第 10-15 步保持一致。当前第 7-9 步已完成，因此下一轮最应立即进入的重构任务是第 10 步，也就是清理 `gpt.md` 中的公共机制重复。
+这一定序与 [refactor-plan.md](./refactor-plan.md) 中第 11-15 步保持一致。当前第 10 步已完成，因此下一轮最应立即进入的重构任务是第 11 步，也就是清理 `seq2seq.md` 中的 attention 重复。
 
 ---
 
