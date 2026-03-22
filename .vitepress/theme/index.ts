@@ -26,6 +26,7 @@ import PositionRotationExplorer from './components/PositionRotationExplorer.vue'
 import RNNStructureExplorer from './components/RNNStructureExplorer.vue'
 import RNNTrainingDynamicsExplorer from './components/RNNTrainingDynamicsExplorer.vue'
 import Seq2SeqWorkflowExplorer from './components/Seq2SeqWorkflowExplorer.vue'
+import SparseAttentionPatternExplorer from './components/SparseAttentionPatternExplorer.vue'
 import TransformerBlockExplorer from './components/TransformerBlockExplorer.vue'
 import VectorRetrievalPipelineExplorer from './components/VectorRetrievalPipelineExplorer.vue'
 import Word2VecLandscapeExplorer from './components/Word2VecLandscapeExplorer.vue'
@@ -58,6 +59,7 @@ export default {
 		app.component('RNNStructureExplorer', RNNStructureExplorer)
 		app.component('RNNTrainingDynamicsExplorer', RNNTrainingDynamicsExplorer)
 		app.component('Seq2SeqWorkflowExplorer', Seq2SeqWorkflowExplorer)
+		app.component('SparseAttentionPatternExplorer', SparseAttentionPatternExplorer)
 		app.component('TransformerBlockExplorer', TransformerBlockExplorer)
 		app.component('VectorRetrievalPipelineExplorer', VectorRetrievalPipelineExplorer)
 		app.component('Word2VecLandscapeExplorer', Word2VecLandscapeExplorer)
