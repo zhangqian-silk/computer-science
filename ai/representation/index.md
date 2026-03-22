@@ -11,12 +11,10 @@
 
 ---
 
-## 本目录与相邻目录的边界
+## 相关主题
 
-- 本目录负责：表示定义、表示学习、表示几何、表示在检索中的作用。
-- 本目录不负责：完整模型训练流程与架构主干。
-- 若重点是 attention、LoRA、MoE 等模块机制，应进入 [mechanism](../mechanism/index.md)。
-- 若重点是 Transformer、BERT、GPT 等完整模型，应进入 [model](../model/index.md)。
+- 若重点是 attention、LoRA、MoE 等模块机制，可进入 [mechanism](../mechanism/index.md)。
+- 若重点是 Transformer、BERT、GPT 等完整模型，可进入 [model](../model/index.md)。
 
 ---
 

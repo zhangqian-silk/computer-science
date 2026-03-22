@@ -120,7 +120,7 @@ $$
 - 若重点是“为什么位置编码能否外推、ALiBi 或 RoPE 为什么影响扩窗”，应回到 [long-context-position.md](../mechanism/long-context-position.md)；
 - 若重点是“Transformer、Mamba 等不同主干如何应对长上下文成本”，应回到 [transformer-extensions.md](../model/transformer-extensions.md) 与相关模型文档。
 
-本页真正负责的，是判断这些机制最终有没有转化成**可测的远距离利用能力**。
+这一页的核心，是判断这些机制最终有没有转化成**可测的远距离利用能力**。
 
 ---
 

@@ -168,7 +168,7 @@ $$
 - 若重点是“向量如何学习、如何索引、如何进入召回流水线”，应回到 [retrieval-embedding.md](../representation/retrieval-embedding.md)；
 - 若重点是“模型最终生成的文本是否忠实、流畅、完成任务”，应继续阅读 [generation-evaluation.md](./generation-evaluation.md)。
 
-检索评估真正负责的，是把“找到什么”与“排得如何”这条链路单独拆开。
+检索评估的核心，是把“找到什么”与“排得如何”这条链路单独拆开。
 
 ---
 

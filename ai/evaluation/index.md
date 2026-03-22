@@ -13,12 +13,10 @@
 
 ---
 
-## 本目录与相邻目录的边界
+## 相关主题
 
-- 本目录负责：指标、分析方法、实验视角、评估边界。
-- 本目录不负责：完整模型架构定义。
-- 若重点是模型本身，应进入 [model](../model/index.md)。
-- 若重点是表示机制，应进入 [representation](../representation/index.md)。
+- 若重点是模型本身，可进入 [model](../model/index.md)。
+- 若重点是表示机制，可进入 [representation](../representation/index.md)。
 
 ---
 

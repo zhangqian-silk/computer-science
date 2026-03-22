@@ -1,6 +1,6 @@
 # Text Embedding Training：从静态词向量到上下文化表示
 
-本文负责梳理文本 embedding 的主要训练路线，重点回答“表示是如何被学习出来的”。如果想先理解 embedding 的统一定义、几何直觉与查表机制，应先阅读 [embedding.md](./embedding.md)；如果重点是向量如何进入检索系统，应继续阅读 [retrieval-embedding.md](./retrieval-embedding.md)。
+本文梳理文本 embedding 的主要训练路线，重点回答“表示是如何被学习出来的”。如果想先理解 embedding 的统一定义、几何直觉与查表机制，可先阅读 [embedding.md](./embedding.md)；如果重点是向量如何进入检索系统，可继续阅读 [retrieval-embedding.md](./retrieval-embedding.md)。
 
 ---
 

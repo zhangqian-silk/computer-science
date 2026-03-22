@@ -12,7 +12,7 @@
 > - Pennington, Socher, and Manning (2014)：通过 GloVe 展示全局共现统计与向量表示之间的关系。
 > - Devlin et al. (2019)：以 BERT 为代表，推动上下文化 embedding 成为主流表示方式。
 
-本文主要负责说明 embedding 的统一定义、几何直觉、学习方式与静态/动态表示差异，重点回答“离散对象如何进入连续空间”。与文本表示训练路线强相关的内容，应继续阅读 [text-embedding-training.md](./text-embedding-training.md)；与检索系统强相关的内容，应继续阅读 [retrieval-embedding.md](./retrieval-embedding.md)；与跨模态对齐强相关的内容，应继续阅读 [multimodal-alignment.md](./multimodal-alignment.md)。
+本文讨论 embedding 的统一定义、几何直觉、学习方式与静态/动态表示差异，重点回答“离散对象如何进入连续空间”。若希望继续阅读文本表示训练路线，可前往 [text-embedding-training.md](./text-embedding-training.md)；若希望了解 embedding 如何进入检索系统，可前往 [retrieval-embedding.md](./retrieval-embedding.md)；若希望了解跨模态对齐，可前往 [multimodal-alignment.md](./multimodal-alignment.md)。
 
 ---
 
@@ -236,7 +236,7 @@ $$
 
 到这里为止，本文已经回答了 embedding 作为统一表示层的核心问题：离散对象如何进入连续空间，向量之间如何形成几何关系，以及静态表示与动态表示的基本差异。
 
-但从知识体系上看，下面 3 类内容虽然都与 embedding 强相关，却已经不再属于“统一定义主文档”的核心职责：
+但从内容重心看，下面 3 类问题虽然都与 embedding 强相关，却各自延伸到了更具体的训练、系统或多模态场景：
 
 | 专题 | 主要问题 | 继续阅读 |
 | --- | --- | --- |

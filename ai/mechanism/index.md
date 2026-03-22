@@ -11,12 +11,10 @@
 
 ---
 
-## 本目录与相邻目录的边界
+## 相关主题
 
-- 本目录负责：通用模块、计算机制、结构部件、参数化技巧。
-- 本目录不负责：完整模型的总体任务接口、训练闭环和家族演化。
-- 若重点是 Transformer、BERT、GPT 等整机结构，应进入 [model](../model/index.md)。
-- 若重点是 embedding 等表示对象，应进入 [representation](../representation/index.md)。
+- 若重点是 Transformer、BERT、GPT 等整机结构，可继续阅读 [model](../model/index.md)。
+- 若重点是 embedding 等表示对象，可继续阅读 [representation](../representation/index.md)。
 
 ---
 
@@ -24,16 +22,17 @@
 
 ### 基础路径
 
-1. [Attention](./attention.md)
-2. [Self-Attention](./self-attention.md)
-3. [Positional Encoding](./positional-encoding.md)
+1. [神经网络训练基础](./neural-network-basics.md)
+2. [Attention](./attention.md)
+3. [Self-Attention](./self-attention.md)
+4. [Positional Encoding](./positional-encoding.md)
 
 ### 进阶路径
 
-4. [Sparse Attention](./sparse-attention.md)
-5. [LoRA](./lora.md)
-6. [MoE](./moe.md)
-7. [State Space Model](./state-space-model.md)
+5. [Sparse Attention](./sparse-attention.md)
+6. [LoRA](./lora.md)
+7. [MoE](./moe.md)
+8. [State Space Model](./state-space-model.md)
 
 ---
 
@@ -41,9 +40,10 @@
 
 | 文档 | 角色 | 建议用途 |
 | --- | --- | --- |
-| [Attention](./attention.md) | 一般 attention 主文档 | 理解 Q/K/V、打分、softmax、mask |
+| [神经网络训练基础](./neural-network-basics.md) | 数学与训练基础补充页 | 理解矩阵运算、激活、损失与反向传播基础 |
+| [Attention](./attention.md) | 一般 attention 核心篇 | 理解 Q/K/V、打分、softmax、mask |
 | [Self-Attention](./self-attention.md) | attention 在序列内部的特化 | 理解 Transformer 主干的核心交互方式 |
-| [Positional Encoding](./positional-encoding.md) | 位置机制主文档 | 理解顺序信息如何注入 |
+| [Positional Encoding](./positional-encoding.md) | 位置机制总览 | 理解顺序信息如何注入 |
 | [RoPE](./rope.md) | 位置机制专题 | 理解旋转位置编码的几何与工程实现 |
 | [Long Context Position](./long-context-position.md) | 长上下文位置专题 | 理解长度外推、插值、ALiBi 与扩窗路线 |
 | [Sparse Attention](./sparse-attention.md) | 长序列高效机制专题 | 理解稀疏连接与复杂度权衡 |
@@ -57,7 +57,8 @@
 
 阅读本目录时，建议始终区分两类问题：
 
+- “这些机制依赖哪些矩阵与训练基础”；
 - “机制本身怎么算”；
 - “这个机制在模型里如何被使用”。
 
-前者主要由本目录承担；后者通常由 [model](../model/index.md) 目录继续展开。
+第一类可先回到 [neural-network-basics.md](./neural-network-basics.md)；第二类主要由本目录承担；第三类通常由 [model](../model/index.md) 目录继续展开。

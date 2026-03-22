@@ -9,7 +9,7 @@
 > - Radford et al. (2019)：提出 GPT-2，证明更大规模语言模型具有更强的零样本生成能力。
 > - Brown et al. (2020)：提出 GPT-3，系统展示规模扩展带来的能力跃迁。
 
-本文主要负责说明 GPT 作为 decoder-only Transformer 语言模型的建模目标、训练闭环、推理解码与参数规模逻辑。Transformer block、自注意力、位置机制等公共结构以 [transformer.md](./transformer.md)、[self-attention.md](../mechanism/self-attention.md) 与 [positional-encoding.md](../mechanism/positional-encoding.md) 为主文档；本文不再承担这些公共机制的完整总览职责。
+本文讨论 GPT 作为 decoder-only Transformer 语言模型的建模目标、训练闭环、推理解码与参数规模逻辑。若希望补足 Transformer block、自注意力、位置机制等公共结构，可阅读 [transformer.md](./transformer.md)、[self-attention.md](../mechanism/self-attention.md) 与 [positional-encoding.md](../mechanism/positional-encoding.md)。
 
 ---
 
@@ -171,7 +171,7 @@ $$
 H^{(\ell)}=U^{(\ell)}+\mathrm{FFN}(\mathrm{LN}(U^{(\ell)}))
 $$
 
-这套骨架与标准 Transformer 主文档保持一致，GPT 的辨识度不在于发明了全新的 block，而在于它给 block 施加了**严格的因果可见性约束**，并让整套训练目标围绕下一 token 预测展开。
+这套骨架与标准 Transformer 保持一致，GPT 的辨识度不在于发明了全新的 block，而在于它给 block 施加了**严格的因果可见性约束**，并让整套训练目标围绕下一 token 预测展开。
 
 ### 单头 masked self-attention
 
@@ -296,7 +296,7 @@ GPT 推理时的大致流程可以概括为：
 
 KV cache 显著降低了重复计算，但也带来新的显存压力。上下文越长、层数越多、头数越多，缓存越大。也正因为如此，长上下文推理的瓶颈往往不只来自参数本身，还来自缓存本身。
 
-长上下文复杂度、缓存管理与更多系统级扩展，已经超出 GPT 主文档边界，若继续深入应回到 [transformer-extensions.md](./transformer-extensions.md)。
+若继续讨论长上下文复杂度、缓存管理与更多系统级扩展，可进一步阅读 [transformer-extensions.md](./transformer-extensions.md)。
 
 ---
 

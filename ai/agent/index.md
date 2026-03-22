@@ -6,12 +6,10 @@
 
 ---
 
-## 本目录与相邻目录的边界
+## 相关主题
 
-- 本目录负责：Agent 架构、工具调用、RAG、规划、记忆、工作流。
-- 本目录不负责：基础模型内部数学机制。
-- 若重点是 GPT、Transformer 等模型本体，应进入 [model](../model/index.md)。
-- 若重点是 embedding、检索表示，应进入 [representation](../representation/index.md)。
+- 若重点是 GPT、Transformer 等模型本体，可进入 [model](../model/index.md)。
+- 若重点是 embedding、检索表示，可进入 [representation](../representation/index.md)。
 
 ---
 

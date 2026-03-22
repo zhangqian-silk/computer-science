@@ -11,12 +11,10 @@
 
 ---
 
-## 本目录与相邻目录的边界
+## 相关主题
 
-- 本目录负责：完整模型、整机架构、训练目标、推理接口、历史位置。
-- 本目录不负责：单个机制的全量数学细节。
-- 若重点是 attention、位置机制、LoRA 等，应先看 [mechanism](../mechanism/index.md)。
-- 若重点是表示学习与 embedding，应先看 [representation](../representation/index.md)。
+- 若重点是 attention、位置机制、LoRA 等机制问题，可先看 [mechanism](../mechanism/index.md)。
+- 若重点是表示学习与 embedding，可先看 [representation](../representation/index.md)。
 
 ---
 
@@ -49,14 +47,14 @@
 | --- | --- | --- |
 | [N-Gram](./n-gram.md) | 统计语言模型入口 | 理解早期有限上下文假设 |
 | [NPLM](./nplm.md) | 神经语言模型起点 | 理解离散到连续的过渡 |
-| [RNN](./rnn.md) | 递归序列模型主文档 | 理解状态递推与 BPTT |
-| [LSTM](./lstm.md) | 门控序列模型主文档 | 理解长期依赖修正 |
-| [Seq2Seq](./seq2seq.md) | 条件生成框架主文档 | 理解 encoder-decoder |
-| [Transformer](./transformer.md) | 现代序列主干主文档 | 理解 self-attention 架构 |
+| [RNN](./rnn.md) | 递归序列模型核心篇 | 理解状态递推与 BPTT |
+| [LSTM](./lstm.md) | 门控序列模型核心篇 | 理解长期依赖修正 |
+| [Seq2Seq](./seq2seq.md) | 条件生成框架核心篇 | 理解 encoder-decoder |
+| [Transformer](./transformer.md) | 现代序列主干总览 | 理解 self-attention 架构 |
 | [Transformer Extensions](./transformer-extensions.md) | 扩展路线专题 | 理解长上下文、ViT 与多模态扩展 |
-| [BERT](./bert.md) | 编码器预训练主文档 | 理解双向表示学习 |
+| [BERT](./bert.md) | 编码器预训练核心篇 | 理解双向表示学习 |
 | [BERT Family](./bert-family.md) | 后续谱系专题 | 理解变体、句向量与检索路线 |
-| [GPT](./gpt.md) | 解码器预训练主文档 | 理解自回归生成路线 |
+| [GPT](./gpt.md) | 解码器预训练核心篇 | 理解自回归生成路线 |
 
 ---
 

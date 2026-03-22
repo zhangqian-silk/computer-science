@@ -5,7 +5,7 @@
 > - Press, Smith, and Lewis (2022)：ALiBi 提供了与 RoPE 明显不同的长上下文位置建模路线。
 > - Chen et al. (2023)、Peng et al. (2023)、Ding et al. (2024)：围绕 RoPE 的长度扩展、插值与缩放方法持续发展。
 
-本文主要负责说明 RoPE（Rotary Positional Embedding）的数学机制、几何直觉、工程实现与 KV cache 友好性。若希望先建立位置机制的总览地图，应先阅读 [Positional Encoding](./positional-encoding.md)；若希望进一步理解基于 RoPE 的长度外推与长上下文扩展，应继续阅读 [Long Context Position](./long-context-position.md)。
+本文讨论 RoPE（Rotary Positional Embedding）的数学机制、几何直觉、工程实现与 KV cache 友好性。若希望先建立位置机制的总览地图，可先阅读 [Positional Encoding](./positional-encoding.md)；若希望进一步理解基于 RoPE 的长度外推与长上下文扩展，可继续阅读 [Long Context Position](./long-context-position.md)。
 
 ---
 

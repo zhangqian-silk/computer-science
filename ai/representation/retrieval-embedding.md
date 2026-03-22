@@ -1,6 +1,6 @@
 # Retrieval Embedding：从向量表示到检索系统
 
-本文负责讨论 embedding 如何进入检索、召回与向量系统，重点回答“连续表示在部署阶段如何被索引、检索和重排”。如果想先理解 embedding 的统一定义、几何直觉与训练方式，应先阅读 [embedding.md](./embedding.md) 与 [text-embedding-training.md](./text-embedding-training.md)。
+本文讨论 embedding 如何进入检索、召回与向量系统，重点回答“连续表示在部署阶段如何被索引、检索和重排”。如果想先理解 embedding 的统一定义、几何直觉与训练方式，可先阅读 [embedding.md](./embedding.md) 与 [text-embedding-training.md](./text-embedding-training.md)；如果重点转向“这些检索链路最终应如何评估”，可继续阅读 [retrieval-evaluation.md](../evaluation/retrieval-evaluation.md)。
 
 ---
 
@@ -63,6 +63,8 @@ $$
 - **资源成本**：索引占用的内存、磁盘与构建时间是否可接受。
 
 因此，索引解决的是“如何更快找到近邻”，而 embedding 模型解决的是“什么样的对象应当互为近邻”。
+
+如果希望把这些系统权衡进一步落到 Recall、MRR、NDCG 以及多阶段检索评测上，应继续阅读 [retrieval-evaluation.md](../evaluation/retrieval-evaluation.md)。
 
 ---
 
@@ -201,4 +203,4 @@ $$
 
 Retrieval embedding 专题回答的，不是“向量是什么”，而是“向量如何变成可部署的召回基础设施”。ANN、向量数据库、混合检索、late interaction 与重排，共同构成了从表示空间到检索系统的完整落地链路。
 
-从知识结构上看，它应当从 [embedding.md](./embedding.md) 中独立出来，因为这里讨论的重点已经不再是连续表示的统一定义，而是表示如何进入工程系统并承担检索职责。
+从知识结构上看，它应当从 [embedding.md](./embedding.md) 中独立出来，因为这里讨论的重点已经不再是连续表示的统一定义，而是表示如何进入工程系统并承担检索职责。若继续追问“这些召回与重排链路最终该怎样评价”，则应继续转到 [retrieval-evaluation.md](../evaluation/retrieval-evaluation.md)。
