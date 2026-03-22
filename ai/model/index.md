@@ -36,8 +36,10 @@
 ### 快速现代路径
 
 1. [Transformer](./transformer.md)
-2. [BERT](./bert.md)
-3. [GPT](./gpt.md)
+2. [Transformer Extensions](./transformer-extensions.md)
+3. [BERT](./bert.md)
+4. [BERT Family](./bert-family.md)
+5. [GPT](./gpt.md)
 
 ---
 
@@ -51,7 +53,9 @@
 | [LSTM](./lstm.md) | 门控序列模型主文档 | 理解长期依赖修正 |
 | [Seq2Seq](./seq2seq.md) | 条件生成框架主文档 | 理解 encoder-decoder |
 | [Transformer](./transformer.md) | 现代序列主干主文档 | 理解 self-attention 架构 |
+| [Transformer Extensions](./transformer-extensions.md) | 扩展路线专题 | 理解长上下文、ViT 与多模态扩展 |
 | [BERT](./bert.md) | 编码器预训练主文档 | 理解双向表示学习 |
+| [BERT Family](./bert-family.md) | 后续谱系专题 | 理解变体、句向量与检索路线 |
 | [GPT](./gpt.md) | 解码器预训练主文档 | 理解自回归生成路线 |
 
 ---

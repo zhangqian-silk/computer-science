@@ -50,8 +50,10 @@ flowchart TD
 3. [Attention](./mechanism/attention.md)
 4. [Self-Attention](./mechanism/self-attention.md)
 5. [Transformer](./model/transformer.md)
-6. [BERT](./model/bert.md)
-7. [GPT](./model/gpt.md)
+6. [Transformer Extensions](./model/transformer-extensions.md)
+7. [BERT](./model/bert.md)
+8. [BERT Family](./model/bert-family.md)
+9. [GPT](./model/gpt.md)
 
 ### 路线二：从表示到检索
 

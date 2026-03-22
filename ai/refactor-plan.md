@@ -367,8 +367,8 @@ flowchart LR
 
 截至目前，已落地的步骤如下：
 
-- 已完成：第 1-7 步
-- 未开始：第 8-13 步
+- 已完成：第 1-9 步
+- 未开始：第 10-13 步
 - 部分完成：第 14 步
 - 已多次局部验证，未做最终总复查：第 15 步
 
@@ -382,6 +382,8 @@ flowchart LR
 - 已新增 `ai/representation/multimodal-alignment.md`
 - 已新增 `ai/mechanism/index.md`
 - 已新增 `ai/model/index.md`
+- 已新增 `ai/model/transformer-extensions.md`
+- 已新增 `ai/model/bert-family.md`
 - 已新增 `ai/evaluation/index.md`
 - 已新增 `ai/agent/index.md`
 - 已为 6 篇核心长文补充职责声明
@@ -623,7 +625,7 @@ flowchart LR
 
 #### 第 8 步：收缩 `transformer.md`
 
-状态：`未开始`
+状态：`已完成`
 
 为什么第三个做：
 
@@ -657,7 +659,7 @@ flowchart LR
 
 #### 第 9 步：收缩 `bert.md`
 
-状态：`未开始`
+状态：`已完成`
 
 为什么接着做：
 
@@ -822,7 +824,7 @@ flowchart LR
 | 里程碑 | 当前状态 | 说明 |
 | --- | --- | --- |
 | M1 | 已完成 | 第 1-5 步均已落地 |
-| M2 | 进行中 | 第 6-7 步已完成，第 8-9 步未开始 |
+| M2 | 已完成 | 第 6-9 步均已落地 |
 | M3 | 未开始 | 尚未进入重复正文回收 |
 | M4 | 未开始 | 仅 `agent/index.md` 已先行补上 |
 
