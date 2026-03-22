@@ -766,7 +766,7 @@ flowchart LR
 
 #### 第 15 步：做一次全目录一致性检查
 
-状态：`已多次局部验证，未做最终总复查`
+状态：`已完成`
 
 检查项：
 
@@ -826,7 +826,7 @@ flowchart LR
 | M1 | 已完成 | 第 1-5 步均已落地 |
 | M2 | 已完成 | 第 6-9 步均已落地 |
 | M3 | 已完成 | 第 10-12 步均已落地 |
-| M4 | 进行中 | 第 13-14 步已完成，第 15 步未开始 |
+| M4 | 已完成 | 第 13-15 步均已落地 |
 
 ---
 
@@ -838,6 +838,7 @@ flowchart LR
 ai/
 		index.md
 		nlp/
+				index.md
 				history.md
 		representation/
 				index.md
@@ -874,6 +875,8 @@ ai/
 				language-model-evaluation.md
 				embedding-geometry.md
 				retrieval-evaluation.md
+				generation-evaluation.md
+				long-context-evaluation.md
 		agent/
 				index.md
 				arch.md

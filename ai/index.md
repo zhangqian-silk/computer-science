@@ -32,7 +32,7 @@ flowchart TD
 
 | 目录 | 主要问题 | 适合什么时候读 |
 | --- | --- | --- |
-| [ai/nlp](./nlp/history.md) | 建立历史主线与方法演化关系 | 想先建立整体框架时 |
+| [ai/nlp](./nlp/index.md) | 建立历史主线与方法演化关系 | 想先建立整体框架时 |
 | [ai/representation](./representation/index.md) | 表示是什么、如何学习、如何用于检索与对齐 | 想理解 embedding 与表示学习时 |
 | [ai/mechanism](./mechanism/index.md) | attention、位置机制、LoRA、MoE 等通用机制 | 想理解模块级原理时 |
 | [ai/model](./model/index.md) | N-Gram、RNN、Transformer、BERT、GPT 等完整模型 | 想系统理解某个模型时 |
