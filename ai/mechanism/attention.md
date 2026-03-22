@@ -372,91 +372,24 @@ $$
 
 ---
 
-## 掩码机制：如何在并行计算中维持时序约束
+## 掩码机制：如何限制可见范围
 
-### 因果掩码的数学形式
-
-在自回归生成中，第 $t$ 个位置的预测不能依赖未来位置 $t+1,t+2,\dots$ 的信息。若不加限制，模型在训练时会因为整段序列被并行送入而“偷看答案”。
-
-因此，带因果掩码的 attention 写为：
+Attention 的通用骨架允许每个 query 与所有 key 做匹配，但实际任务常常需要额外限制“哪些位置是合法可见的”。因此，常见做法是在分数矩阵上加入掩码：
 
 $$
 \mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
 $$
 
-其中 $M\in\mathbb{R}^{L\times L}$ 为掩码矩阵。在因果掩码场景下：
+其中 $M$ 用来把非法位置对应的分数压到极小值，从而在 softmax 前把它们排除出概率分布。
 
-$$
-m_{ij}=
-\begin{cases}
-0, & j\le i\\
--\infty, & j>i
-\end{cases}
-$$
+最常见的两类掩码是：
 
-若 $L=4$，则：
-
-$$
-M=
-\begin{bmatrix}
-0 & -\infty & -\infty & -\infty\\
-0 & 0 & -\infty & -\infty\\
-0 & 0 & 0 & -\infty\\
-0 & 0 & 0 & 0
-\end{bmatrix}
-$$
-
-它对应的可见性结构，可以直接在上面的交互视图中切换到「因果掩码」模式来观察。此时右上角未来区域会被置为 `-inf`，随后在 softmax 阶段对应权重归零。
-
-### 为什么加上 $M$ 就能“屏蔽未来”
-
-令原始分数矩阵为：
-
-$$
-S=\frac{QK^\top}{\sqrt{d_k}}
-$$
-
-加入掩码后：
-
-$$
-\tilde{S}=S+M
-$$
-
-若 $j>i$，则 $\tilde{s}_{ij}=-\infty$，于是：
-
-$$
-\exp(\tilde{s}_{ij})=\exp(-\infty)=0
-$$
-
-再经过 softmax 可得：
-
-$$
-a_{ij}=0\qquad (j>i)
-$$
-
-因此，非法位置并不是在 softmax 之后“再手工清零”，而是在 softmax 之前就被排除出概率分布之外了。
-
-### Padding Mask 与 Causal Mask 的区别
-
-除了因果掩码，还常见 padding mask。两者作用不同：
-
-- **causal mask**：禁止当前位置访问未来 token；
+- **causal mask**：禁止当前位置访问未来 token，用于自回归生成；
 - **padding mask**：禁止模型把注意力分配给补齐出来的 `<PAD>` 位置。
 
-前者解决的是时序约束问题，后者解决的是批量训练时无效位置污染问题。在实际系统中，两者常常需要同时使用。
+从抽象层看，mask 只是在回答一个通用问题：**哪些 query-key 配对允许参与注意力计算。**
 
-### 为什么双向理解任务通常不需要 look-ahead mask
-
-在情感分类、自然语言推断、编码型阅读理解等任务中，输入序列通常完整给出，模型目标是理解整句，而不是预测“下一个词”。此时我们反而希望当前位置能够同时参考左右两侧上下文。
-
-因此：
-
-- 在自回归解码器中，attention 通常是下三角可见的；
-- 在双向编码器中，attention 通常是全可见的。
-
-这也是为什么 BERT 一类模型在标准 encoder self-attention 中不使用 look-ahead mask，而更多依赖 padding mask 或其他任务相关掩码。
-
-<MaskPositionExplorer />
+至于编码器为什么通常双向可见、解码器为什么必须使用因果掩码、局部/稀疏可见性又如何改变 self-attention 的行为，这些已经进入 [self-attention.md](./self-attention.md) 的专题范围。
 
 ---
 
@@ -523,12 +456,7 @@ $$
 
 因此，当二者都与序列长度同阶时，标准全局 attention 往往会面临近似二次的计算与显存压力。
 
-但需要注意：
-
-- KV cache 是自回归 self-attention 在推理期的系统级优化，不是一般 attention 抽象本身的一部分；
-- 长上下文优化、稀疏模式与高效 kernel，已经进入 [self-attention.md](./self-attention.md) 与 [transformer-extensions.md](../model/transformer-extensions.md) 的职责边界。
-
-这些方法的共同本质，是在保持 attention 长程建模优势的同时，减少全连接匹配带来的二次代价。
+当 query 与 key 来自同一长序列时，这个问题会在 self-attention 中表现得最明显。更具体的自回归推理、KV cache、长上下文优化与高效 kernel，可进一步阅读 [self-attention.md](./self-attention.md) 与 [transformer-extensions.md](../model/transformer-extensions.md)。
 
 如果想更直观地理解这组取舍关系，可以把它看成一个连续的权衡链条：
 
