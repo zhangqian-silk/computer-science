@@ -56,9 +56,10 @@ flowchart TD
 ### 路线二：从表示到检索
 
 1. [Embedding](./representation/embedding.md)
-2. [word2vec](./representation/word2vec.md)
-3. [向量表示分析](./evaluation/embedding-geometry.md)
-4. [语言模型评估](./evaluation/language-model-evaluation.md)
+2. [Text Embedding Training](./representation/text-embedding-training.md)
+3. [Retrieval Embedding](./representation/retrieval-embedding.md)
+4. [向量表示分析](./evaluation/embedding-geometry.md)
+5. [语言模型评估](./evaluation/language-model-evaluation.md)
 
 ### 路线三：从序列模型到 Transformer
 

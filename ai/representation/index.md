@@ -23,8 +23,11 @@
 ## 推荐阅读顺序
 
 1. [Embedding](./embedding.md)
-2. [word2vec](./word2vec.md)
-3. [向量表示分析](../evaluation/embedding-geometry.md)
+2. [Text Embedding Training](./text-embedding-training.md)
+3. [word2vec](./word2vec.md)
+4. [Multimodal Alignment](./multimodal-alignment.md)
+5. [Retrieval Embedding](./retrieval-embedding.md)
+6. [向量表示分析](../evaluation/embedding-geometry.md)
 
 如果想先建立历史位置，也可以先读 [NLP 历史](../nlp/history.md) 再回到本目录。
 
@@ -36,6 +39,9 @@
 | --- | --- | --- |
 | [Embedding](./embedding.md) | 本目录总入口 | 先理解连续表示的统一定义 |
 | [word2vec](./word2vec.md) | 经典方法专题 | 理解高效词向量训练 |
+| [Text Embedding Training](./text-embedding-training.md) | 训练路线专题 | 理解静态词向量到上下文化表示的演化 |
+| [Multimodal Alignment](./multimodal-alignment.md) | 跨模态专题 | 理解图文等不同模态如何共享表示空间 |
+| [Retrieval Embedding](./retrieval-embedding.md) | 系统落地专题 | 理解向量索引、混合检索与重排流程 |
 
 ---
 
