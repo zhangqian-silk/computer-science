@@ -1,9 +1,5 @@
 # Transformer：从自注意力到统一序列主干
 
-如果希望先建立对 Transformer block 的直观认识，可以先阅读下面的交互式结构图。该图概括了编码器块与解码器块中 attention、残差连接、Layer Normalization 与前馈网络之间的关系：
-
-<TransformerBlockExplorer />
-
 ---
 
 > 相关论文：

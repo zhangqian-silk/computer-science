@@ -1,9 +1,5 @@
 # NPLM：神经概率语言模型
 
-如果希望先建立对 NPLM 整体结构的直观认识，可以先阅读下面的交互式结构图。该图概括了固定窗口、embedding、隐藏层组合与全词表 softmax 输出之间的关系：
-
-<NPLMStructureExplorer />
-
 ---
 
 > 相关论文：

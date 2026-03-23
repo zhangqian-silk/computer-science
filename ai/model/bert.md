@@ -1,16 +1,12 @@
 # BERT：双向编码器预训练模型
 
-如果希望先建立对 BERT 输入结构的直观认识，可以先阅读下面的交互式结构图。该图概括了 token、位置、句段 embedding，经多层编码器堆叠后的 `[CLS]` 句级表示，以及 MLM / NSP 等典型训练目标之间的关系：
-
-<BertEncoderExplorer />
-
 ---
 
 > 相关论文：
 > - Devlin et al. (2019)：提出 BERT，系统展示双向编码器预训练在 NLP 理解任务中的效果。
 > - Liu et al. (2019)：提出 RoBERTa，系统分析并强化 BERT 的训练策略。
 
-本文讨论 BERT 本体：双向编码器结构、输入表示、MLM / NSP 预训练与微调范式。若希望先补足 Transformer 主干背景，可阅读 [Transformer](./transformer.md)；若希望继续了解 RoBERTa、ALBERT、DeBERTa、ELECTRA、SBERT、SimCSE 等后续谱系，可阅读 [bert-family.md](./bert-family.md)。
+本文讨论 BERT 本体：双向编码器结构、输入表示、MLM / NSP 预训练与微调范式。如果希望先补足 Transformer 主干背景，可阅读 [Transformer](./transformer.md)；如果希望继续了解 RoBERTa、ALBERT、DeBERTa、ELECTRA、SBERT、SimCSE 等后续谱系，可阅读 [bert-family.md](./bert-family.md)。
 
 ---
 

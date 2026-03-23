@@ -74,10 +74,6 @@ $$
 
 下文依次讨论问题动机、基本定义、数学展开、掩码机制、典型扩展与常见误区。位置编码、自注意力特化、Transformer block 组织与系统级训练推理问题，分别回到 [positional-encoding.md](./positional-encoding.md)、[self-attention.md](./self-attention.md) 与 [transformer.md](../model/transformer.md)。
 
-下面这张交互式路线图概括了全文主线：
-
-<AttentionRoadmap />
-
 ---
 
 ## 问题动机：为什么需要 Attention
@@ -192,10 +188,6 @@ $$
 $$
 
 这一公式看起来简洁，但实际上浓缩了完整的“匹配、归一化、聚合”过程。下面按矩阵运算顺序展开。
-
-从计算流程上看，其骨架可画为：
-
-<AttentionMathFlow />
 
 ### 线性投影：从输入表示生成 $Q,K,V$
 
@@ -344,10 +336,6 @@ $$
 
 这说明 attention 的输出，本质上是对所有 value 向量做加权平均。权重不是固定的，而是由当前位置与各候选位置之间的相关性动态决定的。
 
-如果想把这个过程看得更“像矩阵在流动”，可以直接观察下方交互视图。它把 $QK^\top$、加掩码、softmax 和最终的 $AV$ 输出放在同一组界面里，并允许逐行查看某个 query 是如何完成信息聚合的：
-
-<AttentionScoreMatrixExplorer />
-
 ### 一个最小例子
 
 设序列长度为 3，当前第 2 个位置对三个位置的打分分别为：
@@ -435,10 +423,6 @@ $$
 
 因此，多头的价值不在于“同样的事情做很多次”，而在于“在不同子空间中并行学习不同类型的关系模式”。
 
-如果把这一过程画成静态图，往往只会看到「分叉再拼接」的骨架，却不容易看出每个头为什么要独立存在。下面这个交互视图会把“同源输入、独立投影、各头关注点不同、最后再拼回统一空间”的逻辑展开：
-
-<MultiHeadAttentionExplorer />
-
 多头属于 attention 在表达能力上的自然扩展，但它本身仍不等于完整架构。  
 当 attention 进一步与位置机制、残差连接、LayerNorm、FFN 以及编码器/解码器信息流边界结合时，讨论重点就会转到 Transformer 的整体结构。
 
@@ -457,10 +441,6 @@ $$
 因此，当二者都与序列长度同阶时，标准全局 attention 往往会面临近似二次的计算与显存压力。
 
 当 query 与 key 来自同一长序列时，这个问题会在 self-attention 中表现得最明显。更具体的自回归推理、KV cache、长上下文优化与高效 kernel，可进一步阅读 [self-attention.md](./self-attention.md) 与 [transformer-extensions.md](../model/transformer-extensions.md)。
-
-如果想更直观地理解这组取舍关系，可以把它看成一个连续的权衡链条：
-
-<AttentionTradeoffExplorer />
 
 ---
 

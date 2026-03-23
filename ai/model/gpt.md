@@ -1,7 +1,5 @@
 # GPT：基于 Decoder-only Transformer 的自回归语言模型
 
-<TransformerBlockExplorer />
-
 ---
 
 > 相关论文：
