@@ -6,6 +6,8 @@
 > - Vaswani et al. (2017)：以 self-attention 为核心构建 Transformer，使 attention 从辅助模块上升为主干机制。
 > - Shaw, Uszkoreit, and Vaswani (2018)：把相对位置信息引入 attention，增强序列关系建模。
 
+本文讨论一般 attention 的统一抽象、数学骨架与典型变体，重点回答“attention 是什么、如何计算、为什么重要”。若关注序列内部的特化形式，可进一步阅读 [Self-Attention](./self-attention.md)；若关注 attention 如何被组织成完整主干架构，可进一步阅读 [Transformer](../model/transformer.md)。
+
 ## 问题背景与机制转向
 
 Attention 的核心贡献，不只是“让模型看得更远”，而是把序列建模中的一个基本问题彻底改写了。
@@ -65,37 +67,12 @@ $$
 \mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
 $$
 
-4. 正弦余弦位置编码：
-$$
-PE_{(pos,2i)}=\sin\left(\frac{pos}{10000^{2i/d_{\mathrm{model}}}}\right),\qquad
-PE_{(pos,2i+1)}=\cos\left(\frac{pos}{10000^{2i/d_{\mathrm{model}}}}\right)
-$$
-
-5. 多头注意力：
+4. 多头注意力：
 $$
 \mathrm{MultiHead}(Q,K,V)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)W^O
 $$
 
-6. 残差连接：
-$$
-y=x+F(x)
-$$
-
-7. LayerNorm：
-$$
-\mathrm{LN}(h)=\gamma\odot \frac{h-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta
-$$
-
-8. 前馈网络：
-$$
-\mathrm{FFN}(x)=W_2\,\phi(W_1x+b_1)+b_2
-$$
-
-下文依次讨论问题动机、基本定义、数学展开、掩码机制、位置编码、多头注意力、训练与推理代价，以及常见误区。
-
-下面这张交互式路线图概括了全文主线：
-
-<AttentionRoadmap />
+下文依次讨论问题动机、基本定义、数学展开、掩码机制、典型扩展与常见误区。位置编码、自注意力特化、Transformer block 组织与系统级训练推理问题，分别回到 [positional-encoding.md](./positional-encoding.md)、[self-attention.md](./self-attention.md) 与 [transformer.md](../model/transformer.md)。
 
 ---
 
@@ -211,10 +188,6 @@ $$
 $$
 
 这一公式看起来简洁，但实际上浓缩了完整的“匹配、归一化、聚合”过程。下面按矩阵运算顺序展开。
-
-从计算流程上看，其骨架可画为：
-
-<AttentionMathFlow />
 
 ### 线性投影：从输入表示生成 $Q,K,V$
 
@@ -363,10 +336,6 @@ $$
 
 这说明 attention 的输出，本质上是对所有 value 向量做加权平均。权重不是固定的，而是由当前位置与各候选位置之间的相关性动态决定的。
 
-如果想把这个过程看得更“像矩阵在流动”，可以直接观察下方交互视图。它把 $QK^\top$、加掩码、softmax 和最终的 $AV$ 输出放在同一组界面里，并允许逐行查看某个 query 是如何完成信息聚合的：
-
-<AttentionScoreMatrixExplorer />
-
 ### 一个最小例子
 
 设序列长度为 3，当前第 2 个位置对三个位置的打分分别为：
@@ -391,237 +360,45 @@ $$
 
 ---
 
-## 掩码机制：如何在并行计算中维持时序约束
+## 掩码机制：如何限制可见范围
 
-### 因果掩码的数学形式
-
-在自回归生成中，第 $t$ 个位置的预测不能依赖未来位置 $t+1,t+2,\dots$ 的信息。若不加限制，模型在训练时会因为整段序列被并行送入而“偷看答案”。
-
-因此，带因果掩码的 attention 写为：
+Attention 的通用骨架允许每个 query 与所有 key 做匹配，但实际任务常常需要额外限制“哪些位置是合法可见的”。因此，常见做法是在分数矩阵上加入掩码：
 
 $$
 \mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
 $$
 
-其中 $M\in\mathbb{R}^{L\times L}$ 为掩码矩阵。在因果掩码场景下：
+其中 $M$ 用来把非法位置对应的分数压到极小值，从而在 softmax 前把它们排除出概率分布。
 
-$$
-m_{ij}=
-\begin{cases}
-0, & j\le i\\
--\infty, & j>i
-\end{cases}
-$$
+最常见的两类掩码是：
 
-若 $L=4$，则：
-
-$$
-M=
-\begin{bmatrix}
-0 & -\infty & -\infty & -\infty\\
-0 & 0 & -\infty & -\infty\\
-0 & 0 & 0 & -\infty\\
-0 & 0 & 0 & 0
-\end{bmatrix}
-$$
-
-它对应的可见性结构，可以直接在上面的交互视图中切换到「因果掩码」模式来观察。此时右上角未来区域会被置为 `-inf`，随后在 softmax 阶段对应权重归零。
-
-### 为什么加上 $M$ 就能“屏蔽未来”
-
-令原始分数矩阵为：
-
-$$
-S=\frac{QK^\top}{\sqrt{d_k}}
-$$
-
-加入掩码后：
-
-$$
-\tilde{S}=S+M
-$$
-
-若 $j>i$，则 $\tilde{s}_{ij}=-\infty$，于是：
-
-$$
-\exp(\tilde{s}_{ij})=\exp(-\infty)=0
-$$
-
-再经过 softmax 可得：
-
-$$
-a_{ij}=0\qquad (j>i)
-$$
-
-因此，非法位置并不是在 softmax 之后“再手工清零”，而是在 softmax 之前就被排除出概率分布之外了。
-
-### Padding Mask 与 Causal Mask 的区别
-
-除了因果掩码，还常见 padding mask。两者作用不同：
-
-- **causal mask**：禁止当前位置访问未来 token；
+- **causal mask**：禁止当前位置访问未来 token，用于自回归生成；
 - **padding mask**：禁止模型把注意力分配给补齐出来的 `<PAD>` 位置。
 
-前者解决的是时序约束问题，后者解决的是批量训练时无效位置污染问题。在实际系统中，两者常常需要同时使用。
+从抽象层看，mask 只是在回答一个通用问题：**哪些 query-key 配对允许参与注意力计算。**
 
-### 为什么双向理解任务通常不需要 look-ahead mask
+至于编码器为什么通常双向可见、解码器为什么必须使用因果掩码、局部/稀疏可见性又如何改变 self-attention 的行为，这些已经进入 [self-attention.md](./self-attention.md) 的专题范围。
 
-在情感分类、自然语言推断、编码型阅读理解等任务中，输入序列通常完整给出，模型目标是理解整句，而不是预测“下一个词”。此时我们反而希望当前位置能够同时参考左右两侧上下文。
+---
+
+## 与位置机制、Self-Attention 与 Transformer 的边界
+
+从抽象层看，attention 只回答一个问题：**如何按相关性动态聚合信息。**  
+它本身并不自动回答另外三个问题：
+
+- 序列顺序如何进入模型；
+- query、key、value 是否来自同一序列；
+- attention 如何被组织成可深度堆叠的 block。
 
 因此：
 
-- 在自回归解码器中，attention 通常是下三角可见的；
-- 在双向编码器中，attention 通常是全可见的。
-
-这也是为什么 BERT 一类模型在标准 encoder self-attention 中不使用 look-ahead mask，而更多依赖 padding mask 或其他任务相关掩码。
-
-<MaskPositionExplorer />
+- 位置机制与顺序建模，应回到 [positional-encoding.md](./positional-encoding.md)；
+- 序列内部的同源特化，应回到 [self-attention.md](./self-attention.md)；
+- 多头、残差、LayerNorm、FFN 如何共同组成完整主干，应回到 [transformer.md](../model/transformer.md)。
 
 ---
 
-## 位置编码：为什么 Attention 还需要顺序信息
-
-### 为什么 attention 本身没有顺序感
-
-若只看
-
-$$
-\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
-$$
-
-其中的相关性计算，本质上只比较不同位置之间的内容相似性。若没有额外位置信息，模型很难仅凭这套公式区分：
-
-- 「狗 咬 人」
-- 「人 咬 狗」
-
-因为两者包含的 token 集合相同，但顺序不同、语义完全不同。
-
-因此，现代 attention 模型并不是“纯 attention”，而是“attention + position 机制”的组合。
-
-### 为什么通常选择相加，而不是拼接
-
-设词向量为：
-
-$$
-e_{\text{word}}\in\mathbb{R}^{d}
-$$
-
-位置向量为：
-
-$$
-p_{\text{pos}}\in\mathbb{R}^{d_p}
-$$
-
-若采用拼接，则得到：
-
-$$
-[e_{\text{word}};p_{\text{pos}}]\in\mathbb{R}^{d+d_p}
-$$
-
-这种方法逻辑上可行，但会直接改变输入维度，进而影响后续所有投影矩阵和残差对齐。  
-
-因此，标准 Transformer 采用更简洁的方式：
-
-$$
-x_{\text{input}}=e_{\text{word}}+p_{\text{pos}}
-$$
-
-其中：
-
-$$
-e_{\text{word}},p_{\text{pos}}\in\mathbb{R}^{d_{\mathrm{model}}}
-$$
-
-这样既注入了位置信息，又保持后续 attention 所需维度不变。
-
-### 正弦余弦位置编码的公式
-
-原始 Transformer 采用显式的三角函数位置编码：
-
-$$
-PE_{(pos,2i)}=\sin\left(\frac{pos}{10000^{2i/d_{\mathrm{model}}}}\right)
-$$
-
-$$
-PE_{(pos,2i+1)}=\cos\left(\frac{pos}{10000^{2i/d_{\mathrm{model}}}}\right)
-$$
-
-其中：
-
-- $pos$ 表示位置；
-- $i$ 表示维度索引的一半；
-- $d_{\mathrm{model}}$ 表示模型维度。
-
-这样构造后：
-
-- 不同维度对应不同频率；
-- 所有数值都稳定落在 $[-1,1]$ 内；
-- 即便位置很大，也不会因为数值尺度爆炸而淹没词向量语义。
-
-### 为什么三角函数有利于表达相对位置
-
-设某一对偶维度上的角频率为：
-
-$$
-\omega_i=\frac{1}{10000^{2i/d_{\mathrm{model}}}}
-$$
-
-定义二维位置编码块：
-
-$$
-u_i(pos)=
-\begin{bmatrix}
-\sin(\omega_i pos)\\
-\cos(\omega_i pos)
-\end{bmatrix}
-$$
-
-若位置平移 $k$，则有：
-
-$$
-u_i(pos+k)=
-\begin{bmatrix}
-\sin(\omega_i(pos+k))\\
-\cos(\omega_i(pos+k))
-\end{bmatrix}
-$$
-
-根据三角恒等式：
-
-$$
-\sin(\alpha+\beta)=\sin\alpha\cos\beta+\cos\alpha\sin\beta
-$$
-
-$$
-\cos(\alpha+\beta)=\cos\alpha\cos\beta-\sin\alpha\sin\beta
-$$
-
-可得：
-
-$$
-u_i(pos+k)=
-\begin{bmatrix}
-\cos(\omega_i k) & \sin(\omega_i k)\\
--\sin(\omega_i k) & \cos(\omega_i k)
-\end{bmatrix}
-u_i(pos)
-$$
-
-这说明：对任意固定偏移量 $k$，位置 $pos+k$ 的编码可以由位置 $pos$ 的编码经过一个只依赖于 $k$ 的线性变换得到。也正因此，三角函数位置编码不仅表达绝对位置，也天然有利于模型学习相对距离关系。
-
-### 相对位置与旋转位置的进一步发展
-
-在后续工作中，研究者又提出：
-
-- **相对位置编码**：显式建模两个位置之间的位移关系；
-- **旋转位置编码（RoPE）**：把相对位置信息编码进向量旋转结构中；
-- **可学习位置编码**：让位置信息本身也通过训练学习。
-
-这些方法的共同目标都是一样的：在不破坏 attention 核心机制的前提下，让模型更自然地感知顺序与距离。
-
----
-
-## 多头注意力与 Transformer Block
+## 多头注意力与典型扩展
 
 ### 多头注意力为什么不是简单重复
 
@@ -646,222 +423,24 @@ $$
 
 因此，多头的价值不在于“同样的事情做很多次”，而在于“在不同子空间中并行学习不同类型的关系模式”。
 
-如果把这一过程画成静态图，往往只会看到「分叉再拼接」的骨架，却不容易看出每个头为什么要独立存在。下面这个交互视图会把“同源输入、独立投影、各头关注点不同、最后再拼回统一空间”的逻辑展开：
-
-<MultiHeadAttentionExplorer />
-
-### 残差连接、LayerNorm 与 FFN 为什么必要
-
-若只有 attention 本身，模型仍然不够完整。原因在于：
-
-- attention 主要负责跨位置的信息交互；
-- 它不单独承担深层稳定训练；
-- 它也不单独提供足够强的逐位置非线性变换能力。
-
-因此，标准 Transformer block 通常还需要：
-
-- **残差连接**：保留恒等通路，缓解深层退化；
-- **LayerNorm**：稳定各层数值分布；
-- **FFN**：对每个位置做非线性重加工。
-
-它们的典型公式分别为：
-
-$$
-y=x+F(x)
-$$
-
-$$
-\mathrm{LN}(h)=\gamma\odot \frac{h-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta
-$$
-
-$$
-\mathrm{FFN}(x)=W_2\,\phi(W_1x+b_1)+b_2
-$$
-
-### 编码器块的前向传播
-
-设输入表示为：
-
-$$
-H^{(0)}=X+P
-$$
-
-对第 $\ell$ 个编码器层，采用常见 `Pre-LN` 写法时，其更新链条可写为：
-
-$$
-\tilde{H}^{(\ell-1)}=\mathrm{LN}\big(H^{(\ell-1)}\big)
-$$
-
-$$
-A^{(\ell)}=\mathrm{MultiHead}\big(\tilde{H}^{(\ell-1)},\tilde{H}^{(\ell-1)},\tilde{H}^{(\ell-1)}\big)
-$$
-
-$$
-Z^{(\ell)}=H^{(\ell-1)}+A^{(\ell)}
-$$
-
-$$
-\tilde{Z}^{(\ell)}=\mathrm{LN}\big(Z^{(\ell)}\big)
-$$
-
-$$
-F^{(\ell)}=\mathrm{FFN}\big(\tilde{Z}^{(\ell)}\big)
-$$
-
-$$
-H^{(\ell)}=Z^{(\ell)}+F^{(\ell)}
-$$
-
-这说明：编码器块本质上是在做两件事：
-
-- 先用 self-attention 在全序列范围内交换信息；
-- 再用 FFN 在每个位置内部重组表示。
-
-编码器块可概括为：
-
-<TransformerBlockExplorer />
-
-### 解码器块的前向传播
-
-设目标端输入为：
-
-$$
-Y^{(0)}=Y_{\mathrm{emb}}+P_{\mathrm{dec}}
-$$
-
-设编码器输出为：
-
-$$
-H_{\mathrm{enc}}
-$$
-
-则第 $\ell$ 个解码器层可写为：
-
-第一阶段，masked self-attention：
-
-$$
-\tilde{Y}^{(\ell-1)}=\mathrm{LN}\big(Y^{(\ell-1)}\big)
-$$
-
-$$
-S^{(\ell)}=\mathrm{MaskedMultiHead}\big(\tilde{Y}^{(\ell-1)},\tilde{Y}^{(\ell-1)},\tilde{Y}^{(\ell-1)}\big)
-$$
-
-$$
-U^{(\ell)}=Y^{(\ell-1)}+S^{(\ell)}
-$$
-
-第二阶段，cross-attention：
-
-$$
-\tilde{U}^{(\ell)}=\mathrm{LN}\big(U^{(\ell)}\big)
-$$
-
-$$
-C^{(\ell)}=\mathrm{MultiHead}\big(\tilde{U}^{(\ell)},H_{\mathrm{enc}},H_{\mathrm{enc}}\big)
-$$
-
-$$
-V^{(\ell)}=U^{(\ell)}+C^{(\ell)}
-$$
-
-第三阶段，FFN：
-
-$$
-\tilde{V}^{(\ell)}=\mathrm{LN}\big(V^{(\ell)}\big)
-$$
-
-$$
-F^{(\ell)}=\mathrm{FFN}\big(\tilde{V}^{(\ell)}\big)
-$$
-
-$$
-Y^{(\ell)}=V^{(\ell)}+F^{(\ell)}
-$$
-
-最后经输出层与 softmax 得到词表上的预测分布：
-
-$$
-P(y_t\mid y_{<t},X)=\mathrm{softmax}(W_o y_t^{(N)}+b_o)
-$$
-
-解码器块比编码器块多出一层 cross-attention，其流程可简写为：
-
-上面的交互图支持切换到「解码器块」视图，能够更直观地看到 `Masked Self-Attention -> Cross-Attention -> FFN` 的层级关系与数据流向。
-
-### 为什么 Attention 最终催生了 Transformer
-
-Attention 最初只是 Seq2Seq 中缓解信息瓶颈的辅助机制，但它暴露出一个更深刻的事实：**序列建模不一定非要靠递归链条逐步记忆过去，也可以在需要时直接访问相关信息。**
-
-一旦这种内容寻址方式被证明有效，研究者自然会进一步追问：既然相关性矩阵已经能完成全局依赖建模，那么是否还必须保留 RNN 那种串行主干？
-
-Transformer 给出的答案是：不必。  
-
-它把 attention 从“附属模块”提升为“核心计算单元”，再用位置编码、mask、多头机制、残差、LayerNorm 和 FFN 围绕它组织起一整套可深度堆叠的结构。现代大语言模型、多模态模型与许多生成模型的共同基础，正是这一架构转变。
+多头属于 attention 在表达能力上的自然扩展，但它本身仍不等于完整架构。  
+当 attention 进一步与位置机制、残差连接、LayerNorm、FFN 以及编码器/解码器信息流边界结合时，讨论重点就会转到 Transformer 的整体结构。
 
 ---
 
 ## 训练、推理与复杂度
 
-### 训练为什么可以并行
+Attention 的一个重要优点，是匹配分数可以通过矩阵乘法并行计算；它的典型代价，则来自相关性矩阵随长度增长而迅速膨胀。
 
-Attention 的一个巨大优势，是分数矩阵 $QK^\top$ 可以通过矩阵乘法一次性并行计算。因此，在训练阶段：
-
-- 编码器 self-attention 常可整段并行；
-- 解码器自回归模型虽仍受因果约束，但训练时可借助 mask 并行计算整段前缀；
-- 这比逐时间步展开的递归模型更适合 GPU / TPU 等并行硬件。
-
-### 推理为什么离不开 KV cache
-
-在自回归生成中，第 $t$ 步只新增一个 token。若每一步都重新计算整个前缀的 key 和 value，会产生大量冗余。
-
-KV cache 的做法是：
-
-- 历史位置的 key 与 value 一经计算便缓存；
-- 后续步骤只需为新增 token 计算新的 query、key、value；
-- 再用当前 query 与缓存中的全部 key、value 做 attention。
-
-因此，KV cache 并没有改变 attention 的数学目标，它优化的是实现方式与推理效率。
-
-### 为什么全局 self-attention 常有 $O(n^2)$ 代价
-
-设序列长度为 $n$，则单头 attention 中：
+若 query 长度为 $L_q$、key 长度为 $L_k$，则分数矩阵规模为：
 
 $$
-Q\in\mathbb{R}^{n\times d_k},\qquad K\in\mathbb{R}^{n\times d_k}
+L_q\times L_k
 $$
 
-计算
+因此，当二者都与序列长度同阶时，标准全局 attention 往往会面临近似二次的计算与显存压力。
 
-$$
-QK^\top
-$$
-
-会得到一个 $n\times n$ 的分数矩阵。这意味着序列中每个位置都要与所有位置交互一次，总交互量约为 $n^2$。  
-
-因此，其主要成本来自：
-
-- 分数矩阵计算；
-- softmax 归一化；
-- 对 $V$ 的加权聚合；
-- 训练时对中间激活与注意力权重的存储。
-
-这也是为什么长上下文建模会迅速面临计算和显存压力。
-
-### 常见缓解思路
-
-为缓解长序列瓶颈，常见思路包括：
-
-- 局部 attention；
-- 稀疏 attention；
-- 线性 attention；
-- 分块或层次化策略。
-
-这些方法的共同本质，是在保持 attention 长程建模优势的同时，减少全连接匹配带来的二次代价。
-
-如果想更直观地理解这组取舍关系，可以把它看成一个连续的权衡链条：
-
-<AttentionTradeoffExplorer />
+当 query 与 key 来自同一长序列时，这个问题会在 self-attention 中表现得最明显。更具体的自回归推理、KV cache、长上下文优化与高效 kernel，可进一步阅读 [self-attention.md](./self-attention.md) 与 [transformer-extensions.md](../model/transformer-extensions.md)。
 
 ---
 

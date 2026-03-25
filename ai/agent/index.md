@@ -1,0 +1,65 @@
+# Agent 层：从模型能力到系统能力
+
+`agent/` 目录讨论的是：当模型不再只回答一个输入，而是需要规划、调用工具、访问外部记忆、与工作流协作时，系统应该如何组织。
+
+这一层的重点，不再是单个语言模型本身，而是模型如何与外部组件组成更完整的执行系统。
+
+---
+
+## 相关主题
+
+- 若重点是 GPT、Transformer 等模型本体，可进入 [model](../model/index.md)。
+- 若重点是 embedding、检索表示，可进入 [representation](../representation/index.md)。
+
+---
+
+## 当前文档
+
+| 文档 | 角色 | 建议用途 |
+| --- | --- | --- |
+| [Agent Arch](./arch.md) | 本目录入口 | 理解 Agent 系统的模块与编排方式 |
+
+---
+
+## 主题入口
+
+如果希望直接进入某一类 Agent 能力，可从下列入口开始：
+
+| 主题 | 推荐入口 | 适合先看什么 |
+| --- | --- | --- |
+| 工具调用 | [Agent Arch](./arch.md) | 优先阅读其中的 `Tool-Calling` 一节，理解模型如何把自然语言目标转成可执行工具请求 |
+| RAG | [Agent Arch](./arch.md) | 优先阅读其中的 `RAG` 一节，理解检索如何进入 Agent 的长期记忆与外部知识访问 |
+| 规划 | [Agent Arch](./arch.md) | 优先阅读其中的 `Plan-and-Execute`、`Reflexion` 一节，理解多步任务如何被拆解、执行与重规划 |
+| 协议与集成 | [Agent Arch](./arch.md) | 优先阅读其中的 `MCP` 一节，理解模型与工具、外部系统之间的上下文协议 |
+
+如果需要配合相关基础主题一起看，也可以交叉阅读：
+
+- [Retrieval Embedding](../representation/retrieval-embedding.md)
+- [检索评估](../evaluation/retrieval-evaluation.md)
+- [生成评估](../evaluation/generation-evaluation.md)
+
+---
+
+## 推荐阅读顺序
+
+1. [GPT](../model/gpt.md)
+2. [Embedding](../representation/embedding.md)
+3. [Agent Arch](./arch.md)
+
+如果重点关注工具与系统编排，也可以先读：
+
+1. [Transformer](../model/transformer.md)
+2. [GPT](../model/gpt.md)
+3. [Agent Arch](./arch.md)
+
+---
+
+## 阅读提示
+
+理解 Agent 系统时，建议区分 3 层能力：
+
+- 模型能力：模型本身会什么；
+- 机制能力：模型如何接入记忆、检索、工具；
+- 系统能力：多个组件如何被编排成稳定流程。
+
+当前本目录已能作为 Agent 主题入口页使用，后续仍可继续拆出更细的专题，如 Tool Use、Planning、Memory、RAG 与 Multi-Agent。
