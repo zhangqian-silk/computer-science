@@ -8,6 +8,8 @@
 
 - [`cache.md`](./cache.md)：缓存基础与一致性策略
 - [`character_encoding.md`](./character_encoding.md)：字符编码体系
+- [`compilation.md`](./compilation.md)：编译与链接学习路线总览
+- `compiler/`：编译器前端、IR、后端、链接、VM/JIT 与语言运行时取舍
 - [`regular.md`](./regular.md)：正则表达式
 - `network/`：网络模型、TCP/IP、HTTP、RPC、推送机制
 - `os/`：操作系统相关（程序内存布局、进程启动到 main、零拷贝、多路复用、进程线程协程）
