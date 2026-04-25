@@ -1,5 +1,9 @@
 # Compile
 
+本文关注 Go 编译器 `cmd/compile` 内部如何完成解析、类型检查、节点改写、SSA 生成和机器码生成。若需要先建立语言无关的整体链路，可阅读 [`编译与链接学习路线`](../../../fundamentals/compilation.md)。
+
+---
+
 ## 编译器主函数
 
 `src/cmd/compile/internal/gc/main.go` 中的 [Main()](https://github.com/golang/go/blob/go1.22.0/src/cmd/compile/internal/gc/main.go#L59) 函数，是 Go 编译器的程序入口，会先读取命令行配置的参数，然后更新对应的编译选项和配置。
