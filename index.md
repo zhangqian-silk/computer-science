@@ -11,7 +11,7 @@
 
 ## 主要内容
 
-- [AI](/ai/mechanism/attention)
+- [AI](/ai/)
 - [基础](/fundamentals/README)
 - [语言](/language/golang/README)
 - [中间件](/middleware/redis/redis)

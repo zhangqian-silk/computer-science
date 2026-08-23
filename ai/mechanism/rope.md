@@ -1,231 +1,96 @@
-# RoPE：把位置信息写入 Query / Key 旋转相位
+# RoPE：用旋转相位编码相对位置
 
-> 相关文献：
-> - Su et al. (2021)：提出 RoPE，将位置编码写入 query / key 的旋转结构。
-> - Press, Smith, and Lewis (2022)：ALiBi 提供了与 RoPE 明显不同的长上下文位置建模路线。
-> - Chen et al. (2023)、Peng et al. (2023)、Ding et al. (2024)：围绕 RoPE 的长度扩展、插值与缩放方法持续发展。
+RoPE（Rotary Positional Embedding）不把位置向量加到输入上，而是在计算 Attention 前旋转 query 和 key。它使用绝对位置决定旋转角，却使点积只依赖两个位置的相对差。
 
-本文讨论 RoPE（Rotary Positional Embedding）的数学机制、几何直觉、工程实现与 KV cache 友好性。若希望先建立位置机制的总览地图，可先阅读 [Positional Encoding](./positional-encoding.md)；若希望进一步理解基于 RoPE 的长度外推与长上下文扩展，可继续阅读 [Long Context Position](./long-context-position.md)。
-
----
-
-## 问题背景
-
-经典绝对位置编码通常把位置向量直接加到输入表示中：
-
-$$
-z_t = x_t + p_t
-$$
-
-这种方式能够告诉模型“你在第几个位置”，但 attention 在真正计算 query / key 内积时，仍需自己从输入表示中再提取距离信息。RoPE 的关键改写在于：**不再先把位置写到输入上，而是直接把位置写到 query / key 的几何结构里。**
-
-从历史上看，RoPE 可以理解为对正弦余弦位置编码的一次“内化”：
-
-- 绝对位置编码把旋转结构放在输入层；
-- RoPE 把旋转结构推进到 attention 内部；
-- 于是相对位移会在 query / key 的点积中自然出现。
+::: info 符号与约定
+沿用[数学与符号约定](../foundations/math-notation.md)。$t,m,n$ 是位置，$r$ 是二维频率对索引，$\theta_r$ 是对应角频率，$R_r(t)$ 是位置 $t$ 的旋转矩阵；$q,k$ 是未旋转 Query/Key，$\tilde{q},\tilde{k}$ 是旋转结果，$d_{\text{head}}$ 是单个 Attention head 的维度。
+:::
 
 ---
 
-## 符号约定与核心公式
+## 二维旋转
 
-| 符号 | 含义 |
-| --- | --- |
-| $q_t,k_t \in \mathbb{R}^{d}$ | 位置 $t$ 的 query / key 向量 |
-| $q_t^{(i)}, k_t^{(i)}$ | 第 $i$ 个二维子空间中的 query / key 子向量 |
-| $\theta_i$ | 第 $i$ 个二维子空间对应的基础频率 |
-| $R_{\theta_i,t}$ | 位置 $t$ 在第 $i$ 个子空间中的旋转矩阵 |
-| $\tilde{q}_t,\tilde{k}_t$ | 施加 RoPE 后的 query / key |
-| $m,n$ | 两个位置索引 |
+对第 $r$ 个二维子空间，位置 $t$ 的旋转矩阵为：
 
-RoPE 的核心公式可以压缩为 4 步：
-
-1. 第 $i$ 个二维子空间的旋转矩阵：
 $$
-R_{\theta_i,t}=
+R_r(t)=
 \begin{bmatrix}
-\cos(t\theta_i) & -\sin(t\theta_i)\\
-\sin(t\theta_i) & \cos(t\theta_i)
+\cos(t\theta_r) & -\sin(t\theta_r)\\
+\sin(t\theta_r) & \cos(t\theta_r)
 \end{bmatrix}
 $$
 
-2. 对 query / key 做位置相关旋转：
+query 与 key 分别变为：
+
 $$
-\tilde{q}_t^{(i)} = R_{\theta_i,t} q_t^{(i)},\qquad
-\tilde{k}_t^{(i)} = R_{\theta_i,t} k_t^{(i)}
+\tilde{q}_t^{(r)}=R_r(t)q_t^{(r)},\qquad
+\tilde{k}_t^{(r)}=R_r(t)k_t^{(r)}
 $$
 
-3. 旋转后的 attention 打分：
-$$
-\mathrm{Score}(m,n)=\frac{\tilde{q}_m^\top \tilde{k}_n}{\sqrt{d_k}}
-$$
+旋转矩阵满足 $R_r(m)^\top R_r(n)=R_r(n-m)$，所以：
 
-4. 相对位移在内积中自动出现：
 $$
-\langle R_{\theta_i,m} q,\ R_{\theta_i,n} k\rangle
+\langle R_r(m)q,R_r(n)k\rangle
 =
-\langle q,\ R_{\theta_i,n-m} k\rangle
+\langle q,R_r(n-m)k\rangle
 $$
 
-最后这条式子是 RoPE 的关键。它说明 RoPE 虽然在编码阶段使用绝对位置 $m,n$，但在打分阶段真正起作用的是位置差 $n-m$。
+这条等式是 RoPE 的核心：Attention 分数通过相位差获得相对位移，而不需要额外的距离查表。
+
+### 一个二维相位例子
+
+为了直观看旋转，取频率 $\theta=\pi/2$，并令未旋转的 $q=k=[1,0]$：
+
+- 两者都在位置 0 时，点积为 $1$；
+- query 在位置 0、key 在位置 1 时，$R(1)k=[0,1]$，点积为 $0$；
+- query 在位置 0、key 在位置 2 时，$R(2)k=[-1,0]$，点积为 $-1$；
+- 两者都在位置 1 时，它们同时旋转为 $[0,1]$，点积仍为 $1$。
+
+共同平移不改变点积，位置差变化才改变匹配结果。真实 RoPE 同时使用许多频率，不会只靠一个二维周期区分所有距离。
 
 ---
 
-## 核心直觉：为什么旋转能够表达位置
+## 多频率如何覆盖不同尺度
 
-RoPE 的一个二维子空间可以被理解为平面上的一根箭头。若位置为 $t$，则这个箭头会被旋转 $t\theta_i$ 的角度。
+真实 head 维度被分成多个二维对，每对使用不同频率，例如：
 
-于是：
+$$
+\theta_r=10000^{-2r/d_{\text{head}}}
+$$
 
-- 同一个内容向量，位于不同位置时会指向不同方向；
-- 两个位置做内积时，真正重要的是它们之间的夹角差；
-- 这个夹角差恰好对应相对位移。
+高频维度对短距离变化敏感，低频维度在更长范围内缓慢旋转。实现可把每个二维对视为复数，乘以 $e^{\mathrm{i}t\theta_r}$；也可用实数的 rotate-half 操作完成相同变换。
 
-这意味着 RoPE 并不是“额外加一个位置向量”，而是让向量本身因为所处位置不同而具有不同相位。
-
-可以把它和几类位置机制做一个压缩对比：
-
-| 机制 | 位置如何进入模型 | 相对距离如何体现 |
-| --- | --- | --- |
-| 绝对位置编码 | 位置向量加到输入上 | 由后续层间接学习 |
-| 相对位置偏置 | 距离项直接加到 score 上 | 显式写入 |
-| RoPE | 对 $Q,K$ 做旋转 | 在内积中自动出现 |
+RoPE 只作用于 $Q,K$，不旋转 $V$。它改变「怎样匹配」，不直接改变被读取的内容。
 
 ---
 
-## 从二维旋转到多维向量
+## 与 KV cache 的配合
 
-真实模型中的 query / key 维度通常远大于 2。RoPE 的做法是把最后一维切成若干二维块，每个二维块各自应用一个不同频率的旋转。
-
-设：
+自回归推理时，位置 $t$ 的 key 一旦完成旋转即可写入 cache。未来 query 位于位置 $m$ 时：
 
 $$
-q_t = [q_t^{(1)}, q_t^{(2)}, \dots, q_t^{(d/2)}]
+\tilde{q}_m^\top\tilde{k}_t
+=
+q_m^\top R(t-m)k_t
 $$
 
-那么 RoPE 实际上是在不同频率的二维平面中并行旋转。这样做有两个好处：
+相对位移在点积中自动产生，不需要重写历史 key。实现必须确保训练、prefill 和逐 token decode 使用同一位置索引与缩放规则，否则缓存中的相位不兼容。
 
-- 高频维度更擅长区分近邻 token 的细粒度顺序；
-- 低频维度更擅长表达更大跨度的全局位置趋势。
-
-这和正弦余弦位置编码中的“多频率设计”是一脉相承的，只不过 RoPE 把这种结构直接写进了 attention 的内部表示。
+RoPE 不降低全局 Attention 的 $O(n^2)$ 连接代价；它只提供位置结构和缓存友好的实现接口。
 
 ---
 
-## 最小例子
+## 长度边界
 
-设在某个二维子空间中：
+当推理位置远超训练范围时，模型会遇到未训练过的相位组合。不同频率的周期还会造成分辨率与外推稳定性不一致。常见扩展方法包括位置插值、频率分段缩放与额外长序列微调，详见[长上下文位置扩展](./long-context.md)。
 
-- 位置 $m$ 的 query 被旋转了 $m\theta$；
-- 位置 $n$ 的 key 被旋转了 $n\theta$。
+判断扩展是否有效必须测量不同长度和证据位置上的任务表现，而不能只检查位置索引是否还能计算。
 
-若两者相差角度较小，则内积往往较大；若相差角度较大，则内积往往较小。于是：
-
-- 位置越接近，某些频段上越容易保持较强匹配；
-- 位置越远，角度差越大，部分频段的匹配就会衰减。
-
-因此，RoPE 的位置感不是通过单独查表获得的，而是通过向量间的相位关系自然产生的。
+RoPE 配置属于模型权重的解释方式。改变 base、缩放函数或位置 offset 后，即使权重张量完全相同，Attention 分数也会变化。服务端切换配置时必须让旧 KV cache 失效，并保证 Prefill 与 Decode 使用相同规则。
 
 ---
 
-## 复数实现
+## 参考文献
 
-RoPE 在工程上常被写成复数乘法。设第 $i$ 个二维子空间中的实数对写为：
-
-$$
-q_i = q_{2i} + j q_{2i+1},\qquad
-k_i = k_{2i} + j k_{2i+1}
-$$
-
-则位置 $m$ 上的旋转可写成：
-
-$$
-\tilde{q}_i^{(m)} = q_i^{(m)} e^{j m \omega_i},\qquad
-\tilde{k}_i^{(m)} = k_i^{(m)} e^{j m \omega_i}
-$$
-
-这里的好处是：
-
-- 二维旋转可以统一写成逐元素复数乘法；
-- 实现上通常只需一次形状重排和逐元素运算；
-- 对现有 attention 框架的侵入性较低。
-
-因此，RoPE 很适合在现代张量框架中高效实现。
-
----
-
-## KV Cache 友好性
-
-RoPE 在大语言模型中广泛使用的一个关键原因，是它与自回归推理和 KV cache 非常兼容。
-
-设第 $m$ 个 token 的线性投影结果为：
-
-$$
-q^{(m)} = x^{(m)}W_Q,\qquad
-k^{(m)} = x^{(m)}W_K,\qquad
-v^{(m)} = x^{(m)}W_V
-$$
-
-RoPE 只作用在 query 和 key 上：
-
-$$
-\tilde{q}^{(m)} = \mathrm{RoPE}(q^{(m)}, m),\qquad
-\tilde{k}^{(m)} = \mathrm{RoPE}(k^{(m)}, m)
-$$
-
-此时历史 key 一旦旋转并写入 cache，就不必因为未来新 token 到来而重写。原因在于，相对位移已经在后续点积中自动体现出来。
-
-这带来两个工程优势：
-
-- 历史 key 可直接缓存复用；
-- 不需要在每一步重新构造显式距离偏置或重编码旧位置。
-
-需要注意的是，RoPE 并没有把全局 attention 的整体复杂度从 $O(n^2)$ 降为更低量级；它改善的是位置编码部分的实现负担与缓存兼容性，而不是取消两两交互本身。
-
----
-
-## 为什么现代开源 LLM 偏好 RoPE
-
-RoPE 成为现代开源 LLM 默认起点，通常来自以下几方面折中：
-
-- 与 attention 内积结构耦合紧密；
-- 能同时保留绝对位置信息与相对位移效应；
-- 与 KV cache 兼容性好；
-- 工程实现简洁；
-- 后续还能通过插值、缩放等方式继续做长上下文扩展。
-
-更准确地说，RoPE 并不是在每个维度上都绝对最优，而是在表达能力、长上下文潜力和工程复杂度之间取得了很均衡的平衡。
-
----
-
-## 与其他位置机制的关系
-
-可以把 RoPE 放在一条更清晰的演化链里理解：
-
-- 绝对位置编码：先给每个位置分配坐标；
-- 相对位置编码：直接在 attention 中写入距离项；
-- RoPE：编码时使用绝对位置旋转，打分时自动呈现相对位移。
-
-这说明 RoPE 既不是传统绝对位置编码的简单重复，也不是一般相对位置偏置的直接替代，而是一种把两者连接起来的结构化方法。
-
----
-
-## 小结
-
-RoPE 的最关键思想，是把位置信息从输入层推进到 query / key 的几何关系中。这样一来：
-
-- 单个向量携带绝对位置相位；
-- 两两打分自然体现相对位移；
-- 工程实现上又保持了较好的轻量性与缓存友好性。
-
-因此，RoPE 才会成为现代大语言模型中最常见的位置机制之一。
-
----
-
-## Ref
-
-- Su, J. et al. (2021). RoFormer: Enhanced Transformer with Rotary Position Embedding.
-- Press, O., Smith, N. A., and Lewis, M. (2022). Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation.
-- Chen, S., Wong, S., Chen, L., and Tian, Y. (2023). Extending Context Window of Large Language Models via Positional Interpolation.
-- Peng, B., Quesnelle, J., Fan, H., and Shippole, E. (2023). YaRN: Efficient Context Window Extension of Large Language Models.
-- Ding, Y. et al. (2024). LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens.
+- Su, J. et al. (2021). *RoFormer: Enhanced Transformer with Rotary Position Embedding*.
+- Chen, S. et al. (2023). *Extending Context Window of Large Language Models via Positional Interpolation*.

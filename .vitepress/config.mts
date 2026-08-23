@@ -8,7 +8,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 const repoName = 'computer-science'
 
 const sectionMeta = [
-	{ key: 'ai', text: 'AI', link: '/ai/mechanism/attention' },
+	{ key: 'ai', text: 'AI', link: '/ai/' },
 	{ key: 'fundamentals', text: '基础', link: '/fundamentals/README' },
 	{ key: 'language', text: '语言', link: '/language/golang/README' },
 	{ key: 'middleware', text: '中间件', link: '/middleware/redis/redis' },
@@ -164,8 +164,85 @@ function installBracketMathBlock(md: {
 	})
 }
 
+const aiSidebar: DefaultTheme.SidebarItem[] = [
+	{
+		text: 'AI 总览',
+		link: '/ai/'
+	},
+	{
+		text: '基础',
+		link: '/ai/foundations/',
+		items: [
+			{ text: '数学与符号约定', link: '/ai/foundations/math-notation' },
+			{ text: '神经网络训练基础', link: '/ai/foundations/neural-network-basics' },
+			{ text: 'NLP 方法演化', link: '/ai/foundations/nlp-history' }
+		]
+	},
+	{
+		text: '表示',
+		link: '/ai/representation/',
+		collapsed: false,
+		items: [
+			{ text: 'Embedding', link: '/ai/representation/embedding' },
+			{ text: 'word2vec', link: '/ai/representation/word2vec' },
+			{ text: '文本嵌入', link: '/ai/representation/text-embedding' },
+			{ text: '多模态对齐', link: '/ai/representation/multimodal-alignment' },
+			{ text: '向量检索', link: '/ai/representation/vector-retrieval' }
+		]
+	},
+	{
+		text: '机制',
+		link: '/ai/mechanism/',
+		collapsed: false,
+		items: [
+			{ text: 'Attention', link: '/ai/mechanism/attention' },
+			{ text: 'Self-Attention', link: '/ai/mechanism/self-attention' },
+			{ text: '位置表示', link: '/ai/mechanism/positional-encoding' },
+			{ text: 'RoPE', link: '/ai/mechanism/rope' },
+			{ text: '长上下文位置扩展', link: '/ai/mechanism/long-context' },
+			{ text: '稀疏注意力', link: '/ai/mechanism/sparse-attention' },
+			{ text: 'MoE', link: '/ai/mechanism/moe' },
+			{ text: 'LoRA', link: '/ai/mechanism/lora' }
+		]
+	},
+	{
+		text: '模型',
+		link: '/ai/model/',
+		collapsed: false,
+		items: [
+			{ text: 'N-gram', link: '/ai/model/n-gram' },
+			{ text: 'NPLM', link: '/ai/model/nplm' },
+			{ text: 'RNN', link: '/ai/model/rnn' },
+			{ text: 'LSTM', link: '/ai/model/lstm' },
+			{ text: 'Seq2Seq', link: '/ai/model/seq2seq' },
+			{ text: 'Transformer', link: '/ai/model/transformer' },
+			{ text: 'BERT', link: '/ai/model/bert' },
+			{ text: 'GPT', link: '/ai/model/gpt' },
+			{ text: '状态空间模型', link: '/ai/model/state-space-model' }
+		]
+	},
+	{
+		text: '评估',
+		link: '/ai/evaluation/',
+		items: [
+			{ text: '语言模型评估', link: '/ai/evaluation/language-model-evaluation' },
+			{ text: '向量表示分析', link: '/ai/evaluation/embedding-geometry' },
+			{ text: '检索评估', link: '/ai/evaluation/retrieval-evaluation' },
+			{ text: '生成评估', link: '/ai/evaluation/generation-evaluation' },
+			{ text: '长上下文评估', link: '/ai/evaluation/long-context-evaluation' }
+		]
+	},
+	{
+		text: 'Agent 系统',
+		link: '/ai/agent/'
+	}
+]
+
 const sidebar = Object.fromEntries(
-	sectionMeta.map(({ key }) => [`/${key}/`, buildItems(key)])
+	sectionMeta.map(({ key }) => [
+		`/${key}/`,
+		key === 'ai' ? aiSidebar : buildItems(key)
+	])
 )
 
 export default withMermaid(
@@ -176,6 +253,7 @@ export default withMermaid(
 		base: `/${repoName}/`,
 		lastUpdated: true,
 		cleanUrls: true,
+		srcExclude: ['**/AGENTS.md'],
 		ignoreDeadLinks: [
 			/^https?:\/\//
 		],

@@ -1,101 +1,66 @@
-# AI 文档总览：从阅读地图到专题入口
+# 人工智能
 
-`ai/` 目录的目标，不是堆叠彼此独立的长文，而是组织成一套可分层阅读的知识体系。当前目录主要沿 5 条主线展开：
-
-- 表示：离散对象如何进入连续空间；
-- 机制：模型内部的通用计算模块如何工作；
-- 模型：完整模型如何组织表示、机制、训练与推理；
-- 评估：如何衡量表示质量、语言建模质量与泛化能力；
-- Agent：模型如何与工具、检索、规划和工作流结合。
-
-如果先建立整体结构，可以把阅读地图概括为：
+人工智能系统可以沿六个彼此衔接的层次理解：学习所需的基础、数据的表示方式、信息处理机制、完整模型架构、能力评估方法，以及模型参与实际任务的 Agent 系统。
 
 ```mermaid
-flowchart TD
-	A["AI 总入口"] --> B["NLP 历史"]
-	A --> C["表示层"]
-	A --> D["机制层"]
-	A --> E["模型层"]
-	A --> F["评估层"]
-	A --> G["Agent 层"]
-
-	B --> C
-	C --> D
-	D --> E
-	E --> F
+flowchart LR
+	F["基础\n训练与演化"] --> R["表示\n对象变成向量"]
+	R --> M["机制\n信息如何计算"]
+	M --> A["模型\n结构与目标"]
+	A --> E["评估\n能力是否成立"]
+	A --> G["Agent\n模型如何行动"]
+	R --> E
 	E --> G
 ```
 
+这张图表达的是依赖关系，不是强制顺序。已有深度学习基础的读者可以直接进入模型；准备搭建检索或 Agent 系统时，则可从表示或评估反向补齐前置知识。
+
 ---
 
-## 目录结构
+## 知识分区
 
-| 目录 | 主要问题 | 适合什么时候读 |
+| 分区 | 核心问题 | 起点 |
 | --- | --- | --- |
-| [ai/nlp](./nlp/index.md) | 建立历史主线与方法演化关系 | 想先建立整体框架时 |
-| [ai/representation](./representation/index.md) | 表示是什么、如何学习、如何用于检索与对齐 | 想理解 embedding 与表示学习时 |
-| [ai/mechanism](./mechanism/index.md) | attention、位置机制、LoRA、MoE 等通用机制 | 想理解模块级原理时 |
-| [ai/model](./model/index.md) | N-Gram、RNN、Transformer、BERT、GPT 等完整模型 | 想系统理解某个模型时 |
-| [ai/evaluation](./evaluation/index.md) | 如何评估语言模型、检索、生成与表示 | 想比较方法优劣时 |
-| [ai/agent](./agent/index.md) | Agent 系统的结构、规划、工具与工作流 | 想从模型走向系统时 |
+| [基础](./foundations/index.md) | 数学符号如何阅读，神经网络如何学习，NLP 方法为何演化到 Transformer | [数学与符号约定](./foundations/math-notation.md) |
+| [表示](./representation/index.md) | 离散对象如何进入连续空间并形成可比较的几何结构 | [Embedding](./representation/embedding.md) |
+| [机制](./mechanism/index.md) | Attention、位置、稀疏路由和低秩适配如何计算 | [Attention](./mechanism/attention.md) |
+| [模型](./model/index.md) | 从 N-gram 到 Transformer 与状态空间模型，完整建模对象如何变化 | [模型地图](./model/index.md) |
+| [评估](./evaluation/index.md) | 概率、检索、生成和长上下文能力如何被可靠测量 | [评估设计](./evaluation/index.md) |
+| [Agent](./agent/index.md) | 如何把模型、工具、状态和控制流组成可执行系统 | [Agent 系统](./agent/index.md) |
 
 ---
 
-## 推荐阅读顺序
+## 三条阅读路线
 
-### 路线一：从历史到现代大模型
+### 语言模型主线
 
-1. [NLP 历史](./nlp/history.md)
-2. [Embedding](./representation/embedding.md)
-3. [Attention](./mechanism/attention.md)
-4. [Self-Attention](./mechanism/self-attention.md)
-5. [Transformer](./model/transformer.md)
-6. [Transformer Extensions](./model/transformer-extensions.md)
-7. [BERT](./model/bert.md)
-8. [BERT Family](./model/bert-family.md)
-9. [GPT](./model/gpt.md)
+[NLP 方法演化](./foundations/nlp-history.md) → [N-gram](./model/n-gram.md) → [NPLM](./model/nplm.md) → [RNN](./model/rnn.md) → [LSTM](./model/lstm.md) → [Seq2Seq](./model/seq2seq.md) → [Transformer](./model/transformer.md) → [BERT](./model/bert.md) / [GPT](./model/gpt.md)
 
-### 路线二：从表示到检索
+这条路线关注上下文如何从固定窗口、递归状态演化为全局交互，以及训练目标如何从任务专用转向预训练。
 
-1. [Embedding](./representation/embedding.md)
-2. [Text Embedding Training](./representation/text-embedding-training.md)
-3. [Retrieval Embedding](./representation/retrieval-embedding.md)
-4. [向量表示分析](./evaluation/embedding-geometry.md)
-5. [检索评估](./evaluation/retrieval-evaluation.md)
-6. [语言模型评估](./evaluation/language-model-evaluation.md)
+### 表示与检索主线
 
-### 路线三：从序列模型到 Transformer
+[Embedding](./representation/embedding.md) → [word2vec](./representation/word2vec.md) → [文本嵌入](./representation/text-embedding.md) → [向量检索](./representation/vector-retrieval.md) → [检索评估](./evaluation/retrieval-evaluation.md)
 
-1. [N-Gram](./model/n-gram.md)
-2. [NPLM](./model/nplm.md)
-3. [RNN](./model/rnn.md)
-4. [LSTM](./model/lstm.md)
-5. [Seq2Seq](./model/seq2seq.md)
-6. [Attention](./mechanism/attention.md)
-7. [Transformer](./model/transformer.md)
+这条路线把「向量是什么」「向量如何学到」「向量怎样部署」「系统怎样验收」分开处理。
 
-### 路线四：从模型到 Agent 系统
+### 长上下文与系统主线
 
-1. [GPT](./model/gpt.md)
-2. [LoRA](./mechanism/lora.md)
-3. [MoE](./mechanism/moe.md)
-4. [Agent Arch](./agent/arch.md)
+[Self-Attention](./mechanism/self-attention.md) → [位置表示](./mechanism/positional-encoding.md) → [长上下文](./mechanism/long-context.md) → [稀疏注意力](./mechanism/sparse-attention.md) / [状态空间模型](./model/state-space-model.md) → [长上下文评估](./evaluation/long-context-evaluation.md) → [Agent 系统](./agent/index.md)
+
+这条路线同时检查能力与代价，避免把名义窗口长度、理论复杂度或工具数量直接等同于系统效果。
+
+### 检索增强与 Agent 主线
+
+[文本嵌入](./representation/text-embedding.md) → [向量检索](./representation/vector-retrieval.md) → [检索评估](./evaluation/retrieval-evaluation.md) → [GPT](./model/gpt.md) → [生成评估](./evaluation/generation-evaluation.md) → [Agent 系统](./agent/index.md)
+
+这条路线把外部证据、语言生成和真实动作分成独立接口。检索到文档不代表回答忠实，模型输出工具调用也不代表动作已经授权或成功执行。
 
 ---
 
-## 阅读原则
+## 理解框架
 
-为了避免在长文之间来回跳转，建议按下面的层级理解：
-
-- 先读总览型文档，建立问题地图；
-- 再读机制型文档，理解关键模块；
-- 最后读模型型文档，理解这些机制如何组合成完整系统。
-
-当前目录中，一些主题仍在后续治理中逐步拆分。阅读时可优先把下列文档当作总入口：
-
-- [NLP 历史](./nlp/history.md)
-- [表示层索引](./representation/index.md)
-- [机制层索引](./mechanism/index.md)
-- [模型层索引](./model/index.md)
-
----
+- 完整模型由表示、机制、训练目标和推理接口共同定义；
+- 方法演化描述各类模型之间的因果关系，公式与推演解释具体计算过程；
+- 指标必须结合数据集、切分方式和任务边界理解，单个分数不是模型能力的完整结论；
+- 复杂度通常描述主导项，实际性能仍受批量大小、硬件、kernel 与内存访问影响。

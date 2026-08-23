@@ -1,70 +1,39 @@
-# 模型层：从统计模型到预训练基础模型
+# 模型：上下文建模方法地图
 
-`model/` 目录讨论的是可以作为独立对象理解和比较的完整模型，例如 N-Gram、RNN、LSTM、Seq2Seq、Transformer、BERT 与 GPT。
+模型层按「条件信息如何到达当前预测」组织。固定窗口、递归状态、全局注意力与状态空间并不是简单的新旧标签，而是四种不同的信息传播约束。
 
-这一层的重点不是某个局部模块，而是完整回答：
-
-- 这个模型解决什么问题；
-- 它如何组织输入、状态、机制与输出；
-- 它怎样训练、怎样推理；
-- 它相对于前代方法修正了什么限制。
-
----
-
-## 相关主题
-
-- 若重点是 attention、位置机制、LoRA 等机制问题，可先看 [mechanism](../mechanism/index.md)。
-- 若重点是表示学习与 embedding，可先看 [representation](../representation/index.md)。
+| 路线 | 条件信息的载体 | 代表页面 | 主要约束 |
+| --- | --- | --- | --- |
+| 固定窗口 | 最近 $n-1$ 个 token | [N-gram](./n-gram.md)、[NPLM](./nplm.md) | 窗口有限，组合稀疏 |
+| 递归状态 | 逐步更新的隐藏状态 | [RNN](./rnn.md)、[LSTM](./lstm.md) | 串行路径长 |
+| 条件生成 | 编码器表示与解码前缀 | [Seq2Seq](./seq2seq.md) | 固定摘要或对齐质量 |
+| 全局交互 | token 间的注意力连接 | [Transformer](./transformer.md)、[BERT](./bert.md)、[GPT](./gpt.md) | 长度带来计算与缓存压力 |
+| 状态空间 | 可并行训练的线性状态递推 | [状态空间模型](./state-space-model.md) | 选择机制与硬件实现决定效果 |
 
 ---
 
-## 推荐阅读顺序
+## 训练与推理总览
 
-### 序列模型主线
-
-1. [N-Gram](./n-gram.md)
-2. [NPLM](./nplm.md)
-3. [RNN](./rnn.md)
-4. [LSTM](./lstm.md)
-5. [Seq2Seq](./seq2seq.md)
-6. [Transformer](./transformer.md)
-7. [BERT](./bert.md)
-8. [GPT](./gpt.md)
-
-### 快速现代路径
-
-1. [Transformer](./transformer.md)
-2. [Transformer Extensions](./transformer-extensions.md)
-3. [BERT](./bert.md)
-4. [BERT Family](./bert-family.md)
-5. [GPT](./gpt.md)
-
----
-
-## 文档角色划分
-
-| 文档 | 角色 | 建议用途 |
+| 模型 | 训练信号怎样产生 | 推理时依赖什么 |
 | --- | --- | --- |
-| [N-Gram](./n-gram.md) | 统计语言模型入口 | 理解早期有限上下文假设 |
-| [NPLM](./nplm.md) | 神经语言模型起点 | 理解离散到连续的过渡 |
-| [RNN](./rnn.md) | 递归序列模型核心篇 | 理解状态递推与 BPTT |
-| [LSTM](./lstm.md) | 门控序列模型核心篇 | 理解长期依赖修正 |
-| [Seq2Seq](./seq2seq.md) | 条件生成框架核心篇 | 理解 encoder-decoder |
-| [Transformer](./transformer.md) | 现代序列主干总览 | 理解 self-attention 架构 |
-| [Transformer Extensions](./transformer-extensions.md) | 扩展路线专题 | 理解长上下文、ViT 与多模态扩展 |
-| [BERT](./bert.md) | 编码器预训练核心篇 | 理解双向表示学习 |
-| [BERT Family](./bert-family.md) | 后续谱系专题 | 理解变体、句向量与检索路线 |
-| [GPT](./gpt.md) | 解码器预训练核心篇 | 理解自回归生成路线 |
+| [N-gram](./n-gram.md) | 对滑窗事件计数并估计平滑参数 | 最近 $n-1$ 个 token 与多阶概率表 |
+| [NPLM](./nplm.md) | 固定窗口预测下一 token，交叉熵端到端更新 | 最近固定窗口与一次神经网络前向 |
+| [RNN](./rnn.md) / [LSTM](./lstm.md) | 时间展开后通过 BPTT 更新共享参数 | 固定大小递归状态，生成时还依赖上一步 token |
+| [Seq2Seq](./seq2seq.md) | Encoder 条件下使用真实目标前缀做教师强制 | Encoder 表示、Decoder 状态与解码搜索 |
+| [BERT](./bert.md) | 破坏部分输入并恢复被选 token，再按任务微调 | 完整输入的一次双向编码与任务头 |
+| [GPT](./gpt.md) | 目标右移一位，因果 mask 下预测所有下一 token | Prompt、逐步生成结果与各层 KV cache |
+| [状态空间模型](./state-space-model.md) | 整段 Selective Scan 后计算序列任务损失 | 每层固定大小状态与当前 token |
+
+同一种 Transformer 主干可以使用不同训练目标和推理接口。BERT 与 GPT 的主要差异不仅是 Attention mask，还包括样本构造、损失位置和输出过程；Seq2Seq 则把源端编码与目标端生成明确分开。
 
 ---
 
-## 阅读提示
+## 先读哪一篇
 
-若你是第一次进入本目录，建议不要直接跳到单篇长文细节，而是先把模型分成 4 代：
+- 想理解语言模型的概率定义：从 [N-gram](./n-gram.md) 开始；
+- 想理解序列状态与梯度：读 [RNN](./rnn.md)，再读 [LSTM](./lstm.md)；
+- 想理解翻译、摘要等条件生成：读 [Seq2Seq](./seq2seq.md)；
+- 想理解现代预训练模型：先读 [Transformer](./transformer.md)，再按任务选择 [BERT](./bert.md) 或 [GPT](./gpt.md)；
+- 想比较 Attention 之外的长序列主干：读 [状态空间模型](./state-space-model.md)。
 
-- 统计模型；
-- 递归模型；
-- 条件生成模型；
-- 预训练 Transformer 模型。
-
-如果想先建立主线，可以先读 [NLP 历史](../nlp/history.md) 再回到本目录。
+[BERT](./bert.md)同时覆盖 RoBERTa、ALBERT、ELECTRA、DeBERTa 与 Sentence-BERT 的关键改造轴；不同模型的效果需要结合[评估层](../evaluation/index.md)中的任务、数据和指标进行比较。
