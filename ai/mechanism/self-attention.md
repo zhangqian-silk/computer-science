@@ -1,366 +1,123 @@
-# Self-Attention：序列内部的全局依赖建模
+# Self-Attention：让序列位置直接交换信息
 
-> 相关文献：
-> - Vaswani et al. (2017)：提出以 self-attention 为核心的 Transformer 架构。
-> - Shaw, Uszkoreit, and Vaswani (2018)：将相对位置信息引入 self-attention，增强距离建模能力。
-> - Child et al. (2019)：提出稀疏 self-attention，缓解长序列二次复杂度问题。
-> - Dao et al. (2022)：提出 FlashAttention，优化 self-attention 的访存与计算效率。
+Self-Attention 是 Attention 的一个输入约束：query、key、value 都由同一序列产生。每个位置因此可以按内容读取其他位置，并把静态输入改写为上下文化表示。
 
-本文聚焦 attention 在“同一序列内部”这一场景下的特化形式。若希望先建立更一般的 $Q,K,V$ 抽象、打分骨架与 attention 变体总览，可先阅读 [Attention](./attention.md)。
-
-## 符号约定与公式索引
-
-符号如下：
-
-| 符号 | 含义 |
-| --- | --- |
-| $x_t\in\mathbb{R}^d$ | 序列中第 $t$ 个位置的输入表示 |
-| $X\in\mathbb{R}^{n\times d}$ | 长度为 $n$ 的整段输入表示矩阵 |
-| $Q,K,V$ | query、key、value 矩阵 |
-| $q_t,k_t,v_t$ | 第 $t$ 个位置对应的 query、key、value 向量 |
-| $W_Q,W_K,W_V$ | 从输入投影到 query、key、value 的参数矩阵 |
-| $W_O$ | 多头拼接后的输出投影矩阵 |
-| $A\in\mathbb{R}^{n\times n}$ | 注意力权重矩阵 |
-| $d_k$ | key / query 的维度 |
-| $H$ | attention head 的数量 |
-| $h_t$ | 第 $t$ 个位置经过 self-attention 后的输出表示 |
-| $M$ | attention mask，如因果掩码 |
-
-核心公式如下：
-
-1. 线性投影：
-$$
-Q=XW_Q,\quad K=XW_K,\quad V=XW_V
-$$
-
-2. self-attention 核心计算：
-$$
-\mathrm{SelfAttn}(X)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
-$$
-
-3. 带掩码的 self-attention：
-$$
-\mathrm{SelfAttn}(X)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
-$$
-
-4. 多头 self-attention：
-$$
-\mathrm{MultiHead}(X)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_H)W_O
-$$
+::: info 符号与约定
+沿用[数学与符号约定](../foundations/math-notation.md)。$X\in\mathbb{R}^{n\times d_{\text{model}}}$ 是输入序列表示，$Q,K,V$ 是同一 $X$ 的三组投影，$M$ 是可见性 mask，$H$ 是输出；$i,j$ 是 Query 与 Key 位置，$t$ 是自回归步，$K_{\leq t},V_{\leq t}$ 表示缓存到当前步的 Key/Value。
+:::
 
 ---
 
-## 定义与直观理解
+## 从输入序列到交互矩阵
 
-Self-Attention 是 attention 的一个特例。它的特点在于：**query、key、value 都来自同一段输入序列本身**。因此，序列中的每个位置都可以直接查看并聚合其他位置的信息，从而形成新的上下文化表示。
+给定：
 
-如果说一般 attention 的问题是“当前状态应该去哪里取信息”，那么 self-attention 的问题就是：“序列中每个位置，应该如何从同一序列的其他位置读取与自己最相关的信息”。
+$$
+X\in\mathbb{R}^{n\times d_{\text{model}}}
+$$
 
-它之所以重要，是因为传统 RNN 依赖递归状态逐步传递上下文，长距离依赖路径较长；而 self-attention 允许任意两个位置在一次层计算中直接交互。
+三组投影产生：
 
-这一机制可以进一步概括为以下几个核心特征：
+$$
+Q=XW^Q,\qquad K=XW^K,\qquad V=XW^V
+$$
 
-- **全局交互假设**：一个位置的表示应当能够直接参考序列中任意其他位置；
-- **内容相关假设**：应该关注谁，不由固定窗口或固定规则决定，而由当前内容动态决定；
-- **并行建模假设**：整段序列的位置关系可以通过矩阵运算并行计算；
-- **上下文化表示假设**：token 的最终表示不应是静态的，而应随上下文改变。
+输出为：
 
-例如，在句子「这只猫追那条狗，因为它跑得很快」中，「它」指代谁，不能只看自身，而需要参考句中更早位置的语义线索。Self-attention 提供了一种让当前位置直接访问这些线索的机制。
+$$
+H=\operatorname{softmax}\left(
+\frac{QK^\top}{\sqrt{d_k}}+M
+\right)V
+$$
+
+$QK^\top\in\mathbb{R}^{n\times n}$ 可以看成一张有向加权图：第 $i$ 行的边描述位置 $i$ 从每个位置读取多少信息。同一个词在不同句子中会形成不同的边，因此输出 $h_i$ 依赖整段上下文。
+
+同一输入 $X$ 产生三种角色，并不表示 $Q=K=V$。三组投影分别学习：当前位置需要检索什么、每个位置以什么特征接受匹配、以及被选中后提供什么内容。某个 token 可以在 key 空间与 query 高度匹配，却通过 value 投影提供完全不同的特征。
+
+Self-Attention 本身对位置排列具有等变性：若输入行以同一置换重排，输出也只会随之重排。模型必须结合[位置表示](./positional-encoding.md)才能区分「狗追猫」与「猫追狗」。
 
 ---
 
-## 核心机制
+## 可见性由 mask 定义
 
-Self-attention 的输入是一整段序列表示 $X$。模型先对每个位置做三组线性投影：
-
-$$
-Q=XW_Q,\quad K=XW_K,\quad V=XW_V
-$$
-
-其中：
-
-- query 表示“当前位置想找什么信息”；
-- key 表示“当前位置能用什么方式被匹配到”；
-- value 表示“当前位置真正提供什么内容”。
-
-### 为什么叫 self-attention
-
-在 encoder-decoder attention 中，query 和 key/value 分别来自不同序列；而在 self-attention 中，它们全部来自同一个 $X$。因此，每个位置既是信息请求者，也是信息提供者。
-
-这意味着：
-
-- 第 $t$ 个位置可以关注自己；
-- 也可以关注前后任意位置；
-- 每个位置输出的表示，都是对整段序列信息的内容相关聚合。
-
-### 缩放点积计算
-
-标准 self-attention 的核心公式为：
+双向 Encoder 通常只屏蔽 padding；自回归 Decoder 还需要因果掩码：
 
 $$
-\mathrm{SelfAttn}(X)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
-$$
-
-可以将其拆成三步理解：
-
-1. $QK^\top$：计算任意两个位置之间的匹配分数；
-2. softmax：把每一行分数归一化为注意力权重；
-3. 与 $V$ 相乘：按权重聚合所有位置的 value。
-
-若第 $t$ 行对应位置 $t$，那么这一行权重描述的就是：位置 $t$ 在更新自己表示时，分别参考了序列中哪些位置、参考了多少。
-
-### 自身、局部与全局信息的统一
-
-Self-attention 与固定窗口方法的关键区别，是它不预先限定“只能看附近几个词”。在同一层里，一个位置既可以：
-
-- 主要关注自己，保留原始语义；
-- 关注相邻词，建模局部搭配；
-- 关注远距离词，建模长程依赖；
-- 关注多个词并综合其信息。
-
-因此，它把局部关系与全局关系统一到同一套权重计算中。
-
-### 掩码机制
-
-并不是所有任务都允许一个位置看见整段序列。在语言生成任务中，当前位置不能看到未来 token，因此需要因果掩码：
-
-$$
-\mathrm{SelfAttn}(X)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V
-$$
-
-其中 $M$ 会把非法位置的分数置为极小值，使其 softmax 权重接近 0。
-
-若把第 $i$ 个位置对第 $j$ 个位置的掩码值记为 $m_{ij}$，那么在标准因果掩码下有：
-
-$$
-m_{ij}=
+M_{ij}=
 \begin{cases}
 0, & j\le i\\
 -\infty, & j>i
 \end{cases}
 $$
 
-这意味着当前位置只能读取自己与历史前缀，而不能访问未来位置。若把原始分数矩阵写成
+这样第 $i$ 个位置只能读取自己和历史前缀。训练时整段序列仍可一次送入矩阵运算，但因果 mask 保证每个位置没有使用未来 token。
 
-$$
-S=\frac{QK^\top}{\sqrt{d_k}}
-$$
-
-则加掩码后的分数矩阵为
-
-$$
-\tilde{S}=S+M
-$$
-
-当 $j>i$ 时，$\tilde{s}_{ij}=-\infty$，于是
-
-$$
-\exp(\tilde{s}_{ij})=0
-$$
-
-因此，对应位置在 softmax 后的注意力权重也会变成 0。非法位置并不是在 softmax 之后“再手工清零”，而是在归一化之前就被排除出概率分布。
-
-常见掩码类型包括：
-
-| 掩码类型 | 用途 | 效果 |
+| 使用位置 | Q / K / V 来源 | 可见范围 |
 | --- | --- | --- |
-| **Padding Mask** | 忽略补齐位置 | 避免无效 token 干扰 |
-| **Causal Mask** | 自回归生成 | 阻止当前位置看未来 |
-| **Local Mask** | 局部 attention | 仅允许看固定邻域 |
+| Encoder Self-Attention | 同一输入序列 | 通常双向 |
+| Decoder Self-Attention | 同一目标序列 | 当前与过去 |
+| Cross-Attention | Q 来自 Decoder，K/V 来自 Encoder | 全部条件位置 |
 
-在具体模型中，可见范围通常进一步分成几种典型模式：
+最后一行不是 Self-Attention，只是共享同一个 Attention 公式。
 
-- 编码器 self-attention 往往是双向可见的，整段输入内部可以彼此交互；
-- 解码器 self-attention 往往带因果掩码，只允许当前位置读取自己和历史前缀；
-- 长上下文或高效变体还可能额外施加局部、分块或稀疏可见性约束。
+长度为 4 的因果 mask 对应如下可见性：
 
-这也是为什么 BERT 一类编码器通常不使用 look-ahead mask，而 GPT 一类自回归模型必须使用因果掩码。
+| Query 位置 | 可读取的 Key 位置 |
+| ---: | --- |
+| 1 | 1 |
+| 2 | 1、2 |
+| 3 | 1、2、3 |
+| 4 | 1、2、3、4 |
 
-### 多头 self-attention
-
-单个 self-attention 头只在一个投影子空间中建模关系。多头机制则让模型并行学习多种依赖模式：
-
-$$
-\mathrm{MultiHead}(X)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_H)W_O
-$$
-
-若把第 $m$ 个头单独写开，则有：
-
-$$
-\mathrm{head}_m=
-\mathrm{SelfAttn}(XW_m^Q,\ XW_m^K,\ XW_m^V)
-$$
-
-其中 $W_m^Q,W_m^K,W_m^V$ 是第 $m$ 个头各自独立的投影矩阵。这说明多头并不是把完全相同的计算重复很多次，而是让模型在不同表示子空间中并行学习不同类型的关系模式。
-
-不同头可能分别偏向：
-
-- 邻近词搭配；
-- 句法依赖；
-- 指代关系；
-- 长距离语义补充。
-
-虽然这些功能划分不一定严格，但多头结构确实提升了关系表达能力与鲁棒性。
+训练位置 3 的输出时，位置 4 虽然位于同一个输入张量中，仍会因 $-\infty$ mask 获得 0 权重。Padding mask 则按样本屏蔽补齐位置；因果 mask 与 padding mask 通常需要合并应用。
 
 ---
 
-## 在模型中的使用方式
+## 多层之后信息能传播多远
 
-Self-attention 通常作为 Transformer 编码器或解码器块中的核心子层存在，但本文只讨论它作为“同一序列内部信息交互机制”时的边界；完整的 block 组织、残差连接、层归一化、前馈网络以及结构裁剪，应回到 [transformer.md](../model/transformer.md)。
+全局 Self-Attention 在一层内连接任意两个位置，依赖路径短。局部或稀疏模式只连接部分位置，但多层叠加会扩大感受野。例如窗口半径为 $w$ 时，忽略边界后，$L$ 层可传播约 $Lw$ 的局部距离。
 
-### 在编码器与解码器中的两种边界
-
-同样是 self-attention，不同结构里最关键的差别其实只有一个：**当前位置到底能看到哪些同序列位置。**
-
-- 在编码器侧，self-attention 往往是双向可见的，用于建模整段输入内部的关系；
-- 在解码器侧，self-attention 往往带因果掩码，只允许当前位置读取自己和历史前缀；
-- 在 encoder-decoder 架构中，源序列内部关系与目标序列内部关系，都分别由各自的 self-attention 负责。
-
-换句话说，self-attention 负责的是“序列内部怎么彼此看”，而不是“外部条件怎么注入”；后者属于 cross-attention。
-
-### 与训练、推理系统问题的边界
-
-训练期是否整段并行、推理期是否逐 token 展开、KV cache 如何管理、长上下文如何优化，都会显著影响 self-attention 的实际表现。它们虽然已经进入实现与系统层，但又确实是 self-attention 在工程上最常见的几个现实约束。
-
-若继续深入这些问题，应分别转到 [transformer.md](../model/transformer.md) 与 [transformer-extensions.md](../model/transformer-extensions.md)。
+这说明 mask 不只控制计算量，也定义模型可表达的信息路径。具体图结构与连通性见[稀疏注意力](./sparse-attention.md)。
 
 ---
 
-## 训练、推理与复杂度
+## 训练并行与自回归推理
 
-Self-attention 的一个重要优点，是整段序列内部的相关性可以通过矩阵乘法并行计算；它最典型的代价，则来自分数矩阵会随着序列长度迅速膨胀。
+训练时所有位置的 $Q,K,V$ 可以并行计算。自回归推理却必须逐 token 生成；若每一步重算整个前缀，会重复计算历史 key 和 value。
 
-若序列长度为 $n$，则标准全局 self-attention 的分数矩阵规模为：
+KV cache 保存每层已经旋转并投影后的历史 $K,V$。新 token 到来时只计算新增项，再让新 query 读取缓存：
 
 $$
-n\times n
+K_{\le t}=[K_{<t};k_t],\qquad
+V_{\le t}=[V_{<t};v_t]
 $$
 
-因此：
+缓存降低重复计算，但其容量随层数、序列长度、KV 头数和头维度线性增长。Multi-Query Attention 与 Grouped-Query Attention 通过让多个 query 头共享较少的 KV 头来减少缓存；它们改变头的参数组织，不改变因果读取语义。
 
-- 计算量通常与 $n^2$ 同阶增长；
-- 注意力矩阵本身也会带来与 $n^2$ 同阶的显存压力；
-- 当上下文很长时，训练与推理都容易被这一项拖慢。
-
-从训练与推理方式看，还应区分两种典型场景：
-
-- 在编码器或训练期的 masked decoder 中，整段序列通常可以并行送入，再借助 mask 约束可见性；
-- 在自回归推理中，模型需要逐 token 展开，每生成一个新位置都要与已有历史交互。
-
-若不做缓存，自回归推理时每一步都重新计算整段历史的 $K,V$，代价会迅速累积。因此，实际系统通常引入 KV cache：把历史位置的 key / value 缓存下来，新 token 到来时只计算自己的 query 与新增的 key / value，再与缓存的历史表示交互。
-
-这类优化并不改变 self-attention 的定义，但会显著改变它在长上下文场景下的系统表现。
-
-围绕这一问题，常见优化路线包括：
-
-- 使用稀疏 attention、局部 attention、分块 attention，减少全连接匹配；
-- 使用 FlashAttention 等高效 kernel，降低访存开销；
-- 在自回归推理中使用 KV cache、分组查询注意力等系统优化；
-- 配合更适合长上下文的位置机制，减缓扩窗后的性能退化。
+Encoder 推理通常不使用这种自回归 KV cache：完整输入已知，一次前向需要同时更新所有 token 的双向上下文。Decoder Decode 阶段只有新 token 的 query 需要输出，历史位置的 key/value 不再变化，缓存才成立。修改历史 token、位置缩放规则或模型权重后，已有 cache 也必须失效。
 
 ---
 
-## 一个最小推演例子
+## 二次连接成本
 
-考虑句子：
+全局 Self-Attention 的分数矩阵有 $n^2$ 个元素。常用复杂度写为：
 
 $$
-[\text{小明},\ \text{把},\ \text{书},\ \text{放在},\ \text{桌子上},\ \text{，},\ \text{然后},\ \text{他},\ \text{离开了}]
+O(n^2d)
 $$
 
-当模型更新位置「他」的表示时，它需要判断「他」可能指代谁。若只看当前位置自身，信息显然不足；若使用 self-attention，位置「他」可以直接参考整句中其他位置。
+这个表达强调随长度增长的主导连接代价。实际速度还取决于 head 维度、batch、kernel、显存带宽以及是否需要保存注意力矩阵。FlashAttention 通过改变分块与访存方式计算相同结果，并没有把全局连接数改成线性。
 
-设「他」对应的 query 与其他位置 key 的匹配强度大致如下：
+长序列优化因此分成三类：
 
-| 位置 | token | 匹配强度示意 | 直观解释 |
-| --- | --- | --- | --- |
-| 1 | 小明 | 高 | 可能是先行指代对象 |
-| 3 | 书 | 低 | 语义类型不匹配 |
-| 5 | 桌子上 | 很低 | 地点信息，不像代词先行词 |
-| 7 | 然后 | 低 | 连词，提供结构而非实体 |
-| 8 | 他 | 中 | 保留自身信息 |
-
-softmax 后，位置「他」可能主要关注「小明」和自己，于是输出表示变为对“代词 + 先行词线索”的综合。
-
-| 步骤 | 当前状态 | self-attention 在做什么 | 结果 |
-| --- | --- | --- | --- |
-| 1 | 输入整句 token 表示 | 为每个位置生成 $q_t,k_t,v_t$ | 每个位置可参与交互 |
-| 2 | 更新「他」的位置 | 计算它与所有位置的匹配分数 | 判断该参考谁 |
-| 3 | 权重归一化 | 给「小明」更高权重 | 体现指代偏好 |
-| 4 | 聚合 value | 综合「他」与「小明」的信息 | 得到更上下文化的表示 |
-| 5 | 传入下一层 | 后续层可继续 refine | 指代关系更易被建模 |
-
-这个例子体现了 self-attention 相对递归模型的关键优势：
-
-- 位置「他」不必等待多步状态传递才能接触「小明」；
-- 远距离依赖可在一次层内直接建立；
-- 输出表示从一开始就是上下文化的，而不是静态词向量。
+- 保持数学结果，优化 kernel 和内存访问；
+- 限制连接图，使用局部或[稀疏注意力](./sparse-attention.md)；
+- 改用不同序列主干，例如[状态空间模型](../model/state-space-model.md)。
 
 ---
 
-## 常见变体、优势与局限
+## 参考文献
 
-Self-attention 之所以强大，是因为它把序列建模从“按时间传递状态”改为“按相关性全局交互信息”。
-
-它的主要优势包括：
-
-- **长程依赖路径短**：任意两个位置可直接连接；
-- **并行性强**：整段序列的交互可用矩阵方式一次性计算；
-- **上下文化能力强**：同一 token 在不同上下文中可生成不同表示；
-- **关系建模灵活**：局部、全局、句法、语义关系都能通过权重学习；
-- **适配范围广**：文本、图像 patch、语音帧、多模态 token 都可处理。
-
-但它也存在明显局限：
-
-- **复杂度通常为 $O(n^2)$**：长序列时代价高；
-- **对位置机制依赖强**：没有位置编码时难以区分顺序；
-- **显存压力大**：注意力矩阵本身就可能很大；
-- **局部归纳偏置较弱**：不像 CNN 那样天然强调局部结构，也不像 RNN 那样天然按顺序处理。
-
-训练与工程上的典型难点包括：
-
-- 长序列训练导致显存瓶颈；
-- 多头之间可能存在冗余或塌缩；
-- 小数据集上容易过拟合表面相关性；
-- 自回归推理时，计算和缓存成本随上下文增长而上升。
-
-常见缓解手段包括：
-
-- 使用稀疏 attention、局部 attention、分块 attention；
-- 使用 FlashAttention 等高效实现减少访存开销；
-- 结合更适合长上下文的位置编码方案；
-- 在工程上使用 KV cache、分组查询注意力等优化。
-
-其中，稀疏 attention 的数学展开与典型图结构可进一步参见：[Sparse Attention](./sparse-attention.md)。
-
----
-
-## 与相关机制或模型的关系
-
-Self-attention 与相关机制、相关模型之间的关系非常清晰：它是 attention 从“辅助读取机制”演化为“核心表征机制”的关键一步。
-
-在它之前，attention 更多作为 RNN-Seq2Seq 的补充模块，用于缓解编码器压缩瓶颈；但序列主体仍由递归结构承担。Self-attention 则进一步把这种读取方式扩展到整段序列内部，使每个位置都能直接根据全局上下文更新自己，而不必依赖递归主干。
-
-这带来了两个深远后果：
-
-- Transformer 得以摆脱 RNN 的串行依赖；
-- 序列表示从“隐藏状态链”转向“全局交互图”。
-
-可以用下表概括几类序列机制的差异：
-
-| 机制 | 信息传播方式 | 长依赖路径 | 并行性 | 典型问题 |
-| --- | --- | --- | --- | --- |
-| **N-gram** | 固定窗口 | 短 | 强 | 上下文范围有限 |
-| **RNN / LSTM** | 递归状态传递 | 长 | 弱 | 长依赖困难，串行训练 |
-| **Attention** | 动态读取外部序列 | 较短 | 中 | 常依赖主干序列模型 |
-| **Self-Attention** | 序列内部全局交互 | 极短 | 强 | 长序列二次复杂度 |
-
-因此，Self-attention 并不只是 attention 的名字变化，而是序列建模范式的一次实质转移：模型不再主要依赖时间递归，而是依赖可学习的全局关联结构。
-
----
-
-## 小结
-
-Self-attention 的最关键思想，是让序列中每个位置都能根据内容相关性，直接读取同一序列中其他位置的信息，从而形成上下文化表示。
-
-在现代模型中，它通常承担序列内部的信息交互与表示更新，是 Transformer 及其变体中的核心计算单元。
+- Vaswani, A. et al. (2017). *Attention Is All You Need*.
+- Dao, T. et al. (2022). *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness*.
+- Shazeer, N. (2019). *Fast Transformer Decoding: One Write-Head is All You Need*.

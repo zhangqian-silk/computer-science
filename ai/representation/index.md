@@ -1,54 +1,34 @@
-# 表示层：离散对象如何进入连续空间
+# 表示：从离散标识到可用向量
 
-`representation/` 目录讨论的核心问题是：模型如何表示词、子词、句子、模态片段，以及这些表示如何被学习、比较和使用。
-
-这一层关注的是“表示本身”，而不是完整模型架构。更具体地说，它主要回答：
-
-- 离散对象为什么需要 embedding；
-- 静态表示与上下文化表示有什么差异；
-- 词向量、句向量、多模态表示如何形成；
-- 表示如何进入检索、匹配与对齐系统。
+表示层研究的不是某个完整模型，而是对象进入计算系统后的数值接口。一个向量是否「好」，取决于训练信号、比较方式和下游任务，不能只凭降维图或少数类比例子判断。
 
 ---
 
-## 相关主题
+## 主题地图
 
-- 若重点是 attention、LoRA、MoE 等模块机制，可进入 [mechanism](../mechanism/index.md)。
-- 若重点是 Transformer、BERT、GPT 等完整模型，可进入 [model](../model/index.md)。
-
----
-
-## 推荐阅读顺序
-
-1. [Embedding](./embedding.md)
-2. [Text Embedding Training](./text-embedding-training.md)
-3. [word2vec](./word2vec.md)
-4. [Multimodal Alignment](./multimodal-alignment.md)
-5. [Retrieval Embedding](./retrieval-embedding.md)
-6. [向量表示分析](../evaluation/embedding-geometry.md)
-
-如果想先建立历史位置，也可以先读 [NLP 历史](../nlp/history.md) 再回到本目录。
-
----
-
-## 文档角色划分
-
-| 文档 | 角色 | 建议用途 |
+| 页面 | 核心内容 | 前置知识 |
 | --- | --- | --- |
-| [Embedding](./embedding.md) | 本目录总入口 | 先理解连续表示的统一定义 |
-| [word2vec](./word2vec.md) | 经典方法专题 | 理解高效词向量训练 |
-| [Text Embedding Training](./text-embedding-training.md) | 训练路线专题 | 理解静态词向量到上下文化表示的演化 |
-| [Multimodal Alignment](./multimodal-alignment.md) | 跨模态专题 | 理解图文等不同模态如何共享表示空间 |
-| [Retrieval Embedding](./retrieval-embedding.md) | 系统落地专题 | 理解向量索引、混合检索与重排流程 |
+| [Embedding](./embedding.md) | 定义查表表示、上下文化表示与向量几何 | 线性代数基础 |
+| [word2vec](./word2vec.md) | 推导 CBOW、Skip-gram 与负采样 | Embedding |
+| [文本嵌入](./text-embedding.md) | 解释句子/文档向量的对比学习、池化与负样本 | Embedding |
+| [多模态对齐](./multimodal-alignment.md) | 解释不同模态如何进入共享空间 | Embedding、对比学习 |
+| [向量检索](./vector-retrieval.md) | 解释向量如何进入 ANN、混合检索与重排系统 | Embedding |
+
+表示质量的诊断方法放在[向量表示分析](../evaluation/embedding-geometry.md)，召回与排序指标放在[检索评估](../evaluation/retrieval-evaluation.md)。这样可以把「训练表示」与「验证系统」分开。
+
+| 表示类型 | 主要训练信号 | 使用时的读出方式 |
+| --- | --- | --- |
+| 查表 Embedding | 下游任务梯度 | 按离散 ID 取参数行 |
+| word2vec | 局部共现预测或负采样 | 词向量近邻、聚类或下游特征 |
+| 文本嵌入 | 句子/文档正负对比 | 双编码后做向量检索 |
+| 多模态对齐 | 跨模态配对或生成目标 | 跨模态相似度或条件 token |
+
+向量的维度相同不代表语义空间兼容。只有编码器版本、训练目标、归一化和相似度约定一致时，两组向量才可以直接比较。
 
 ---
 
-## 阅读提示
+## 建议路线
 
-当前表示层最适合先抓住 3 个主问题：
-
-- 表示是什么；
-- 表示如何学出来；
-- 学出来的表示如何被用于相似度、检索与迁移。
-
-若只想先读一篇，应优先从 [Embedding](./embedding.md) 开始。
+- 理解静态表示：Embedding → word2vec → 向量表示分析；
+- 构建语义检索：Embedding → 文本嵌入 → 向量检索 → 检索评估；
+- 理解多模态模型：Embedding → 多模态对齐 → [Transformer](../model/transformer.md)。

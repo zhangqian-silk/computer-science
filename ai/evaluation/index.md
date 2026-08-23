@@ -1,65 +1,41 @@
-# 评估层：如何判断模型与表示是否有效
+# 评估：把能力主张变成可检验问题
 
-`evaluation/` 目录关注的不是“如何建模”，而是“如何判断一个模型或表示学得好不好”。
-
-这一层主要回答：
-
-- 语言模型的概率分配质量如何衡量；
-- 词向量或句向量的几何结构如何分析；
-- 检索系统的召回、排序与最终命中效果如何拆开衡量；
-- 文本生成结果的质量、忠实性与任务完成度如何评估；
-- 长上下文模型到底是真的“用到了长上下文”，还是只是在名义上扩窗；
-- 某类方法的优势是否真的来自更好的泛化，而不只是训练集拟合。
+评估不是在文末附一个分数，而是先定义任务、数据、指标和失败条件。模型间的数字只有在分词、测试集、提示方式、解码参数和资源预算可比时才有意义。
 
 ---
 
-## 相关主题
+## 从主张选择证据
 
-- 若重点是模型本身，可进入 [model](../model/index.md)。
-- 若重点是表示机制，可进入 [representation](../representation/index.md)。
-
----
-
-## 当前文档
-
-| 文档 | 角色 | 建议用途 |
+| 能力主张 | 评估主题 | 至少同时报告 |
 | --- | --- | --- |
-| [语言模型评估](./language-model-evaluation.md) | 语言模型评估入口 | 理解困惑度、覆盖率与泛化 |
-| [向量表示分析](./embedding-geometry.md) | 表示评估入口 | 理解邻域、聚类与线性关系 |
-| [检索评估](./retrieval-evaluation.md) | 检索系统评估入口 | 理解 Recall、MRR、NDCG 与多阶段评估 |
-| [生成评估](./generation-evaluation.md) | 文本生成评估入口 | 理解重合度指标、人工评估与忠实性边界 |
-| [长上下文评估](./long-context-evaluation.md) | 长上下文能力评估入口 | 理解 Needle、Passkey 与位置敏感性测试 |
+| 「更会预测文本」 | [语言模型评估](./language-model-evaluation.md) | tokenization、负对数似然或 PPL、测试域 |
+| 「向量空间更有结构」 | [向量表示分析](./embedding-geometry.md) | 下游任务、邻域/聚类诊断及稳定性 |
+| 「更容易找到相关内容」 | [检索评估](./retrieval-evaluation.md) | Recall@K、排序指标、延迟与候选规模 |
+| 「生成答案更好」 | [生成评估](./generation-evaluation.md) | 任务完成度、事实/忠实性、人工或模型评审协议 |
+| 「真正支持长上下文」 | [长上下文评估](./long-context-evaluation.md) | 长度×位置曲线、复杂整合任务、延迟与显存 |
 
 ---
 
-## 推荐阅读顺序
+## 评估顺序
 
-1. [语言模型评估](./language-model-evaluation.md)
-2. [向量表示分析](./embedding-geometry.md)
-3. [检索评估](./retrieval-evaluation.md)
-4. [生成评估](./generation-evaluation.md)
-5. [长上下文评估](./long-context-evaluation.md)
+1. 写清目标行为和不能接受的失败；
+2. 固定数据切分、推理配置与资源预算；
+3. 选择与目标行为直接对应的主指标；
+4. 用分层指标定位改进发生在哪一环；
+5. 检查分布偏移、污染、位置偏差和评审一致性；
+6. 最后才汇总为模型或系统结论。
 
-如果是配合模型学习，建议边读边回看：
+检索增强生成需要同时读[检索评估](./retrieval-evaluation.md)与[生成评估](./generation-evaluation.md)；Agent 还需要观察任务成功率、工具错误、步骤成本与可恢复性，不能只评最后一段文本。
 
-- [N-Gram](../model/n-gram.md)
-- [Embedding](../representation/embedding.md)
-- [Retrieval Embedding](../representation/retrieval-embedding.md)
-- [Seq2Seq](../model/seq2seq.md)
-- [GPT](../model/gpt.md)
-- [Transformer Extensions](../model/transformer-extensions.md)
-- [Long Context Position](../mechanism/long-context-position.md)
+```mermaid
+flowchart LR
+	C["能力主张"] --> D["冻结数据与协议"]
+	D --> M["主指标：直接判断是否成功"]
+	D --> S["分层指标：定位失败环节"]
+	M --> U["统计不确定性"]
+	S --> U
+	U --> E["错误切片与代表性案例"]
+	E --> R["限定条件下的结论"]
+```
 
----
-
-## 本目录内部边界
-
-目前 5 篇文档大致分工如下：
-
-- `language-model-evaluation.md`：关注概率分配质量与泛化；
-- `embedding-geometry.md`：关注表示空间的局部与全局结构；
-- `retrieval-evaluation.md`：关注召回、排序与最终命中效果；
-- `generation-evaluation.md`：关注生成文本的质量、忠实性与任务适配；
-- `long-context-evaluation.md`：关注模型对远距离信息的真实利用能力。
-
-如果后续继续扩展，本目录仍可逐步补入多模态评估、Agent 系统评估与在线实验评估专题。
+测试集、评分脚本、prompt、模型版本和运行配置共同构成评估产物。任何一项变化都可能使分数失去直接可比性。结论应写明适用数据、推理协议和资源预算，而不是把一次实验结果概括成无条件能力标签。
