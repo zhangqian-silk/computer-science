@@ -104,7 +104,7 @@ $$
 
 softmax 按行计算。第 $i$ 行表示第 $i$ 个 query 对所有 key 的读取分布。掩码 $M$ 在归一化前把非法连接设为极小值；它可以屏蔽 padding、未来位置或不允许访问的模态。
 
-输出形状为 $n_q\times d_v$。Attention 不要求 query 与 key 的数量相同，因此天然适合 Cross-Attention。
+输出形状为 $n_q\times d_v$。Attention 不要求 query 与 key 的数量相同，因此很适合 Cross-Attention。
 
 训练时，任务损失会同时通过两条路径回传：权重路径更新 query/key 投影，使模型改变「读哪里」；value 与输出路径更新 value 投影，使模型改变「读到什么」。Attention 权重没有独立的正确答案，除非任务额外提供对齐监督。
 

@@ -1,6 +1,6 @@
 # Seq2Seq：把条件生成拆成编码与解码
 
-Sequence-to-Sequence（Seq2Seq）不是某一种固定网络，而是条件生成框架：Encoder 读取输入序列 $X$，Decoder 在其条件下逐步生成长度可变的输出 $Y$。RNN、LSTM 或 Transformer 都可以充当主干。
+Sequence-to-Sequence（Seq2Seq）是条件生成框架，而非某一种固定网络：Encoder 读取输入序列 $X$，Decoder 在其条件下逐步生成长度可变的输出 $Y$。RNN、LSTM 或 Transformer 都可以充当主干。
 
 <Seq2SeqDecodeExplorer />
 
