@@ -11,6 +11,7 @@
 | [Tokenization](./tokenization.md) | 文本怎样变成稳定的 token ID 接口 | 字符串与 Unicode 基础 |
 | [Embedding](./embedding.md) | 定义查表表示、上下文化表示与向量几何 | 线性代数基础 |
 | [word2vec](./word2vec.md) | 推导 CBOW、Skip-gram 与负采样 | Embedding |
+| [矩阵分解视角](./embedding-matrix-factorization.md) | 推导 SGNS 与 SPPMI、GloVe 的数学等价 | word2vec |
 | [文本嵌入](./text-embedding.md) | 解释句子/文档向量的对比学习、池化与负样本 | Embedding |
 | [多模态对齐](./multimodal-alignment.md) | 解释不同模态如何进入共享空间 | Embedding、对比学习 |
 | [向量检索](./vector-retrieval.md) | 解释向量如何进入 ANN、混合检索与重排系统 | Embedding |
@@ -30,6 +31,6 @@
 
 ## 建议路线
 
-- 理解静态表示：Embedding → word2vec → 向量表示分析；
+- 理解静态表示：Embedding → word2vec → 矩阵分解视角 → 向量表示分析；
 - 构建语义检索：Embedding → 文本嵌入 → 向量检索 → 检索评估；
 - 理解多模态模型：Embedding → 多模态对齐 → [Transformer](../model/transformer.md)。
