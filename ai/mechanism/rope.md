@@ -2,6 +2,8 @@
 
 RoPE（Rotary Positional Embedding）不把位置向量加到输入上，而是在计算 Attention 前旋转 query 和 key。它使用绝对位置决定旋转角，却使点积只依赖两个位置的相对差。
 
+<PositionEncodingExplorer initial-method="rope" />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$t,m,n$ 是位置，$r$ 是二维频率对索引，$\theta_r$ 是对应角频率，$R_r(t)$ 是位置 $t$ 的旋转矩阵；$q,k$ 是未旋转 Query/Key，$\tilde{q},\tilde{k}$ 是旋转结果，$d_{\text{head}}$ 是单个 Attention head 的维度。
 :::

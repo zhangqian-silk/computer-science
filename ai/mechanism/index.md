@@ -8,6 +8,7 @@
 
 - [Attention](./attention.md)：query 如何从一组 key-value 中按相关性读取信息；
 - [Self-Attention](./self-attention.md)：同一序列如何建立全局交互，以及 mask、KV cache 带来什么约束；
+- [MHA、MQA、GQA 与 MLA](./attention-head-sharing.md)：Query 头如何共享或压缩 KV 表示；
 - [稀疏注意力](./sparse-attention.md)：怎样用受限连接图降低长序列代价。
 
 ---
@@ -22,6 +23,8 @@
 
 ## 容量与适配
 
+- [归一化、残差与 Dropout](./normalization-and-residual.md)：深层 Block 如何保持尺度与梯度路径；
+- [前馈网络与门控激活](./feed-forward-and-gating.md)：逐 token 通道变换如何贡献参数与计算；
 - [MoE](./moe.md)：稀疏路由怎样在近似固定计算量下扩大参数容量；
 - [LoRA](./lora.md)：低秩增量怎样降低任务适配所需的可训练参数。
 

@@ -2,6 +2,8 @@
 
 Self-Attention 根据内容建立连接，但不天然区分输入行的顺序。位置表示要提供三类信息：token 在哪里、两个 token 相距多远，以及顺序变化是否应改变交互结果。
 
+<PositionEncodingExplorer initial-method="sinusoidal" />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$t$ 是绝对位置，$r$ 是正弦余弦的二维频率对索引，$d_{\text{model}}$ 是位置向量维度；$x_t,p_t,z_t$ 是 token、位置与组合后的表示；$i,j$ 是 Attention 中的两个位置，$q_i,k_j$ 是对应 Query/Key，$b(i-j)$ 是相对位置偏置。
 :::

@@ -2,6 +2,8 @@
 
 LoRA（Low-Rank Adaptation）冻结预训练权重，只学习一个低秩更新。它减少可训练参数、优化器状态与任务检查点大小；基座模型的前向接口不变。
 
+<LoRAParameterExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$W_0$ 是冻结基座权重，$\Delta W$ 是任务增量；$A\in\mathbb{R}^{r\times d_{\text{in}}}$、$B\in\mathbb{R}^{d_{\text{out}}\times r}$ 是低秩矩阵，$r$ 是 rank，$\alpha$ 是缩放系数；$x,y$ 是线性层输入与输出。
 :::

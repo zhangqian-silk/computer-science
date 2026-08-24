@@ -2,6 +2,8 @@
 
 状态空间模型（State Space Model, SSM）用一个隐状态描述输入序列的动态响应。经典 SSM 来自线性系统；S4 等结构化模型使长卷积可高效计算，Mamba 又让状态更新参数依赖当前输入，增强内容选择。
 
+<StateSpaceScanExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$x(t),h(t),y(t)$ 是连续输入、状态与输出，$x_t,h_t,y_t$ 是离散序列；$A,B,C,D$ 是系统矩阵，$\Delta$ 是离散步长，$\bar{A},\bar{B}$ 是离散化参数；$K_j$ 是第 $j$ 个卷积核系数，带下标 $t$ 的参数表示输入相关的选择性参数。
 :::

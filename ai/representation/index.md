@@ -8,6 +8,7 @@
 
 | 页面 | 核心内容 | 前置知识 |
 | --- | --- | --- |
+| [Tokenization](./tokenization.md) | 文本怎样变成稳定的 token ID 接口 | 字符串与 Unicode 基础 |
 | [Embedding](./embedding.md) | 定义查表表示、上下文化表示与向量几何 | 线性代数基础 |
 | [word2vec](./word2vec.md) | 推导 CBOW、Skip-gram 与负采样 | Embedding |
 | [文本嵌入](./text-embedding.md) | 解释句子/文档向量的对比学习、池化与负样本 | Embedding |

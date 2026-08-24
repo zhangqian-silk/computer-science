@@ -1,14 +1,16 @@
 # 人工智能
 
-人工智能系统可以沿六个彼此衔接的层次理解：学习所需的基础、数据的表示方式、信息处理机制、完整模型架构、能力评估方法，以及模型参与实际任务的 Agent 系统。
+人工智能系统可以沿七个彼此衔接的层次理解：学习所需的基础、数据的表示方式、信息处理机制、完整模型架构、训推基础设施、能力评估方法，以及模型参与实际任务的 Agent 系统。
 
 ```mermaid
 flowchart LR
 	F["基础\n训练与演化"] --> R["表示\n对象变成向量"]
 	R --> M["机制\n信息如何计算"]
 	M --> A["模型\n结构与目标"]
+	A --> I["AI Infra\n模型如何高效运行"]
 	A --> E["评估\n能力是否成立"]
 	A --> G["Agent\n模型如何行动"]
+	I --> E
 	R --> E
 	E --> G
 ```
@@ -25,12 +27,13 @@ flowchart LR
 | [表示](./representation/index.md) | 离散对象如何进入连续空间并形成可比较的几何结构 | [Embedding](./representation/embedding.md) |
 | [机制](./mechanism/index.md) | Attention、位置、稀疏路由和低秩适配如何计算 | [Attention](./mechanism/attention.md) |
 | [模型](./model/index.md) | 从 N-gram 到 Transformer 与状态空间模型，完整建模对象如何变化 | [模型地图](./model/index.md) |
+| [AI Infra](./infra/index.md) | GPU、通信、训练和推理 Runtime 如何把模型变成可运行系统 | [AI Infra 总览](./infra/index.md) |
 | [评估](./evaluation/index.md) | 概率、检索、生成和长上下文能力如何被可靠测量 | [评估设计](./evaluation/index.md) |
 | [Agent](./agent/index.md) | 如何把模型、工具、状态和控制流组成可执行系统 | [Agent 系统](./agent/index.md) |
 
 ---
 
-## 三条阅读路线
+## 六条阅读路线
 
 ### 语言模型主线
 
@@ -49,6 +52,18 @@ flowchart LR
 [Self-Attention](./mechanism/self-attention.md) → [位置表示](./mechanism/positional-encoding.md) → [长上下文](./mechanism/long-context.md) → [稀疏注意力](./mechanism/sparse-attention.md) / [状态空间模型](./model/state-space-model.md) → [长上下文评估](./evaluation/long-context-evaluation.md) → [Agent 系统](./agent/index.md)
 
 这条路线同时检查能力与代价，避免把名义窗口长度、理论复杂度或工具数量直接等同于系统效果。
+
+### 推理框架岗位主线
+
+[Tokenization](./representation/tokenization.md) → [Transformer](./model/transformer.md) → [Tensor 与内存](./foundations/tensor-and-memory.md) → [GPU 执行](./infra/accelerator/gpu-architecture.md) → [性能模型](./infra/accelerator/performance-model.md) → [Prefill 与 Decode](./infra/inference/prefill-decode.md) → [KV Cache](./infra/inference/kv-cache-management.md) → [Batch 调度](./infra/inference/batching-scheduling.md) → [推理框架](./infra/inference/frameworks.md) → [实验与项目](./infra/labs/index.md)
+
+这条路线优先覆盖推理引擎岗位的完整数据面。读者应同步完成 CPU 模拟实验；具备 GPU 后再补 CUDA/Triton、NCCL 和目标框架性能证据。
+
+### 训练框架主线
+
+[神经网络训练基础](./foundations/neural-network-basics.md) → [数值计算](./foundations/numerical-computing.md) → [Collective](./infra/distributed/collectives.md) → [训练循环与内存](./infra/training/memory-and-loop.md) → [混合精度](./infra/training/mixed-precision.md) → [训练并行](./infra/training/parallelism.md) → [Checkpoint](./infra/training/checkpoint-and-recovery.md) → [训练框架](./infra/training/frameworks.md) → [训练性能](./infra/training/performance.md)
+
+这条路线用状态归属与通信解释 DDP、FSDP、ZeRO、TP、PP、CP 和 EP，避免只记配置项。
 
 ### 检索增强与 Agent 主线
 

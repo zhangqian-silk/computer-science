@@ -2,6 +2,8 @@
 
 Embedding 是一个可学习映射，把 token、商品 ID、图像片段等离散对象变成固定维度的实数向量。向量本身没有天然语义；它的几何结构由训练数据、目标函数和模型上下文共同塑造。
 
+<VectorSimilarityExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$\mathcal{V}$ 是离散对象集合，$E$ 是 Embedding 矩阵，$e_i$ 是对象 $i$ 的 one-hot 向量，$v_i$ 是查表得到的稠密向量，$d$ 是向量维度；$\theta$ 表示后续网络参数，$\mathcal{L}$ 表示训练损失，$\eta$ 表示学习率。
 :::

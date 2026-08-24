@@ -2,6 +2,8 @@
 
 Long Short-Term Memory（LSTM）把 RNN 的单一隐藏状态拆成细胞状态 $c_t$ 与对外隐藏状态 $h_t$。门控决定哪些信息保留、写入和输出，使梯度拥有一条较稳定的可加性传播路径。
 
+<RecurrentStateExplorer initial-mode="lstm" />
+
 下列公式采用现代常见的带遗忘门 LSTM。1997 年原始结构没有这一完整形式，遗忘门由后续工作引入。
 
 ::: info 符号与约定

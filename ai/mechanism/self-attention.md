@@ -2,6 +2,8 @@
 
 Self-Attention 是 Attention 的一个输入约束：query、key、value 都由同一序列产生。每个位置因此可以按内容读取其他位置，并把静态输入改写为上下文化表示。
 
+<AttentionPatternExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$X\in\mathbb{R}^{n\times d_{\text{model}}}$ 是输入序列表示，$Q,K,V$ 是同一 $X$ 的三组投影，$M$ 是可见性 mask，$H$ 是输出；$i,j$ 是 Query 与 Key 位置，$t$ 是自回归步，$K_{\leq t},V_{\leq t}$ 表示缓存到当前步的 Key/Value。
 :::

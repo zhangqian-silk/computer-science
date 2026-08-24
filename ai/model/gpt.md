@@ -2,6 +2,8 @@
 
 GPT 家族使用 Decoder-only Transformer，在因果 mask 下反复预测下一 token。原始 GPT 使用较早的 Transformer Decoder 变体；现代 decoder-only LLM 常采用 pre-LN/RMSNorm、RoPE、门控 FFN 与共享 KV 头等工程改造。不同实现共享因果语言建模这一概率接口，具体 block 配置则随模型而异。
 
+<LanguageModelObjectiveExplorer initial-mode="causal" />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$x_t$ 是第 $t$ 个 token，$T$ 是序列长度，$\theta$ 是模型参数，$\mathcal{L}$ 是因果语言模型损失；$z_w$ 是候选 token $w$ 的 logit，$\tau$ 是采样温度；$K_{\leq t},V_{\leq t}$ 是截至位置 $t$ 的 KV cache。
 :::

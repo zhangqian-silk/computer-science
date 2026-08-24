@@ -2,6 +2,8 @@
 
 检索系统通常先从大库召回候选，再重排少量文档。一个总分无法说明改进发生在哪一层；评估应沿候选生成、排序和下游使用逐层记录。
 
+<RetrievalMetricsExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$q$ 是单个查询，$\mathcal{Q}$ 是评测查询集合，$\mathcal{R}_q$ 是查询 $q$ 的相关文档集合，$\operatorname{TopK}(q)$ 是系统返回的前 $K$ 个结果；$\operatorname{rank}_q$ 是首个相关结果的排名，$\operatorname{rel}_i$ 是第 $i$ 位结果的相关等级，$\operatorname{DCG}$ 与 $\operatorname{IDCG}$ 分别是实际和理想折损累积增益。
 :::
