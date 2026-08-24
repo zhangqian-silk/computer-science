@@ -2,6 +2,8 @@
 
 Attention 把固定摘要改成按需读取。给定一个 query 和若干 key-value 对，模型先计算 query 与各 key 的匹配程度，再用归一化权重聚合对应 value。它既可以连接 Encoder 与 Decoder，也可以连接文本与图像、当前状态与外部记忆。
 
+<AttentionReadExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$q,k_i,v_i$ 是单个 Query、Key、Value，$m$ 是键值对数量，$e_i,\alpha_i,c$ 是匹配分数、归一化权重和读取结果；$Q,K,V$ 是矩阵形式，$n_q,n_k$ 是两侧长度，$d_k,d_v$ 是特征维度，$M$ 是 mask，$n_{\text{head}}$ 是头数。
 :::

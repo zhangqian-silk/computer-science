@@ -2,6 +2,8 @@
 
 Sequence-to-Sequence（Seq2Seq）不是某一种固定网络，而是条件生成框架：Encoder 读取输入序列 $X$，Decoder 在其条件下逐步生成长度可变的输出 $Y$。RNN、LSTM 或 Transformer 都可以充当主干。
 
+<Seq2SeqDecodeExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$X=(x_1,\ldots,x_n)$ 是源序列，$Y=(y_1,\ldots,y_m)$ 是目标序列；$h_i^{\text{enc}}$ 是 Encoder 状态，$s_t$ 是 Decoder 状态，$c$ 或 $c_t$ 是源端条件表示；$e_{t,i},\alpha_{t,i}$ 是对齐分数与归一化权重，$y_t^*$ 是真实目标 token。
 :::

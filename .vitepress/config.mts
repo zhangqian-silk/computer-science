@@ -175,6 +175,8 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		items: [
 			{ text: '数学与符号约定', link: '/ai/foundations/math-notation' },
 			{ text: '神经网络训练基础', link: '/ai/foundations/neural-network-basics' },
+			{ text: 'Tensor、形状与内存', link: '/ai/foundations/tensor-and-memory' },
+			{ text: '数值计算', link: '/ai/foundations/numerical-computing' },
 			{ text: 'NLP 方法演化', link: '/ai/foundations/nlp-history' }
 		]
 	},
@@ -183,6 +185,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		link: '/ai/representation/',
 		collapsed: false,
 		items: [
+			{ text: 'Tokenization', link: '/ai/representation/tokenization' },
 			{ text: 'Embedding', link: '/ai/representation/embedding' },
 			{ text: 'word2vec', link: '/ai/representation/word2vec' },
 			{ text: '文本嵌入', link: '/ai/representation/text-embedding' },
@@ -197,10 +200,13 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		items: [
 			{ text: 'Attention', link: '/ai/mechanism/attention' },
 			{ text: 'Self-Attention', link: '/ai/mechanism/self-attention' },
+			{ text: 'MHA、MQA、GQA 与 MLA', link: '/ai/mechanism/attention-head-sharing' },
 			{ text: '位置表示', link: '/ai/mechanism/positional-encoding' },
 			{ text: 'RoPE', link: '/ai/mechanism/rope' },
 			{ text: '长上下文位置扩展', link: '/ai/mechanism/long-context' },
 			{ text: '稀疏注意力', link: '/ai/mechanism/sparse-attention' },
+			{ text: '归一化、残差与 Dropout', link: '/ai/mechanism/normalization-and-residual' },
+			{ text: '前馈网络与门控激活', link: '/ai/mechanism/feed-forward-and-gating' },
 			{ text: 'MoE', link: '/ai/mechanism/moe' },
 			{ text: 'LoRA', link: '/ai/mechanism/lora' }
 		]
@@ -219,6 +225,96 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{ text: 'BERT', link: '/ai/model/bert' },
 			{ text: 'GPT', link: '/ai/model/gpt' },
 			{ text: '状态空间模型', link: '/ai/model/state-space-model' }
+		]
+	},
+	{
+		text: 'AI Infra',
+		link: '/ai/infra/',
+		collapsed: false,
+		items: [
+			{ text: '岗位能力路线', link: '/ai/infra/job-readiness' },
+			{
+				text: '加速器与性能',
+				link: '/ai/infra/accelerator/',
+				collapsed: true,
+				items: [
+					{ text: 'GPU 执行与存储层级', link: '/ai/infra/accelerator/gpu-architecture' },
+					{ text: '性能模型', link: '/ai/infra/accelerator/performance-model' },
+					{ text: '精度与 Tensor Core', link: '/ai/infra/accelerator/precision-and-tensor-cores' },
+					{ text: 'CUDA、Triton 与 Kernel', link: '/ai/infra/accelerator/cuda-and-kernels' },
+					{ text: '编译图与执行计划', link: '/ai/infra/accelerator/compiler-and-graphs' },
+					{ text: 'Profiling', link: '/ai/infra/accelerator/profiling' }
+				]
+			},
+			{
+				text: '分布式通信',
+				link: '/ai/infra/distributed/',
+				collapsed: true,
+				items: [
+					{ text: 'Collective', link: '/ai/infra/distributed/collectives' },
+					{ text: '拓扑与网络', link: '/ai/infra/distributed/topology-and-network' },
+					{ text: '重叠、启动与故障', link: '/ai/infra/distributed/overlap-launch-and-failures' }
+				]
+			},
+			{
+				text: '训练 Runtime',
+				link: '/ai/infra/training/',
+				collapsed: true,
+				items: [
+					{ text: '训练循环与内存', link: '/ai/infra/training/memory-and-loop' },
+					{ text: '混合精度', link: '/ai/infra/training/mixed-precision' },
+					{ text: '数据管线', link: '/ai/infra/training/data-pipeline' },
+					{ text: '并行策略', link: '/ai/infra/training/parallelism' },
+					{ text: 'Checkpoint 与恢复', link: '/ai/infra/training/checkpoint-and-recovery' },
+					{ text: '训练框架', link: '/ai/infra/training/frameworks' },
+					{ text: '后训练 Runtime', link: '/ai/infra/training/post-training-runtime' },
+					{ text: 'Scaling 与资源预算', link: '/ai/infra/training/scaling-and-compute' },
+					{ text: '训练性能', link: '/ai/infra/training/performance' }
+				]
+			},
+			{
+				text: '推理 Runtime',
+				link: '/ai/infra/inference/',
+				collapsed: false,
+				items: [
+					{ text: '请求生命周期', link: '/ai/infra/inference/request-lifecycle' },
+					{ text: 'Prefill 与 Decode', link: '/ai/infra/inference/prefill-decode' },
+					{ text: 'KV Cache 管理', link: '/ai/infra/inference/kv-cache-management' },
+					{ text: 'Batch 与调度', link: '/ai/infra/inference/batching-scheduling' },
+					{ text: 'Attention Kernel', link: '/ai/infra/inference/attention-kernels' },
+					{ text: '量化', link: '/ai/infra/inference/quantization' },
+					{ text: '解码与推测执行', link: '/ai/infra/inference/decoding-and-speculation' },
+					{ text: '分布式推理', link: '/ai/infra/inference/distributed-inference' },
+					{ text: '前缀缓存与 PD 分离', link: '/ai/infra/inference/cache-and-disaggregation' },
+					{ text: '模型服务特性', link: '/ai/infra/inference/model-serving-features' },
+					{ text: 'API、可观测性与可靠性', link: '/ai/infra/inference/api-observability-reliability' },
+					{ text: '基准测试与容量', link: '/ai/infra/inference/benchmarking-capacity' },
+					{ text: '推理系统排障', link: '/ai/infra/inference/troubleshooting' },
+					{ text: '框架案例', link: '/ai/infra/inference/frameworks' }
+				]
+			},
+			{
+				text: '服务平台',
+				link: '/ai/infra/platform/',
+				collapsed: true,
+				items: [
+					{ text: 'GPU 容器与 Kubernetes', link: '/ai/infra/platform/gpu-containers-kubernetes' },
+					{ text: '部署与路由', link: '/ai/infra/platform/deployment-and-routing' },
+					{ text: 'GPU Fleet 与容量', link: '/ai/infra/platform/fleet-and-capacity' },
+					{ text: '安全与多租户', link: '/ai/infra/platform/security-and-multitenancy' }
+				]
+			},
+			{
+				text: '实验与项目',
+				link: '/ai/infra/labs/',
+				collapsed: true,
+				items: [
+					{ text: '模型与 Runtime 实验', link: '/ai/infra/labs/model-runtime-labs' },
+					{ text: '加速器与分布式实验', link: '/ai/infra/labs/accelerator-distributed-labs' },
+					{ text: '框架与服务实验', link: '/ai/infra/labs/framework-serving-labs' },
+					{ text: '综合项目', link: '/ai/infra/labs/projects' }
+				]
+			}
 		]
 	},
 	{

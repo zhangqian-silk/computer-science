@@ -2,6 +2,8 @@
 
 循环神经网络（Recurrent Neural Network, RNN）在每个时间步复用同一状态转移函数。它不再固定只看最近几个 token，而是把历史压缩到隐藏状态 $h_t$ 中。
 
+<RecurrentStateExplorer initial-mode="rnn" />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$x_t,h_t$ 是第 $t$ 步输入与隐藏状态，$a_t,o_t$ 是预激活与输出 logits，$\hat{y}_t$ 是预测；$W_{xh},W_{hh},W_{hy}$ 是共享参数；$T$ 是序列长度，$\ell_t$ 是单步损失，$\mathcal{L}$ 是序列损失；$g_{\max}$ 是梯度裁剪阈值。
 :::

@@ -2,6 +2,8 @@
 
 全局 Self-Attention 让每个位置连接所有位置，形成 $n\times n$ 分数矩阵。稀疏注意力预先或动态选择其中一部分边，只在允许的 query-key 对上计算 Attention。它降低连接数量，也同时改变信息能怎样传播。
 
+<AttentionPatternExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$n,d$ 是序列长度与特征维度，$A\in\{0,1\}^{n\times n}$ 是可见性邻接矩阵，$M$ 是由 $A$ 构造的加性 mask；$Q,K,V$ 沿用 Attention 含义；$k$ 是每个 Query 的平均连接数，$w$ 是局部窗口宽度，$L$ 是堆叠层数。
 :::

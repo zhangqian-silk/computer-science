@@ -20,3 +20,344 @@
 	display: table;
 	width: 100%;
 }
+
+.infra-lab {
+	margin: 1.5rem 0;
+	padding: 1rem;
+	border: 1px solid var(--vp-c-divider);
+	border-top: 3px solid var(--vp-c-brand-1);
+	border-radius: 12px;
+	background: var(--vp-c-bg-soft);
+	box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+}
+
+.infra-lab__title {
+	margin: 0 0 0.35rem;
+	font-weight: 700;
+	color: var(--vp-c-text-1);
+}
+
+.infra-lab__hint {
+	margin: 0 0 1rem;
+	color: var(--vp-c-text-2);
+	font-size: 0.9rem;
+}
+
+.infra-controls,
+.infra-results,
+.infra-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 0.75rem;
+}
+
+.infra-control,
+.infra-result,
+.infra-card {
+	padding: 0.75rem;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 8px;
+	background: var(--vp-c-bg);
+}
+
+.infra-control label,
+.infra-result span,
+.infra-card span {
+	display: block;
+	margin-bottom: 0.35rem;
+	color: var(--vp-c-text-2);
+	font-size: 0.82rem;
+}
+
+.infra-control input,
+.infra-control select {
+	width: 100%;
+	accent-color: var(--vp-c-brand-1);
+}
+
+.infra-control select {
+	min-height: 38px;
+	padding: 0 0.5rem;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 7px;
+	background: var(--vp-c-bg);
+	color: var(--vp-c-text-1);
+}
+
+.infra-control input[type='range'] {
+	min-height: 32px;
+}
+
+.infra-result strong,
+.infra-card strong {
+	display: block;
+	color: var(--vp-c-brand-1);
+	font-size: 1.05rem;
+	overflow-wrap: anywhere;
+}
+
+.infra-results {
+	margin-top: 0.9rem;
+}
+
+.infra-bar {
+	height: 12px;
+	margin-top: 0.5rem;
+	overflow: hidden;
+	border-radius: 999px;
+	background: var(--vp-c-default-soft);
+}
+
+.infra-bar > i {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, var(--vp-c-brand-1), var(--vp-c-green-1));
+}
+
+.infra-note {
+	margin: 0.9rem 0 0;
+	color: var(--vp-c-text-2);
+	font-size: 0.88rem;
+}
+
+.infra-tabs,
+.infra-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0.75rem 0;
+}
+
+.infra-tabs button,
+.infra-actions button {
+	min-height: 40px;
+	padding: 0.45rem 0.75rem;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 8px;
+	background: var(--vp-c-bg);
+	color: var(--vp-c-text-1);
+	font: inherit;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.infra-tabs button[aria-pressed='true'],
+.infra-actions button:not(.secondary) {
+	border-color: var(--vp-c-brand-1);
+	background: var(--vp-c-brand-soft);
+	color: var(--vp-c-brand-1);
+}
+
+.infra-tabs button:hover:not(:disabled),
+.infra-actions button:hover:not(:disabled) {
+	border-color: var(--vp-c-brand-1);
+}
+
+.infra-tabs button:focus-visible,
+.infra-actions button:focus-visible,
+.ranking-strip button:focus-visible,
+.infra-control input:focus-visible,
+.infra-control select:focus-visible {
+	outline: 3px solid color-mix(in srgb, var(--vp-c-brand-1) 32%, transparent);
+	outline-offset: 2px;
+}
+
+.infra-actions {
+	justify-content: flex-end;
+}
+
+.infra-actions button:disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+}
+
+.token-strip,
+.head-map {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin: 0.9rem 0;
+}
+
+.token-chip {
+	padding: 0.35rem 0.55rem;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 7px;
+	background: var(--vp-c-bg);
+	color: var(--vp-c-text-1);
+	font-family: var(--vp-font-family-mono);
+	font-size: 0.8rem;
+}
+
+.token-chip.is-selected {
+	border-color: var(--vp-c-brand-1);
+	background: var(--vp-c-brand-soft);
+	color: var(--vp-c-brand-1);
+}
+
+.token-chip.is-muted {
+	border-style: dashed;
+	color: var(--vp-c-text-3);
+	opacity: 0.68;
+}
+
+.sequence-track {
+	display: flex;
+	gap: 0.45rem;
+	margin: 0.9rem 0;
+	overflow-x: auto;
+	padding-bottom: 0.25rem;
+}
+
+.sequence-node {
+	min-width: 92px;
+	padding: 0.5rem;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 8px;
+	background: var(--vp-c-bg);
+}
+
+.sequence-node span,
+.sequence-node strong {
+	display: block;
+	font-size: 0.75rem;
+}
+
+.sequence-node span {
+	color: var(--vp-c-text-2);
+}
+
+.sequence-node.is-active {
+	border-color: var(--vp-c-brand-1);
+	box-shadow: 0 0 0 2px var(--vp-c-brand-soft);
+}
+
+.metric-list {
+	display: grid;
+	gap: 0.65rem;
+	margin-top: 0.9rem;
+}
+
+.metric-row {
+	display: grid;
+	grid-template-columns: minmax(70px, 0.8fr) minmax(72px, 0.8fr) minmax(120px, 2fr) minmax(92px, 1fr);
+	gap: 0.55rem;
+	align-items: center;
+	padding: 0.55rem;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 8px;
+	background: var(--vp-c-bg);
+}
+
+.metric-row span {
+	color: var(--vp-c-text-2);
+	font-size: 0.78rem;
+}
+
+.metric-row .infra-bar {
+	margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.infra-lab *,
+	.infra-lab *::before,
+	.infra-lab *::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.001ms !important;
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}
+
+@media (max-width: 640px) {
+	.infra-lab {
+		padding: 0.75rem;
+	}
+
+	.infra-lab__hint {
+		margin-bottom: 0.75rem;
+	}
+
+	.infra-lab__hint,
+	.infra-note {
+		font-size: 0.82rem;
+		line-height: 1.55;
+	}
+
+	.infra-controls,
+	.infra-results,
+	.infra-cards {
+		grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+		gap: 0.55rem;
+	}
+
+	.infra-control,
+	.infra-result,
+	.infra-card {
+		padding: 0.625rem;
+	}
+
+	.infra-controls:has(> .infra-control:nth-child(3)) {
+		display: flex;
+		overflow-x: auto;
+		overscroll-behavior-inline: contain;
+		scroll-snap-type: inline proximity;
+		scrollbar-width: thin;
+		padding-bottom: 0.35rem;
+	}
+
+	.infra-controls:has(> .infra-control:nth-child(3)) > .infra-control {
+		flex: 0 0 46%;
+		min-width: 0;
+		scroll-snap-align: start;
+	}
+
+	.infra-tabs,
+	.token-strip {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overscroll-behavior-inline: contain;
+		scroll-snap-type: inline proximity;
+		scrollbar-width: thin;
+		padding-bottom: 0.25rem;
+	}
+
+	.infra-tabs {
+		margin-block: 0.55rem;
+	}
+
+	.infra-tabs button,
+	.token-strip > * {
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+	}
+
+	.infra-results {
+		margin-top: 0.65rem;
+	}
+
+	.metric-list {
+		gap: 0.5rem;
+		margin-top: 0.7rem;
+	}
+
+	.metric-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.metric-row .infra-bar {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.metric-row > :last-child {
+		grid-column: 2;
+		grid-row: 2;
+	}
+
+	.infra-note {
+		margin-top: 0.7rem;
+	}
+}

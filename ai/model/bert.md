@@ -2,6 +2,8 @@
 
 BERT 是 Encoder-only Transformer。它通过掩码语言建模让每个 token 同时读取左右上下文，再将预训练参数微调到分类、标注、抽取式问答等任务。它的核心产物是上下文化表示，不是自回归生成器。
 
+<LanguageModelObjectiveExplorer initial-mode="mlm" />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$x_i$ 是原 token，$\tilde{X}$ 是破坏后的输入，$\mathcal{M}$ 是被选中参与 MLM 损失的位置集合；$z_i$ 是初始输入向量，$h_i$ 是上下文化状态，$H=[h_1,\ldots,h_n]$；$\mathcal{L}_{\text{MLM}}$ 是掩码语言建模损失。
 :::

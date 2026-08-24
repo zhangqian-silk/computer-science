@@ -2,6 +2,8 @@
 
 Transformer 以 Self-Attention 取代时间递归，让每个位置直接读取允许范围内的其他位置，再用逐位置前馈网络重加工结果。以下公式采用现代常见的 pre-LN block；原始论文使用 post-LN，二者的归一化位置不同。
 
+<TransformerBlockFlow />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$B,n,d_{\text{model}}$ 是 batch、序列长度与隐藏维度；$n_{\text{head}},n_{\text{kv}},d_{\text{head}}$ 是 Attention 头数、KV 头数与单头维度；$H^{(\ell)}$ 是第 $\ell$ 层隐藏状态，$Q,K,V,M$ 是 Query、Key、Value 与 mask；$L$ 表示层数，$b$ 表示缓存元素字节数。
 :::

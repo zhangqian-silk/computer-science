@@ -2,6 +2,8 @@
 
 N-gram 语言模型把「下一个 token 是什么」转化为条件概率估计问题：先统计局部序列出现了多少次，再用平滑、回退或插值处理稀疏事件。它的价值不仅在于构成传统语言模型，也在于提供了一套可以逐项核对的概率建模范式。
 
+<NGramSmoothingExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$\mathcal{V}$ 是固定词表，$w_t$ 是第 $t$ 个 token，$T$ 是序列长度，$n$ 是 N-gram 阶数，$h$ 是局部历史；$C(\cdot)$ 表示计数，$P(\cdot)$ 表示概率；$k$ 是加法平滑强度，$D$ 是绝对折扣，$\alpha,\lambda$ 是回退或插值权重。
 :::

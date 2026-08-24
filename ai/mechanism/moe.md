@@ -2,6 +2,8 @@
 
 Mixture of Experts（MoE）把 Transformer 中的某些稠密 FFN 替换为多个专家。每个 token 只激活少量专家，因此总参数量可以大幅增加，而单 token 计算量不必按专家数量同比增长。
 
+<MoERouterExplorer />
+
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$E$ 是专家数量，$f_e(x)$ 是专家 $e$ 的 FFN，$p_e(x)$ 是 Router 概率，$\mathcal{T}(x)$ 是 Top-$k$ 专家集合；$N$ 是 batch 内 token 数，$C$ 是单专家容量，$c_{\text{factor}}$ 是容量因子；$\rho_e$ 是实际分配比例，$P_e$ 是平均路由概率。
 :::
