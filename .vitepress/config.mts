@@ -188,6 +188,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{ text: 'Tokenization', link: '/ai/representation/tokenization' },
 			{ text: 'Embedding', link: '/ai/representation/embedding' },
 			{ text: 'word2vec', link: '/ai/representation/word2vec' },
+			{ text: '矩阵分解视角', link: '/ai/representation/embedding-matrix-factorization' },
 			{ text: '文本嵌入', link: '/ai/representation/text-embedding' },
 			{ text: '多模态对齐', link: '/ai/representation/multimodal-alignment' },
 			{ text: '向量检索', link: '/ai/representation/vector-retrieval' }
