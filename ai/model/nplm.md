@@ -103,7 +103,7 @@ $$
 - 隐藏层参数；
 - 输出层参数。
 
-Embedding 因此不是独立预处理，而是由下一 token 预测目标端到端塑造。完整 softmax 的输出层参数与计算仍随词表 $|\mathcal{V}|$ 增长；分层 softmax、采样 softmax 等方法可减少训练开销，但会改变优化近似。
+Embedding 因此由下一 token 预测目标端到端塑造，谈不上独立预处理。完整 softmax 的输出层参数与计算仍随词表 $|\mathcal{V}|$ 增长；分层 softmax、采样 softmax 等方法可减少训练开销，但会改变优化近似。
 
 对于单个目标 $y$，softmax 与交叉熵对 logit 的梯度为：
 
