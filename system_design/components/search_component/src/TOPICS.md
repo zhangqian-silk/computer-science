@@ -6,8 +6,8 @@
 
 ## 目录结构
 
-- index.go：倒排索引（Add / Search，TF-IDF 打分 + AND/OR）
-- main.go：多查询检索与排序示例
+- index.go：倒排索引（Add / Search，TF-IDF 与 BM25 打分 + AND/OR）
+- main.go：多查询检索、AND/OR 对比、TF-IDF vs BM25 排序对比
 
 ## 快速开始
 
@@ -21,4 +21,5 @@ go run .
 
 - 同一查询 AND 比 OR 命中文档更少（精度高、召回低）。
 - 含高频且稀有查询词的文档排序更靠前（TF-IDF 效果）。
+- BM25 对词频饱和 + 长度归一化，长文档不因词多而虚高。
 - 为便于纯空格分词，示例语料使用英文词元；中文需接入分词器。

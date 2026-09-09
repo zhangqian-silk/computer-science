@@ -47,6 +47,27 @@ func (ix *InvertedIndex) idf(term string) float64 {
 	return math.Log(float64(len(ix.docs))/float64(df)) + 1
 }
 
+// bm25IDF 是 BM25 的 idf 变体：ln((N - df + 0.5)/(df + 0.5) + 1)。
+func (ix *InvertedIndex) bm25IDF(term string) float64 {
+	df := float64(len(ix.postings[term]))
+	if df == 0 {
+		return 0
+	}
+	n := float64(len(ix.docs))
+	return math.Log((n-df+0.5)/(df+0.5) + 1)
+}
+
+func (ix *InvertedIndex) avgDocLen() float64 {
+	if len(ix.docLen) == 0 {
+		return 0
+	}
+	var total int
+	for _, l := range ix.docLen {
+		total += l
+	}
+	return float64(total) / float64(len(ix.docLen))
+}
+
 // Result 是一条检索结果。
 type Result struct {
 	DocID int
@@ -71,6 +92,33 @@ func (ix *InvertedIndex) Search(query string, requireAll bool) []Result {
 		if requireAll && matched[docID] < len(terms) {
 			continue
 		}
+		out = append(out, Result{DocID: docID, Score: s})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Score != out[j].Score {
+			return out[i].Score > out[j].Score
+		}
+		return out[i].DocID < out[j].DocID
+	})
+	return out
+}
+
+// SearchBM25 用 BM25 打分：对词频饱和 + 文档长度归一化，长文档不再因词多而虚高。
+func (ix *InvertedIndex) SearchBM25(query string) []Result {
+	const k1, b = 1.2, 0.75
+	avg := ix.avgDocLen()
+	terms := tokenize(query)
+	scores := make(map[int]float64)
+	for _, t := range terms {
+		idf := ix.bm25IDF(t)
+		for docID, tf := range ix.postings[t] {
+			f := float64(tf)
+			dl := float64(ix.docLen[docID])
+			scores[docID] += idf * (f * (k1 + 1)) / (f + k1*(1-b+b*dl/avg))
+		}
+	}
+	var out []Result
+	for docID, s := range scores {
 		out = append(out, Result{DocID: docID, Score: s})
 	}
 	sort.Slice(out, func(i, j int) bool {

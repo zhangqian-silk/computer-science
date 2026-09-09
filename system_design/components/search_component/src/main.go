@@ -31,4 +31,16 @@ func main() {
 		}
 		fmt.Println()
 	}
+
+	// TF-IDF vs BM25：对同一查询对比排序
+	fmt.Println("TF-IDF vs BM25（查询 \"distributed\"）：")
+	fmt.Print("  TF-IDF: ")
+	for _, r := range ix.Search("distributed", false) {
+		fmt.Printf("D%d(%.2f) ", r.DocID, r.Score)
+	}
+	fmt.Print("\n  BM25:   ")
+	for _, r := range ix.SearchBM25("distributed") {
+		fmt.Printf("D%d(%.2f) ", r.DocID, r.Score)
+	}
+	fmt.Println()
 }
