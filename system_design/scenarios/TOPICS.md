@@ -14,18 +14,18 @@
 
 ## 业务专题清单
 
-- 营销系统：[已覆盖] [`marketing/TOPICS.md`](./marketing/TOPICS.md)
-- 聊天（IM）：[待补充] [`chat/TOPICS.md`](./chat/TOPICS.md)
-- 支付系统：[待补充] [`payment/TOPICS.md`](./payment/TOPICS.md)
-- 广告系统：[待补充] [`advertising/TOPICS.md`](./advertising/TOPICS.md)
-- 电商交易：[待补充] [`ecommerce/TOPICS.md`](./ecommerce/TOPICS.md)
-- 推荐系统：[未建专题]
-- 搜索系统：[待补充] [`search/TOPICS.md`](./search/TOPICS.md)
-- 云盘系统：[待补充] [`cloud_drive/TOPICS.md`](./cloud_drive/TOPICS.md)
-- 地图系统：[待补充] [`map/TOPICS.md`](./map/TOPICS.md)
-- 预定系统：[待补充] [`booking/TOPICS.md`](./booking/TOPICS.md)
-- 排行榜系统：[待补充] [`leaderboard/TOPICS.md`](./leaderboard/TOPICS.md)
-- 风控系统：[未建专题]
+- 营销系统：[已覆盖] [`marketing/marketing_system.md`](./marketing/marketing_system.md)
+- 聊天（IM）：[已覆盖] [`chat/chat_system.md`](./chat/chat_system.md)
+- 支付系统：[已覆盖] [`payment/payment_system.md`](./payment/payment_system.md)
+- 广告系统：[已覆盖] [`advertising/advertising_system.md`](./advertising/advertising_system.md)
+- 电商交易：[已覆盖] [`ecommerce/ecommerce_system.md`](./ecommerce/ecommerce_system.md)
+- 搜索系统：[已覆盖] [`search/search_system.md`](./search/search_system.md)
+- 云盘系统：[已覆盖] [`cloud_drive/cloud_drive_system.md`](./cloud_drive/cloud_drive_system.md)
+- 地图系统：[已覆盖] [`map/map_system.md`](./map/map_system.md)
+- 预定系统：[已覆盖] [`booking/booking_system.md`](./booking/booking_system.md)
+- 排行榜系统：[已覆盖] [`leaderboard/leaderboard_system.md`](./leaderboard/leaderboard_system.md)
+- 推荐系统：[已覆盖] [`recommendation/recommendation_system.md`](./recommendation/recommendation_system.md)
+- 风控系统：[已覆盖] [`risk_control/risk_control_system.md`](./risk_control/risk_control_system.md)
 
 ---
 

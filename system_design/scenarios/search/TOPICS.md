@@ -18,7 +18,7 @@
 
 ## 当前主题索引
 
-- 搜索系统总体设计（待补充）：`search_system.md`
+- 搜索系统总体设计：[`search_system.md`](./search_system.md)（多阶段检索链路 + 倒排召回交互）
 - 相关通用机制：
 	- [load_balancing.md](../../base/high_availability/load_balancing.md)
 	- [rate_limiting.md](../../base/high_availability/rate_limiting.md)
@@ -26,4 +26,3 @@
 - 相关工程治理：
 	- [observability.md](../../governance/observability.md)
 	- [capacity_and_stress_testing.md](../../governance/capacity_and_stress_testing.md)
-

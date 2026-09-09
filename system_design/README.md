@@ -36,10 +36,16 @@
 
 ---
 
+## 快速入口
+
+- 先看总览路线图与面试题索引：[`learning_map.md`](./learning_map.md)（知识地图 + 常见面试题→文档索引 + 交互组件一览）。
+
+---
+
 ## 各模块知识点目录
 
 - 通用机制层：[`base/TOPICS.md`](./base/TOPICS.md)
-- 组件能力层：`components/TOPICS.md`
+- 组件能力层：各组件目录下的 `TOPICS.md` 与主文档（如 [`consistent_hash`](./components/consistent_hash/consistent_hash.md)、[`id_generator`](./components/id_generator/id_generator.md) 等）
 - 工程治理层：[`governance/TOPICS.md`](./governance/TOPICS.md)
 - 业务专题层：[`scenarios/TOPICS.md`](./scenarios/TOPICS.md)
 

@@ -18,7 +18,7 @@
 
 ## 当前主题索引
 
-- 预定系统总体设计（待补充）：`booking_system.md`
+- 预定系统总体设计：[`booking_system.md`](./booking_system.md)（预占/超时释放 + 超卖并发交互）
 - 相关通用机制：
 	- [distributed_transaction.md](../../base/distributed_transaction.md)
 	- [idempotence.md](../../base/idempotence.md)
@@ -28,4 +28,3 @@
 - 相关工程治理：
 	- [release_and_rollback.md](../../governance/release_and_rollback.md)
 	- [incident_response.md](../../governance/incident_response.md)
-

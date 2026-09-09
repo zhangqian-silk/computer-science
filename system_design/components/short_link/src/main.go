@@ -1,0 +1,26 @@
+package main
+
+import "fmt"
+
+func main() {
+	// base62 编解码往返
+	for _, id := range []uint64{1, 10000, 1000000, 100000000, 1000000000} {
+		code := Encode(id)
+		fmt.Printf("ID %-11d -> %-6s (%d 位) -> Decode %d\n", id, code, len(code), Decode(code))
+	}
+
+	// 短链服务：从一个较大的起始 ID 开始发号，短码更接近真实长度
+	fmt.Println("\n短链服务：")
+	s := NewShortener(1000000)
+	urls := []string{
+		"https://example.com/products/12345?utm=spring",
+		"https://example.com/articles/distributed-id",
+		"https://example.com/products/12345?utm=spring", // 重复长链，复用短码
+	}
+	for _, u := range urls {
+		fmt.Printf("  sho.rt/%s  <-  %s\n", s.Shorten(u), u)
+	}
+	if long, ok := s.Resolve(s.Shorten(urls[0])); ok {
+		fmt.Printf("\n解析短码得到长链：%s\n", long)
+	}
+}

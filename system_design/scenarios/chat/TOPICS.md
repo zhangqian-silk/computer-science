@@ -15,7 +15,7 @@
 
 ## 当前主题索引
 
-- 聊天系统总体设计（待补充）：`chat_system.md`
+- 聊天系统总体设计：[`chat_system.md`](./chat_system.md)（原理 + 写扩散/读扩散交互）
 - 相关通用机制：
 	- [rate_limiting.md](../../base/high_availability/rate_limiting.md)
 	- [degradation.md](../../base/high_availability/degradation.md)

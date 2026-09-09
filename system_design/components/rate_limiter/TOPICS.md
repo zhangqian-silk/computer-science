@@ -2,6 +2,8 @@
 
 限流器组件用于提供统一流量治理能力，目标是在高并发场景下保护核心依赖并控制系统抖动。
 
+> 算法原理与交互对比见通用机制层：[`base/high_availability/rate_limiting.md`](../../base/high_availability/rate_limiting.md)（含令牌桶/漏桶交互组件）。本页聚焦「组件化」视角：粒度、部署位置、分布式实现与配置能力。
+
 ---
 
 ## 组件边界

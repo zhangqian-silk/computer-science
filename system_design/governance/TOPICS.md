@@ -16,34 +16,34 @@
 ## 发布治理
 
 - 灰度发布与回滚：[已覆盖] [`release_and_rollback.md`](./release_and_rollback.md)
-- 变更准入与风险评审：[部分覆盖]
-- 配置变更治理：[未建专题]
-- 数据库变更治理（expand/contract）：[未建专题]
+- 变更准入与风险评审：[已覆盖] 见[`release_and_rollback`](./release_and_rollback.md)（门禁）
+- 配置变更治理：[已覆盖] [`../components/config_center/config_center.md`](../components/config_center/config_center.md)
+- 数据库变更治理（expand/contract）：[已覆盖] 见[`release_and_rollback`](./release_and_rollback.md)（expand/contract）
 
 ---
 
 ## 运行治理
 
 - 可观测性治理：[已覆盖] [`observability.md`](./observability.md)
-- 事件响应与故障处置：[待补充] [`incident_response.md`](./incident_response.md)
-- 故障演练与混沌工程：[待补充] [`chaos_engineering.md`](./chaos_engineering.md)
-- Runbook 与值班机制：[未建专题]
+- 事件响应与故障处置：[已覆盖] [`incident_response.md`](./incident_response.md)
+- 故障演练与混沌工程：[已覆盖] [`chaos_engineering.md`](./chaos_engineering.md)
+- Runbook 与值班机制：[已覆盖] 见[`incident_response`](./incident_response.md)
 
 ---
 
 ## 质量治理
 
-- 容量规划与压测：[待补充] [`capacity_and_stress_testing.md`](./capacity_and_stress_testing.md)
-- SLA/SLO 管理：[待补充] [`sla_slo_management.md`](./sla_slo_management.md)
-- 稳定性评审与质量门禁：[未建专题]
+- 容量规划与压测：[已覆盖] [`capacity_and_stress_testing.md`](./capacity_and_stress_testing.md)
+- SLA/SLO 管理：[已覆盖] [`sla_slo_management.md`](./sla_slo_management.md)
+- 稳定性评审与质量门禁：[已覆盖] 见[`release_and_rollback`](./release_and_rollback.md)与[`cross_component`](../components/cross_component/cross_component.md)
 
 ---
 
 ## 成本与演进治理
 
-- 资源成本治理（算力、存储、网络）：[未建专题]
-- 架构技术债盘点与清理机制：[未建专题]
-- 治理指标看板与持续改进闭环：[未建专题]
+- 资源成本治理（算力、存储、网络）：[已覆盖] [`cost_and_evolution.md`](./cost_and_evolution.md)
+- 架构技术债盘点与清理机制：[已覆盖] [`cost_and_evolution.md`](./cost_and_evolution.md)
+- 治理指标看板与持续改进闭环：[已覆盖] [`cost_and_evolution.md`](./cost_and_evolution.md)
 
 ---
 

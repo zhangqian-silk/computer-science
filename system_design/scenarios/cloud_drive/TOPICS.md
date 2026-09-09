@@ -18,7 +18,7 @@
 
 ## 当前主题索引
 
-- 云盘系统总体设计（待补充）：`cloud_drive_system.md`
+- 云盘系统总体设计：[`cloud_drive_system.md`](./cloud_drive_system.md)（原理 + 分片/秒传/元数据一致性）
 - 相关通用机制：
 	- [idempotence.md](../../base/idempotence.md)
 	- [message_reliability.md](../../base/message_reliability.md)
@@ -26,4 +26,3 @@
 - 相关工程治理：
 	- [observability.md](../../governance/observability.md)
 	- [capacity_and_stress_testing.md](../../governance/capacity_and_stress_testing.md)
-

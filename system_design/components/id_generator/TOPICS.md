@@ -2,6 +2,8 @@
 
 分布式 ID 组件用于生成全局唯一、可排序或近似有序的业务主键，支持高并发低延迟生成。
 
+> 主文档：[`id_generator.md`](./id_generator.md)（原理 + Snowflake 位段交互 + Go demo）。
+
 ---
 
 ## 组件边界
