@@ -1,6 +1,6 @@
 # 推理请求生命周期
 
-请求生命周期定义一条生成请求从输入到资源释放的状态转换。把它显式化后，队列时间、KV 所有权、取消、重试和指标归属才有确定边界。
+生成请求不是一次无状态矩阵乘，而是一段持有缓存、随机数和输出进度的执行过程。请求被接收、被准入、产生首 token、达到停止条件和释放资源，是五个不同事件；把它们合并成一个「成功」标志，会使超时、取消与指标失去明确语义。
 
 ---
 
@@ -13,6 +13,7 @@ stateDiagram-v2
 	Received --> Queued: accepted
 	Queued --> Prefill: scheduled
 	Prefill --> Decode: first token ready
+	Prefill --> Finished: first token already meets stop condition
 	Decode --> Decode: next iteration
 	Decode --> Finished: stop condition
 	Queued --> Cancelled: client cancel/deadline
@@ -32,6 +33,12 @@ stateDiagram-v2
 ---
 
 ## 接收与验证
+
+可以用请求 `R` 的三个游标理解执行：已提交的模型输入位置、已经确认生成的 token 数、已经发送给客户端的字节数。三者不会总是同步增长。一个 token 可能尚不能解码成完整字符，GPU 也可能已经提交下一轮，而客户端刚发来取消。
+
+因此取消应在可识别的安全点阻止后续调度，并等待必要的在途工作结束后回收其存储。仅从 waiting 队列删除请求，不代表 running 状态和 KV 也已经释放；直接回收仍被 kernel 读取的块则可能污染另一个请求。
+
+重复的终止信号应该汇入同一个释放状态迁移。幂等释放不是「多次 free 没关系」，而是第二次及后续通知不再重复执行已完成的资源回收。对此可在 CPU 模拟中让完成、取消和失败以不同顺序到达，检查资源总数守恒。
 
 进入 GPU 队列前应完成：
 
@@ -66,6 +73,8 @@ stateDiagram-v2
 
 ## Streaming 与背压
 
+客户端断开不等于模型的任务完成，重试同一 HTTP 请求也不等于续接同一采样状态。若系统未提供恢复协议，应把已输出部分内容后的故障明确返回，避免后台重新生成一段不同文本却伪装成连续流。
+
 生成 token 后通常先增量 detokenize，再写入网络。慢客户端可能形成背压。可选择有界输出 buffer，超过边界后暂停、取消或断开；无限 buffer 会把网络慢请求转成进程内存风险。
 
 一旦部分内容已发送，内部透明重试可能产生重复或分叉文本。默认更清晰的语义是返回流中错误并释放状态；只有协议提供幂等游标且客户端支持恢复时，才考虑续传。
@@ -75,6 +84,8 @@ stateDiagram-v2
 ## CPU 路线
 
 整个状态机、tokenization、队列、sampling、streaming 和取消都可用 mock model 在 CPU 上实现和测试。CPU 版本可以把一次模型 iteration 模拟为固定或按 token 数变化的耗时，用于验证资源生命周期和背压；GPU 环境再替换 model runner。
+
+---
 
 ## 参考资料
 

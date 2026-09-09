@@ -1,6 +1,24 @@
 # Profiling：从请求延迟定位到 Kernel
 
-Profiling 的目标是用时间线、计数器和调用关系排除错误假设。一个可靠分析从端到端 workload 开始，逐层缩小到服务阶段、CPU/GPU 时间线、算子和 kernel，而不是先盯住最耗时的一行代码。
+Profiling 是一条可证伪的诊断链：先确定慢的是哪种请求，再定位它在等待什么，最后才进入具体 kernel。CPU 采样、GPU 时间线、硬件计数器和服务日志各有观测盲区，不能用其中一个百分比替代全链路解释。
+
+---
+
+## 从「GPU 利用率低」恢复因果链
+
+假设服务的 TTFT 增大，同时 GPU 利用率下降，可以提出至少三个互斥程度不同的假设：
+
+| 假设 | 应看到的证据 | 可以排除它的证据 |
+| --- | --- | --- |
+| CPU 未及时提交 | GPU kernel 间有空洞，主机线程忙于 tokenize 或调度 | GPU 队列持续非空 |
+| 数据/网络等待 | 前向前出现传输或等待，输入队列供应不足 | 已准备 batch 充足且无传输等待 |
+| 小 kernel 难以饱和 | kernel 连续但规模小，设备执行单元利用不充分 | 热点主要是大 GEMM 且算力接近上界 |
+
+随后只改变一个变量，例如预先 tokenize 以隔离 CPU 前端，或固定 batch 以隔离调度。目标不是让 GPU utilization 变成 100%，而是让相关请求的延迟或 Goodput 改善。
+
+主机 API 返回也不等于 GPU 已执行完毕。测 GPU 时间应使用相应设备事件或明确同步边界；每个算子后都同步又会破坏原本的重叠，所以 microbenchmark 和端到端测量须分开。
+
+一份可学习的诊断记录应写出：原始症状、候选原因、用于排除的观测、唯一改动、正确性检查和重跑结果。没有重跑结果时称为假设或实验设计，不应写成性能优化已成功。
 
 ---
 
@@ -48,8 +66,10 @@ Profiling 的目标是用时间线、计数器和调用关系排除错误假设�
 
 CPU 可使用 PyTorch Profiler、Linux perf、火焰图和 eBPF，观察线程、cache miss、分支、系统调用和 NUMA。无 GPU 时仍可完成服务分段、调度和 CPU kernel 分析；GPU 时间线与硬件计数器需在目标设备补测。
 
+---
+
 ## 参考资料
 
 - NVIDIA. [Nsight Systems User Guide](https://docs.nvidia.com/nsight-systems/UserGuide/index.html).
-- NVIDIA. *Nsight Compute Documentation*.
-- PyTorch. *Profiler Recipes*.
+- NVIDIA. [*Nsight Compute Documentation*](https://docs.nvidia.com/nsight-compute/).
+- PyTorch. [*Profiler Recipes*](https://docs.pytorch.org/tutorials/recipes/recipes/profiler_recipe.html).

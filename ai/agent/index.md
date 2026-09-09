@@ -1,6 +1,6 @@
 # Agent 系统：让模型在受控边界内完成任务
 
-Agent 不是「会回答问题的模型」的同义词。它是一个运行时系统：模型根据目标和当前状态选择下一步动作，执行器在权限边界内调用工具，再把结果返回给模型，循环直到任务完成、失败或达到停止条件。
+Agent 是围绕模型建立的受控决策闭环：观察状态、提出动作、校验授权、执行并读取结果，再判断是否继续。模型文本不是环境事实，工具调用也不是授权凭证。本页从这些接口而不是拟人化角色名称出发，解释 Workflow、记忆、规划与多 Agent 的关系。
 
 <AgentRuntimeExplorer />
 
@@ -9,7 +9,9 @@ flowchart LR
 	U["用户目标"] --> C["控制器"]
 	C --> X["构造当前上下文"]
 	X --> L["模型决策"]
-	L -->|回答| O["交付结果"]
+	L -->|回答提议| C1["核对完成条件与证据"]
+	C1 -->|通过| O["交付结果"]
+	C1 -->|不足| F
 	L -->|工具调用| V["参数校验与授权"]
 	V --> T["工具 / 外部系统"]
 	T --> S["观察结果与更新状态"]
@@ -40,6 +42,8 @@ flowchart LR
 ## 运行时的五个部件
 
 ![Agent 运行时的基本组成](./images/agent-runtime.png)
+
+图中的长期记忆是可选扩展；它没有展开授权与完成验证，不能代替上方的执行边界图。
 
 ### 模型与决策接口
 
@@ -99,9 +103,14 @@ RUN-AGENT(goal, tools, budget)
 	while not TERMINAL(state) do
 		context ← BUILD-CONTEXT(state, tools)
 		decision ← MODEL(context)
+		state ← ACCOUNT-MODEL-COST(state, decision)
+
+		if BUDGET-EXCEEDED-OR-CANCELLED(state) then
+			return EXPLICIT-FAILURE(state)
+		end if
 
 		if decision.type = "final" then
-			return decision.output
+			return CHECK-COMPLETION-AND-REPORT(state, decision.output)
 		end if
 
 		action ← VALIDATE-AND-AUTHORIZE(decision.action)
@@ -111,6 +120,8 @@ RUN-AGENT(goal, tools, budget)
 
 	return EXPLICIT-FAILURE(state)
 ```
+
+`CHECK-COMPLETION-AND-REPORT` 按任务验收条件区分已完成与未验证；授权校验失败不得进入 EXECUTE。工具必须受剩余 deadline/预算约束，UPDATE 计入工具成本。此处是控制流规格，不是已实现的安全运行时。
 
 预算可以包含最大步骤数、token、时间、工具费用或副作用次数。达到预算时应返回可解释的终止状态，而不是继续无界循环。
 
@@ -153,13 +164,23 @@ RUN-AGENT(goal, tools, budget)
 
 ### ReAct 循环
 
+ReAct 的研究把推理与动作交错，使后续决策可以依据外部观察修正，而不是先生成一整套计划再不加检查地执行。论文的任务结果来自特定工具和环境，不能推出任何工具集合都可靠。
+
+工程轨迹应保存决策结果、动作参数、观测与状态变化，不要求暴露或保存模型的完整内部推理。可审计性来自外部可验证事件，不能靠一段听起来合理的思考文本替代执行证据。
+
 系统在动作与观察之间交替推进，适合下一步依赖环境反馈的探索任务。实现重点在保留可审计的动作依据、工具结果和状态变化，而非保存模型的长篇推理。
 
 ### Plan-and-Execute
 
+计划最好描述可检查的中间结果。例如「查到订单状态后再决定是否查询物流」，比「认真分析订单」更能指导执行。若关键工具返回无权限，原计划不再有效，应暂停该动作而不是让模型尝试另一参数绕过边界。
+
+Reflexion 研究把反馈转成文字记忆供后续尝试使用，其「学习」通常不更新模型权重。反馈可改进后续尝试，也可能总结错因；必须保留原始结果与独立验收，不能让自我反思成为成功标签。
+
 规划器先生成步骤，执行器逐步实施。它适合任务可以分解但具体动作仍需模型参与的场景。计划不应被当作不可修改的合同；外部状态变化或关键假设失败时，应重新规划剩余部分，而不是机械执行旧步骤。
 
 ### 多 Agent
+
+一个重要反例是多个 Agent 使用相同资料、相同模型并相互复述结论：表面上多人同意，实际上证据高度相关，不能当作独立验证。有效分工需要独立的信息或执行边界，以及合并时对冲突和来源的明确处理。
 
 多 Agent 只有在任务可以真正隔离、需要并行上下文或角色间存在清晰接口时才有收益。若所有参与者共享同一上下文并串行调用同一模型，多 Agent 往往只增加通信、冲突解决和汇总成本。常见有效边界包括：
 
@@ -219,7 +240,7 @@ Agent 会把模型的不确定输出转化为真实动作，因此风险主要�
 
 ## 参考文献
 
-- Yao, S. et al. (2023). *ReAct: Synergizing Reasoning and Acting in Language Models*.
-- Shinn, N. et al. (2023). *Reflexion: Language Agents with Verbal Reinforcement Learning*.
+- Yao, S. et al. (2023). [*ReAct: Synergizing Reasoning and Acting in Language Models*](https://arxiv.org/abs/2210.03629).
+- Shinn, N. et al. (2023). [*Reflexion: Language Agents with Verbal Reinforcement Learning*](https://arxiv.org/abs/2303.11366).
 - Anthropic. *Building Effective Agents*.
 - Model Context Protocol. *Specification*.

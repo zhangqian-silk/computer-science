@@ -1,6 +1,6 @@
 # 推理 Attention Kernel
 
-Attention 的数学结果由 $Q,K,V$、mask、位置机制和 Softmax 定义。FlashAttention、PagedAttention 和 Decode Attention 是不同执行问题：前者减少中间数据往返，Paged 版本处理非连续 KV，Decode 版本针对少量 query 读取长历史。
+Attention kernel 必须实现相同的可见性和加权读取，但不必按公式书写顺序物化所有矩阵。FlashAttention 重排计算以减少 HBM 往返，PagedAttention 配合非连续 KV 寻址，Decode kernel 则面向少 Query、长历史的形状。三者不应被当成同层互斥算法。
 
 ---
 
@@ -26,6 +26,10 @@ GQA/MLA、滑动窗口、ALiBi/RoPE、KV 量化和多种 mask 都会扩大 kerne
 
 ## 在线 Softmax 合并
 
+::: info 符号与约定
+对单个 Query，$s_j$ 为已包含 mask 的有限 score，$v_j$ 为 Value。对一个非空有效分块维护最大值 $m$、重标定指数和 $l$，以及未归一化向量和 $u=\sum_j e^{s_j-m}v_j$。
+:::
+
 对每个分块维护当前最大值 $m$ 和指数和 $l$。新块最大值为 $m_b$、指数和为 $l_b$ 时：
 
 $$
@@ -36,7 +40,17 @@ $$
 l'=e^{m-m'}l+e^{m_b-m'}l_b
 $$
 
-输出累加也按相同 scale 重标定。这样可以任意顺序处理 K/V 块而不保存全部分数。实现仍需处理 mask 后全无效行、低精度累加和极端 logits。
+输出分子必须用同样尺度合并，不能直接平均各块已经归一化的输出：
+
+$$
+u'=e^{m-m'}u+e^{m_b-m'}u_b,\qquad o=u'/l'
+$$
+
+例如两个单元素块的 score 分别为 0、$\log3$，Value 为 0、4，正确全局输出为 $(1\times0+3\times4)/(1+3)=3$。两个块各自 softmax 后输出是 0、4，直接平均得 2，丢失了块之间的概率质量。
+
+当所有块处理完成，得到与完整 softmax 相同的实数公式；浮点重排仍可能产生小误差。被 mask 后全无效的块应跳过，而整行无有效 Key 时须按接口定义处理，不能让 $-\infty-(-\infty)$ 混入普通计算。
+
+原始 FlashAttention 的关键是 IO-aware 分块与反向重算，FlashAttention-2 继续改进工作划分与并行效率；两者没有把标准 Attention 的数学连接数从二次改成线性。这里减少的首先是中间状态搬运与保存。
 
 ---
 
@@ -59,8 +73,10 @@ Attention kernel 至少验证：
 
 CPU 可以实现朴素 Attention、分块在线 Softmax 和 paged gather，验证数值等价、mask 与 block table。可用 cache blocking 观察数据复用趋势。GPU fused kernel、Shared Memory 和 HBM 收益必须在目标加速器上测量。
 
+---
+
 ## 参考文献
 
-- Dao, T. et al. (2022). *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness*.
-- Dao, T. (2023). *FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning*.
-- Kwon, W. et al. (2023). *Efficient Memory Management for Large Language Model Serving with PagedAttention*.
+- Dao, T. et al. (2022). [*FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness*](https://arxiv.org/abs/2205.14135).
+- Dao, T. (2023). [*FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning*](https://arxiv.org/abs/2307.08691).
+- Kwon, W. et al. (2023). [*Efficient Memory Management for Large Language Model Serving with PagedAttention*](https://arxiv.org/abs/2309.06180).

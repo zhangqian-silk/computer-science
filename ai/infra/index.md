@@ -1,6 +1,6 @@
 # AI Infra：把模型变成可训练、可推理的系统
 
-AI Infra 研究模型如何在有限的计算、内存、网络和可靠性预算内运行。模型公式给出「算什么」，Infra 继续回答「数据放在哪里、由谁调度、怎样跨设备、如何测量，以及失败时发生什么」。
+AI Infra 将模型数学变成有资源和失败边界的执行系统。贯穿本分区的对象不是某个框架名称，而是 Tensor、持久模型状态、短期缓存、通信和请求。先建立这些对象的所有权，再研究怎样省计算、省字节和满足 SLO。
 
 ```mermaid
 flowchart LR
@@ -66,6 +66,8 @@ flowchart LR
 
 ## 覆盖范围与来源
 
-本分区以《[Transformer 架构：从直觉到实现](https://waylandz.com/llm-transformer-book/)》正文 32 章和附录 A、B、C 作为主题覆盖检查：模型基础回链到 `ai/` 既有页面，手写 Model/Train/Inference 转化为实验规格，FlashAttention、KV Cache、量化、MoE、后训练、Scaling 与解码进一步扩展为训推系统专题。完整章节来源可在[作者仓库](https://github.com/WaylandZhang/llm-transformer-book)核对。
+主题按模型执行与服务生命周期组织，模型基础回链到 `ai/` 专题，实验区负责给出可以复现的验证步骤。FlashAttention、KV 管理、量化、并行、后训练与 Scaling 分别保留一处主讲解，其他页面只说明接口与依赖。
 
-该书用于建立直觉和检查知识面；算法结论优先引用原始论文，框架行为使用官方文档与锁定版本源码，性能结论只来自记录完整环境的可复现实验。
+原始论文用于解释算法与实验贡献，框架官方资料和锁定源码用于核验实现，性能结论需要完整环境的实测记录。图中与正文中的假设数值只用于推演，不视为硬件 benchmark。
+
+早期目录覆盖检查参考过《[Transformer 架构：从直觉到实现](https://waylandz.com/llm-transformer-book/)》及其[作者仓库](https://github.com/WaylandZhang/llm-transformer-book)，这里保留为历史来源线索；专题中的算法和性能主张仍分别回到原始论文与可复现实验。

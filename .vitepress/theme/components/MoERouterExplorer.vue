@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
+const labId = useId()
+const fieldId = (name: string) => `${labId}-${name}`
 
 const topK = ref(1)
 const capacityFactor = ref(1)
@@ -18,16 +22,16 @@ const capacity = computed(() => Math.ceil(tokenCount * topK.value / expertCount 
 const loads = computed(() => Array.from({ length: expertCount }, (_, expert) => routes.value.reduce((sum, route) => sum + Number(route.some((item) => item.expert === expert)), 0)))
 const overflow = computed(() => loads.value.reduce((sum, load) => sum + Math.max(0, load - capacity.value), 0))
 const utilization = computed(() => loads.value.reduce((sum, load) => sum + Math.min(load, capacity.value), 0) / (capacity.value * expertCount) * 100)
+const resetLab = useLabReset(topK, capacityFactor, skew)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">MoE Router 实验台</p>
+	<LearningLab topic="MoERouterExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">给专家 0 增加偏置，观察 Top-k、容量因子、负载不均和溢出的关系。</p>
 		<div class="infra-controls">
-			<div class="infra-control"><label for="moe-topk">Top-k</label><select id="moe-topk" v-model.number="topK"><option :value="1">1</option><option :value="2">2</option></select></div>
-			<div class="infra-control"><label for="moe-capacity">容量因子：{{ capacityFactor.toFixed(2) }}</label><input id="moe-capacity" v-model.number="capacityFactor" type="range" min="0.5" max="2" step="0.05"></div>
-			<div class="infra-control"><label for="moe-skew">专家 0 偏置：{{ skew.toFixed(2) }}</label><input id="moe-skew" v-model.number="skew" type="range" min="0" max="1" step="0.05"></div>
+			<div class="infra-control"><label :for="fieldId('moe-topk')">Top-k</label><select :id="fieldId('moe-topk')" v-model.number="topK"><option :value="1">1</option><option :value="2">2</option></select></div>
+			<div class="infra-control"><label :for="fieldId('moe-capacity')">容量因子：{{ capacityFactor.toFixed(2) }}</label><input :id="fieldId('moe-capacity')" v-model.number="capacityFactor" type="range" min="0.5" max="2" step="0.05"></div>
+			<div class="infra-control"><label :for="fieldId('moe-skew')">专家 0 偏置：{{ skew.toFixed(2) }}</label><input :id="fieldId('moe-skew')" v-model.number="skew" type="range" min="0" max="1" step="0.05"></div>
 		</div>
 		<div class="expert-grid">
 			<div v-for="(load, expert) in loads" :key="expert" class="expert-card">
@@ -42,7 +46,7 @@ const utilization = computed(() => loads.value.reduce((sum, load) => sum + Math.
 			<div class="infra-result"><span>已接纳槽位利用率</span><strong>{{ utilization.toFixed(1) }}%</strong></div>
 		</div>
 		<p class="infra-note">这是确定性的路由示例。真实 Router 概率由模型学习；容量因子只能吸收波动，不能替代辅助损失和拓扑友好的专家布局。</p>
-	</div>
+	</LearningLab>
 </template>
 
 <style scoped>

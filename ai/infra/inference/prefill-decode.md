@@ -1,6 +1,6 @@
 # Prefill 与 Decode
 
-Decoder-only 推理分为 Prefill 和 Decode。两者执行相同模型权重，却拥有不同 Tensor 形状、数据复用和延迟目标，因而常需要不同 kernel、batch 策略甚至不同 worker 池。
+Prefill 与 Decode 是同一个自回归模型的两种执行形状，而不是两个模型。前者读取整个已有前缀并建立状态，后者把刚生成的 token 再送入模型继续推进。理解首 token 从哪里产生，才能正确统计轮数、KV 长度和时间。
 
 <PrefillDecodeExplorer />
 
@@ -24,6 +24,20 @@ Prefill 一次处理提示中的多个 token，为每层写入历史 KV，并用
 
 ## 时间与工作量
 
+设 prompt 长度为 $p$，要求输出 $o\ge1$ 个 token，不计额外验证。Prefill 的末位置 logits 产生第一个输出，之后只需 $o-1$ 轮 Decode。第 $r$ 轮 Decode 处理第 $r$ 个输出，读取到长度 $p+r$ 的 KV，并产生下一个输出。
+
+因此单头、单请求的因果可见连接数为：
+
+$$
+C_{\text{prefill}}=\frac{p(p+1)}{2},\qquad
+C_{\text{decode}}=\sum_{r=1}^{o-1}(p+r)
+=(o-1)p+\frac{o(o-1)}{2}
+$$
+
+最后一个输出若不再进入模型，就没有对应的新 KV；终止前缓存长度为 $p+o-1$。分配器可能提前预留更多槽，因此逻辑已写长度和物理容量仍是两回事。
+
+交互组件按这一口径计算。稠密 kernel 可能计算部分被 mask 的块，FlashAttention 也有块边界工作，所以上式不是实际 FLOPs 或字节计数。要预测耗时，还需加线性投影、FFN、采样与调度。
+
 一条请求的首 token 时间近似包含：
 
 $$
@@ -37,6 +51,8 @@ Prefill 的线性层 FLOPs 随输入 token 数近似线性增长，标准 Attent
 ---
 
 ## Chunked Prefill
+
+后一个 chunk 必须能读取前面 chunk 已写的 KV，因果位置不能从零重新编号。拆分的是执行时间片，不是将一条长输入变成互不相关的短序列。Sarathi-Serve 等系统研究这种分块与解码调度的配合；结论需结合其 workload，而不是一个固定 chunk size 适合所有模型。
 
 把长 Prefill 拆成多个 chunk，可以控制单 iteration token 数，让 Decode 请求在 chunk 之间获得执行机会，从而降低被长 prompt 阻塞的尾延迟。代价包括更多调度轮次、边界元数据和可能的 kernel 效率下降。
 
@@ -54,7 +70,9 @@ Prefill 更偏计算密集，Decode 更偏内存带宽与延迟。把两者放�
 
 CPU 小模型可以真实执行 Prefill/Decode，验证输出与 KV cache 一致性，并观察提示长度和 batch 对耗时的趋势。也可用矩阵与 sleep 模型模拟两阶段调度。CPU 的 cache/带宽比例不同，不能据此推断 GPU 的具体转折点。
 
+---
+
 ## 参考资料
 
-- Pope, R. et al. (2022). *Efficiently Scaling Transformer Inference*.
-- Agrawal, A. et al. (2024). *Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve*.
+- Pope, R. et al. (2022). [*Efficiently Scaling Transformer Inference*](https://arxiv.org/abs/2211.05102).
+- Agrawal, A. et al. (2024). [*Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve*](https://arxiv.org/abs/2403.02310).

@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, useId } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
+const labId = useId()
+const fieldId = (name: string) => `${labId}-${name}`
 
 const queryHeads = ref(16)
 const kvHeads = ref(4)
@@ -20,20 +24,20 @@ const mappings = computed(() => Array.from({ length: queryHeads.value }, (_, que
 	kvHead: Math.floor(queryHead / groupSize.value)
 })))
 const modeName = computed(() => kvHeads.value === queryHeads.value ? 'MHA' : kvHeads.value === 1 ? 'MQA' : 'GQA')
+const resetLab = useLabReset(queryHeads, kvHeads, layers, sequenceLength, headDimension, elementBytes)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">Attention 头共享实验台</p>
+	<LearningLab topic="HeadSharingExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">调整 Query/KV 头数，观察头映射与 KV cache 主体容量；MLA 需要另一套潜表示定义，不纳入此公式。</p>
 		<div class="infra-controls">
-			<div class="infra-control"><label for="query-heads">Query 头数</label><select id="query-heads" v-model.number="queryHeads"><option :value="8">8</option><option :value="16">16</option><option :value="32">32</option></select></div>
-			<div class="infra-control"><label for="kv-heads">KV 头数</label><select id="kv-heads" v-model.number="kvHeads"><option v-for="option in validKVOptions" :key="option" :value="option">{{ option }}</option></select></div>
-			<div class="infra-control"><label for="head-layers">层数：{{ layers }}</label><input id="head-layers" v-model.number="layers" type="range" min="8" max="80" step="8"></div>
-			<div class="infra-control"><label for="head-sequence">序列长度：{{ sequenceLength }}</label><input id="head-sequence" v-model.number="sequenceLength" type="range" min="512" max="32768" step="512"></div>
+			<div class="infra-control"><label :for="fieldId('query-heads')">Query 头数</label><select :id="fieldId('query-heads')" v-model.number="queryHeads"><option :value="8">8</option><option :value="16">16</option><option :value="32">32</option></select></div>
+			<div class="infra-control"><label :for="fieldId('kv-heads')">KV 头数</label><select :id="fieldId('kv-heads')" v-model.number="kvHeads"><option v-for="option in validKVOptions" :key="option" :value="option">{{ option }}</option></select></div>
+			<div class="infra-control"><label :for="fieldId('head-layers')">层数：{{ layers }}</label><input :id="fieldId('head-layers')" v-model.number="layers" type="range" min="8" max="80" step="8"></div>
+			<div class="infra-control"><label :for="fieldId('head-sequence')">序列长度：{{ sequenceLength }}</label><input :id="fieldId('head-sequence')" v-model.number="sequenceLength" type="range" min="512" max="32768" step="512"></div>
 		</div>
 		<div class="head-map" aria-label="Query 头到 KV 头的映射">
-			<span v-for="mapping in mappings" :key="mapping.queryHead" :style="{ '--head-group': mapping.kvHead % 6 }">Q{{ mapping.queryHead }}→K{{ mapping.kvHead }}</span>
+			<span v-for="mapping in mappings" :key="mapping.queryHead">Q{{ mapping.queryHead }}→KV{{ mapping.kvHead }}</span>
 		</div>
 		<div class="infra-results">
 			<div class="infra-result"><span>结构</span><strong>{{ modeName }}，每 {{ groupSize }} 个 Q 头共享 KV</strong></div>
@@ -41,7 +45,7 @@ const modeName = computed(() => kvHeads.value === queryHeads.value ? 'MHA' : kvH
 			<div class="infra-result"><span>相对 MHA 主项</span><strong>{{ (cacheGiB / mhaGiB * 100).toFixed(1) }}%</strong></div>
 		</div>
 		<p class="infra-note">容量按 FP16/BF16、head dim 128 估算，不含 block、scale、对齐与并行副本；减少 KV 读量也不保证端到端同比提速。</p>
-	</div>
+	</LearningLab>
 </template>
 
 <style scoped>

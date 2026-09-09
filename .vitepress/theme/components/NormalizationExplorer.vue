@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
+const labId = useId()
+const fieldId = (name: string) => `${labId}-${name}`
 
 const base = [-1, 0, 1, 2]
 const offset = ref(0)
@@ -11,20 +15,20 @@ const rms = computed(() => Math.sqrt(input.value.reduce((sum, value) => sum + va
 const layerNorm = computed(() => input.value.map(value => (value - mean.value) / Math.sqrt(variance.value + 1e-5)))
 const rmsNorm = computed(() => input.value.map(value => value / Math.sqrt(rms.value ** 2 + 1e-5)))
 const format = (values: number[]) => values.map(value => value.toFixed(2)).join(', ')
+const resetLab = useLabReset(offset, scale)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">归一化对比实验台</p>
+	<LearningLab topic="NormalizationExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">对同一隐藏向量施加整体平移和缩放，比较 LayerNorm 与 RMSNorm 对输入变化的响应。</p>
 		<div class="infra-controls">
 			<div class="infra-control">
-				<label for="normalization-offset">整体平移：{{ offset.toFixed(1) }}</label>
-				<input id="normalization-offset" v-model.number="offset" type="range" min="-3" max="3" step="0.1">
+				<label :for="fieldId('normalization-offset')">整体平移：{{ offset.toFixed(1) }}</label>
+				<input :id="fieldId('normalization-offset')" v-model.number="offset" type="range" min="-3" max="3" step="0.1">
 			</div>
 			<div class="infra-control">
-				<label for="normalization-scale">整体缩放：{{ scale.toFixed(1) }}</label>
-				<input id="normalization-scale" v-model.number="scale" type="range" min="0.2" max="3" step="0.1">
+				<label :for="fieldId('normalization-scale')">整体缩放：{{ scale.toFixed(1) }}</label>
+				<input :id="fieldId('normalization-scale')" v-model.number="scale" type="range" min="0.2" max="3" step="0.1">
 			</div>
 		</div>
 		<div class="normalization-grid" aria-live="polite">
@@ -37,7 +41,7 @@ const format = (values: number[]) => values.map(value => value.toFixed(2)).join(
 			<div class="infra-result"><span>输入 RMS</span><strong>{{ rms.toFixed(3) }}</strong></div>
 		</div>
 		<p class="infra-note">为突出核心差异，这里省略可学习的缩放和偏置。LayerNorm 同时去均值和缩放，RMSNorm 只按均方根缩放，因此对整体平移并不不变。</p>
-	</div>
+	</LearningLab>
 </template>
 
 <style scoped>

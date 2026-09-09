@@ -1,6 +1,6 @@
 # 状态空间模型：用结构化状态扫描长序列
 
-状态空间模型（State Space Model, SSM）用一个隐状态描述输入序列的动态响应。经典 SSM 来自线性系统；S4 等结构化模型使长卷积可高效计算，Mamba 又让状态更新参数依赖当前输入，增强内容选择。
+SSM 用有限状态承接历史，再将状态读出为当前输出。经典线性时不变系统具有递推与卷积两种等价视图；S4 利用结构化矩阵使长序列计算可行，Mamba 则让部分参数依赖输入，改变内容选择能力。三者不是同一公式换名称，交互图只隔离最简单的标量固定系统。
 
 <StateSpaceScanExplorer />
 
@@ -69,8 +69,10 @@ $$
 于是整段输出等价于：
 
 $$
-Y=K*X
+Y=K*X+XD^\top
 $$
+
+这里 X、Y 按时间逐行堆叠，$XD^\top$ 表示对每个列向量输入执行 $Dx_t$ 的直通项；只有 D=0 时才能省略。
 
 训练时可利用卷积或并行 scan 处理整段序列；自回归推理时只维护固定大小状态 $h_t$。这种训练并行、推理递推的双重视图是 SSM 的核心优势。
 
@@ -167,6 +169,8 @@ $$
 
 这种合成满足结合律，因此可以用树形扫描并行计算不同前缀的合成结果。选择性 SSM 中 $a_t,b_t$ 可以依赖输入；虽然固定卷积核不再成立，结合扫描仍能组织整段训练计算。
 
+推广到矩阵仿射变换时，组合为 $(A_2A_1,A_2b_1+b_2)$。结合律本身不保证稠密矩阵组合便宜；结构化或逐元素状态转移才有相应成本优势。因此不能只凭「可 scan」就推断实现高效。
+
 ---
 
 ## 训练与增量推理
@@ -177,9 +181,9 @@ $$
 2. 每个位置生成选择性参数和待写入内容；
 3. Selective Scan 计算各位置状态与输出；
 4. 多层 block 继续变换，任务头产生 logits；
-5. 语言模型使用右移目标计算所有有效位置的交叉熵并反向传播。
+5. 输入位置状态预测后一 token，在有效目标上计算交叉熵并反向传播。
 
-自回归推理时，每层只保存当前 SSM 状态。新 token 到达后，模型为该位置生成 $\bar{A}_t,\bar{B}_t,C_t$，执行一次递推并覆盖旧状态：
+纯 SSM 递推只需当前状态；含短因果卷积的 Mamba block 还需卷积缓冲，两者大小均由结构而非历史长度决定。新 token 产生对应参数并更新状态：
 
 $$
 h_t\leftarrow\bar{A}_th_{t-1}+\bar{B}_tx_t
@@ -196,6 +200,10 @@ $$
 ---
 
 ## 与 Attention 的差异
+
+Attention 保留逐 token 历史并让当前 Query 直接读取，SSM 把历史压缩到固定维状态。前者的缓存随历史增长，后者的状态大小主要由模型配置决定；但固定状态需要不断覆盖与压缩，精确找回某个任意历史细节可能更困难。较低状态成本不是免费拥有相同读取能力。
+
+S4 的贡献要结合结构化长序列建模与核计算理解，Mamba 的贡献要结合内容选择任务和语言建模实验理解。训练速度、增量推理速度和质量是三个指标，不能仅用「线性复杂度」概括三者。
 
 | 维度 | Self-Attention | 选择性 SSM |
 | --- | --- | --- |
@@ -225,5 +233,5 @@ SSM 仍需要 embedding、非线性、残差、归一化和任务头，完整模
 
 ## 参考文献
 
-- Gu, A., Goel, K., and Ré, C. (2022). *Efficiently Modeling Long Sequences with Structured State Spaces*.
-- Gu, A., and Dao, T. (2024). *Mamba: Linear-Time Sequence Modeling with Selective State Spaces*.
+- Gu, A., Goel, K., and Ré, C. (2022). [*Efficiently Modeling Long Sequences with Structured State Spaces*](https://arxiv.org/abs/2111.00396).
+- Gu, A., and Dao, T. (2024). [*Mamba: Linear-Time Sequence Modeling with Selective State Spaces*](https://arxiv.org/abs/2312.00752).

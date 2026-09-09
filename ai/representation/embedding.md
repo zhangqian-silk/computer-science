@@ -1,6 +1,6 @@
 # Embedding：离散对象的连续表示
 
-Embedding 是一个可学习映射，把 token、商品 ID、图像片段等离散对象变成固定维度的实数向量。向量本身没有天然语义；它的几何结构由训练数据、目标函数和模型上下文共同塑造。
+Embedding 是对象到向量的表示接口，不一定都是查表。离散 token 或商品 ID 可以索引参数矩阵，连续图像 patch 可以经过线性投影，整段文本可以经过编码器；得到同样维数并不意味着它们处在可直接比较的语义空间。本页先推导离散查表，再解释训练信号如何赋予用途。
 
 <VectorSimilarityExplorer />
 
@@ -18,10 +18,10 @@ $$
 E\in\mathbb{R}^{|\mathcal{V}|\times d}
 $$
 
-对象 $i$ 的向量就是第 $i$ 行：
+对象 i 的向量取自第 i 行；下面用列向量形式表示它：
 
 $$
-v_i=E[i]=e_i^\top E
+v_i=E[i]^\top=E^\top e_i
 $$
 
 实现中不会真的构造巨大的 one-hot 向量，而是用 ID 直接查表。$d$ 通常远小于 $|\mathcal{V}|$，因此模型获得了一个稠密、可训练的输入接口。
@@ -55,9 +55,15 @@ $$
 
 ID 2 出现两次，两处上游梯度都会累加到 $E[2]$；ID 0 的梯度写入 $E[0]$；本 batch 没有访问 ID 1 和 3，它们不会收到直接查表梯度。Embedding 层因此常产生稀疏的行更新，但后续是否使用稀疏优化器取决于框架与模型实现。
 
+这里说的是查表路径的梯度，不是所有参数更新。共享词表输出头可能给其他行提供梯度，权重衰减或优化器历史状态也可能改变本次未查到的行。
+
 ---
 
 ## 向量如何获得意义
+
+两个词的 ID 为 5 和 6，不代表它们比 ID 5 和 100 更接近。ID 仅是标签；若同时重新排列词表编号、Embedding 行和输出头行，模型可以表达同一个函数。语义来自参数参与的预测关系，而不是编号算术。
+
+一个词在不同样本中反复访问同一参数行，梯度会累积到这行。若两个词承担相近预测作用，它们可能学到相似表示；但不同目标可以产生不同几何，不能把余弦相似直接解释成词义等价。
 
 假设 embedding 后接网络 $f_\theta$：
 
@@ -88,6 +94,8 @@ $$
 
 ## 相似度只是一个读出函数
 
+对非零向量，余弦除以两侧模长；零向量没有方向，因此余弦未定义，不是 0。交互实验会显式显示这一边界。检索系统若要接收零向量，需制定拒绝或特殊处理策略，不能用一个数值默认值掩盖上游编码失败。
+
 向量常用余弦相似度比较：
 
 $$
@@ -105,12 +113,12 @@ $$
 静态 embedding 为每个对象保存一个固定向量：
 
 $$
-v_i=E[i]
+v_i=E[i]^\top
 $$
 
 [word2vec](./word2vec.md) 属于这类方法。它计算便宜、易于缓存，但无法根据语境改变一词多义的表示。
 
-word2vec 学到的几何结构可以用矩阵分解解释：负采样隐式分解的是平移后的点互信息矩阵，GloVe 则直接拟合共现计数的对数，推导见[矩阵分解视角](./embedding-matrix-factorization.md)。
+SGNS 在指定边缘噪声分布和逐词对内积独立的松弛下，理想得分对应平移 PMI；这不等于有限维训练在分解截断 SPPMI。GloVe 使用带偏置的加权回归，区别见[矩阵分解视角](./embedding-matrix-factorization.md)。
 
 上下文化表示把整段输入送入编码器：
 
@@ -187,6 +195,6 @@ Embedding 会继承训练语料中的频率偏差、刻板关联与领域边界�
 
 ## 参考文献
 
-- Bengio, Y. et al. (2003). *A Neural Probabilistic Language Model*.
-- Mikolov, T. et al. (2013). *Efficient Estimation of Word Representations in Vector Space*.
-- Devlin, J. et al. (2019). *BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding*.
+- Bengio, Y. et al. (2003). [*A Neural Probabilistic Language Model*](https://jmlr.org/papers/v3/bengio03a.html).
+- Mikolov, T. et al. (2013). [*Efficient Estimation of Word Representations in Vector Space*](https://arxiv.org/abs/1301.3781).
+- Devlin, J. et al. (2019). [*BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding*](https://aclanthology.org/N19-1423/).

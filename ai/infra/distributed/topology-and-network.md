@@ -1,6 +1,6 @@
 # 拓扑与网络：通信经过哪些链路
 
-同一个 Collective 在单机 NVLink、多机 InfiniBand 或普通以太网上可能表现完全不同。拓扑分析的核心是画出 GPU、CPU、NIC 和交换设备之间的物理路径，而不是只记录「有几张卡」。
+拓扑是数据实际经过的资源图。同一逻辑 AllReduce 可以经过 GPU 互联、PCIe、CPU NUMA 和网络交换机；任一共享链路都可能成为瓶颈。设备数说明容量，链路与竞争关系才解释通信代价。
 
 ---
 
@@ -17,7 +17,15 @@ flowchart TB
 	N1 <-->|"InfiniBand / Ethernet Fabric"| RN
 ```
 
-数据路径可能经过 GPU peer link、PCIe switch、CPU interconnect、NIC 和网络交换机。错误的 GPU/NIC affinity 会让流量绕过更慢路径或跨 NUMA 节点。
+数据路径可能经过 GPU peer link、PCIe switch、CPU interconnect、NIC 和网络交换机。错误的 GPU/NIC affinity 会让流量绕经更慢路径或跨 NUMA 节点。
+
+### 带宽不是端口速率的简单相加
+
+假设两张 GPU 各自拥有高带宽本地连接，但共同通过一条较慢的上联访问远端。两个传输并发时，上联容量仍需共享，不能把每条本地链路速率相加当作远端带宽。分析应标出方向、全双工能力和共享段。
+
+延迟也不同于带宽。大张量可把启动成本摊薄；逐层的小 TP 归约即使字节少，也会反复支付网络往返和同步成本。将高频组内通信放到快互联，是减少暴露延迟，而非认为跨节点通信永远不可用。
+
+GPUDirect RDMA 的「直接」是减少主机 staging，不是绕过权限、内存注册、设备同步和网络拥塞。实验需同时记录 GPU/NIC 亲和性、消息大小、参与进程组与背景流量；只报告网卡标称速率无法复核。
 
 ---
 
@@ -47,7 +55,9 @@ CPU 集群可以研究 NUMA、NIC affinity、TCP/RDMA、MPI 和层次化 Collect
 
 通用网络前置知识见 [IP](../../../fundamentals/network/ip.md)、[TCP](../../../fundamentals/network/tcp.md)和[网络基础](../../../fundamentals/network/network.md)。
 
+---
+
 ## 参考资料
 
-- NVIDIA. *GPUDirect RDMA Documentation*.
+- NVIDIA. [*GPUDirect RDMA Documentation*](https://docs.nvidia.com/cuda/gpudirect-rdma/index.html).
 - NVIDIA. *NVLink and NVSwitch Technical Overview*.

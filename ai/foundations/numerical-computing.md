@@ -1,6 +1,6 @@
 # 数值计算：精度、稳定性与可复现性
 
-模型公式定义的是实数运算，硬件执行的是有限位宽浮点或整数运算。AI Infra 必须同时维护两类正确性：算法语义正确，以及给定 dtype、kernel 和并行顺序下误差可接受。
+数学等价的两段程序可能产生不同浮点结果：舍入、溢出、归约顺序和量化都会改变实际数值。本页区分公式正确、有限精度稳定和实验可复现三个层次，让后续 kernel 与训练问题有共同判断标准。
 
 ---
 
@@ -11,7 +11,7 @@
 | 类型 | 典型字节 | 主要特征 | 常见用途 |
 | --- | ---: | --- | --- |
 | FP32 | 4 | 范围和精度较高 | 参考结果、部分累加与状态 |
-| TF32 | 4 | FP32 范围、较低乘法精度 | NVIDIA Tensor Core 矩阵乘 |
+| TF32 乘法模式 | 输入通常存为 4 字节 FP32 | FP32 范围、较低乘法精度 | 特定 NVIDIA Tensor Core 路径，不是独立文件 dtype |
 | FP16 | 2 | 范围较窄 | 训练与推理，需要注意缩放 |
 | BF16 | 2 | 范围接近 FP32 | 现代训练和推理 |
 | FP8 | 1 | 范围与精度依格式而异 | 受支持硬件上的低精度计算 |
@@ -40,6 +40,17 @@ $$
 ---
 
 ## Softmax 与归一化的稳定形式
+
+输入 logits 为 $(1000,1001)$ 时，直接求指数可能溢出；减去最大值后得到 $(-1,0)$，概率仍是约 $(0.269,0.731)$。减去的是同一常数，它在分子分母中相消；不是裁剪大分数，也不是改变温度。
+
+交叉熵还应避免「先得到极小概率，再取 log」造成下溢。对目标 $y$，令 $m=\max_j z_j$：
+
+$$
+-\log p_y=-z_y+\operatorname{logsumexp}(z),\qquad
+\operatorname{logsumexp}(z)=m+\log\sum_i e^{z_i-m}
+$$
+
+最大值、指数和与最后的 log 应使用合适精度。若输入本身已含 NaN 或一整行都被 mask 成 $-\infty$，稳定变换不会自动修复非法输入，需先定义边界语义。
 
 直接计算 $\exp(x_i)$ 可能上溢。Softmax 利用平移不变性：
 
@@ -86,11 +97,15 @@ $$
 
 ## CPU 路线
 
+误差检查通常结合绝对与相对容差：$|a-b|\le\text{atol}+\text{rtol}|b|$。接近零时绝对容差重要，大尺度时相对容差重要；阈值应由 dtype、运算长度和任务需求确定。只用「输出字符串相同」无法定位数值差异，过宽容差也会掩盖索引错误。
+
 CPU 足以验证 dtype 转换、Softmax 稳定性、量化误差、归约顺序和容差测试。可使用 NumPy、PyTorch CPU 或支持 BF16/INT8 的 CPU 后端。CPU 结果不能证明 Tensor Core 或特定 GPU kernel 的吞吐，但很适合作为高精度参考实现。
 
 后续阅读：[精度与 Tensor Core](../infra/accelerator/precision-and-tensor-cores.md)、[混合精度训练](../infra/training/mixed-precision.md)和[推理量化](../infra/inference/quantization.md)。
 
+---
+
 ## 参考文献
 
 - Higham, N. J. (2002). *Accuracy and Stability of Numerical Algorithms*.
-- Micikevicius, P. et al. (2018). *Mixed Precision Training*.
+- Micikevicius, P. et al. (2018). [*Mixed Precision Training*](https://arxiv.org/abs/1710.03740).

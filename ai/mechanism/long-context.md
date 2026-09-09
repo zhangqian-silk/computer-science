@@ -1,6 +1,6 @@
 # 长上下文位置扩展：训练长度之外怎样保持位置关系
 
-模型能够接收更多 token，不代表能够可靠使用这些 token。长上下文包含输入容量、位置关系和远距信息利用三个层次；位置扩展处理的是训练长度之外的坐标映射与 Attention 几何。
+长上下文有三道独立门槛：系统容得下、位置几何可用、模型会利用远处证据。本页主讲位置扩展，容量与能力分别回链到 KV 管理和长上下文评估。改大配置上限只解决一部分接口问题。
 
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$L_{\text{train}},L_{\text{target}}$ 是训练与目标长度，$s$ 是扩展倍率，$t,t'$ 是原位置与映射位置；$q_i^{(h)},k_j^{(h)}$ 是第 $h$ 个头在位置 $i,j$ 的 Query/Key，$m_h$ 是 ALiBi 头斜率。
@@ -28,7 +28,7 @@ $$
 s=\frac{L_{\text{target}}}{L_{\text{train}}}
 $$
 
-用 $t'=t/s$ 代替原位置 $t$ 计算旋转。目标区间 $[0,L_{\text{target}}]$ 因而映射到模型熟悉的 $[0,L_{\text{train}}]$。
+用 $t'=t/s$ 计算旋转。合法原索引为 $0\le t<L_{\text{target}}$，映射满足 $0\le t'<L_{\text{train}}$；新坐标可为分数，不等于训练时见过的每个整数位置。
 
 例如训练长度为 4096，目标长度为 16,384，则 $s=4$：
 
@@ -39,13 +39,17 @@ $$
 | 8192 | 2048 |
 | 16,383 | 4095.75 |
 
-整个目标区间被压入原训练坐标范围；与此同时，相邻 token 的位置差从 1 压缩成 0.25。模型不会遇到超范围角度，却必须适应更密集的局部相位。
+位置尺度被压回训练跨度附近，相邻 token 的位置差从 1 压缩成 0.25。这并非让所有新位置都等于某个见过的整数位置，模型仍须适应更密集的相位及其组合。
 
 它避免直接暴露更大的角度，却压缩了相邻位置的相位差。倍率越大，局部位置分辨率损失越明显，通常需要在长序列数据上继续训练以适应新尺度。
 
 ---
 
 ## 频率分层缩放
+
+统一位置插值令所有频率同时除以扩展倍率，优点是映射直观，代价是短距离分辨率也被压缩。改变 RoPE base 会按维度非均匀改变频率；YaRN 采用分频处理并结合幅度/训练策略；LongRoPE 研究非均匀插值与扩展流程。它们不是一个公式的不同名称。
+
+比较论文要记录原模型训练窗口、目标长度、继续训练 token、短上下文回归和评测任务。不同方法若使用不同额外训练预算，最终分数不能单独归因于缩放函数。
 
 RoPE 的不同维度对应不同波长。统一除以 $s$ 假设所有频段应受到相同缩放，但局部顺序主要依赖高频维度，远距离趋势更多依赖低频维度。
 
@@ -115,7 +119,7 @@ $$
 
 ## 参考文献
 
-- Press, O., Smith, N. A., and Lewis, M. (2022). *Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation*.
-- Chen, S. et al. (2023). *Extending Context Window of Large Language Models via Positional Interpolation*.
-- Peng, B. et al. (2023). *YaRN: Efficient Context Window Extension of Large Language Models*.
-- Ding, Y. et al. (2024). *LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens*.
+- Press, O., Smith, N. A., and Lewis, M. (2022). [*Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation*](https://arxiv.org/abs/2108.12409).
+- Chen, S. et al. (2023). [*Extending Context Window of Large Language Models via Positional Interpolation*](https://arxiv.org/abs/2306.15595).
+- Peng, B. et al. (2023). [*YaRN: Efficient Context Window Extension of Large Language Models*](https://arxiv.org/abs/2309.00071).
+- Ding, Y. et al. (2024). [*LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens*](https://arxiv.org/abs/2402.13753).

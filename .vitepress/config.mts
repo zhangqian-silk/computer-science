@@ -174,6 +174,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		link: '/ai/foundations/',
 		items: [
 			{ text: '数学与符号约定', link: '/ai/foundations/math-notation' },
+			{ text: '学习问题与分类', link: '/ai/foundations/learning-problem-map' },
 			{ text: '神经网络训练基础', link: '/ai/foundations/neural-network-basics' },
 			{ text: 'Tensor、形状与内存', link: '/ai/foundations/tensor-and-memory' },
 			{ text: '数值计算', link: '/ai/foundations/numerical-computing' },

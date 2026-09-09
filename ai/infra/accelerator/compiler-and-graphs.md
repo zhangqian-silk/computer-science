@@ -1,6 +1,20 @@
 # 编译图与执行计划
 
-Eager Runtime 每遇到一个算子便由主机调度一次。图编译、AOT 代码生成与 CUDA Graph 试图把稳定的算子序列转成更大的执行单元，减少 Python、dispatcher 和 kernel launch 开销，并为融合和内存规划提供全局视野。
+执行图解决重复程序的组织成本，但「捕获 Python 计算」「生成优化 kernel」「重放 GPU launch」是三个不同层次。本页以这三个接口建立概念基线；具体 `torch.compile` 或 CUDA Graph 限制随版本变化，不提供未经核验的万能配置。
+
+---
+
+## 从一次前向到可复用计划
+
+考虑 `y = activation(xW + b)`。Eager 执行依次调度矩阵乘、加法和激活；图捕获看到生产者—消费者关系后，可以决定将后两步融合，或在后端支持时并入 GEMM epilogue。
+
+复用计划需要条件：输入 dtype、设备、shape 与别名关系是否仍满足捕获时假设。例如一个输出 buffer 被下一步原地修改，编译器就不能在还有使用者时提前复用它。内存规划依据的是生命周期，而不是只看两个 Tensor 元素数相同。
+
+遇到数据相关分支时，也不能假定图会包含所有 Python 路径。系统可能生成带 guard 的特化、产生 graph break，或保留动态控制流；究竟是哪一种，需要看该框架版本的图和编译日志。
+
+CUDA Graph 重放则发生在更低层：若捕获的是同一 launch 序列，可以减少主机重复提交开销，但不会仅因「用了 Graph」就改变矩阵乘算法。输入内容可以更新，地址和执行拓扑等捕获条件仍须满足。图编译与图重放因此可以叠加，而非二选一。
+
+训练第一次运行、首次遇到新 shape 和稳定重放应分别计时。若一次请求只执行一次，而编译成本很高，总时延可能变差；长时间重复同类 shape 才可能摊薄准备成本。
 
 ---
 
@@ -50,7 +64,9 @@ CPU 可使用 `torch.compile`、XLA、ONNX Runtime、oneDNN 或编译器 IR 学�
 
 阅读本页前可先看[编译前端](../../../fundamentals/compiler/frontend.md)、[中间表示和后端](../../../fundamentals/compiler/intermediate-and-backend.md)与[VM/JIT Runtime](../../../fundamentals/compiler/vm-jit-runtime.md)。
 
+---
+
 ## 参考资料
 
-- PyTorch. *torch.compile Programming Model*.
+- PyTorch. [*torch.compile Programming Model*](https://docs.pytorch.org/docs/stable/compile/programming_model.html).
 - NVIDIA. *CUDA Graphs*.

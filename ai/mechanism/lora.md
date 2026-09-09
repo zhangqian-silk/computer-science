@@ -1,6 +1,6 @@
 # LoRA：用低秩增量适配预训练权重
 
-LoRA（Low-Rank Adaptation）冻结预训练权重，只学习一个低秩更新。它减少可训练参数、优化器状态与任务检查点大小；基座模型的前向接口不变。
+LoRA 约束的是权重更新，而不是把整个模型压成低秩矩阵。冻结基座仍参与计算，任务增量由两个小矩阵表示；这样主要减少可训练参数、优化器状态和适配制品。先分清更新空间与基座空间，才能正确理解显存、合并和 QLoRA。
 
 <LoRAParameterExplorer />
 
@@ -57,6 +57,15 @@ $$
 ---
 
 ## 初始化与梯度
+
+令缩放为 $s=\alpha/r$，输出梯度为 $g=\partial\mathcal{L}/\partial y$，则：
+
+$$
+\frac{\partial\mathcal{L}}{\partial B}=sg(Ax)^\top,\qquad
+\frac{\partial\mathcal{L}}{\partial A}=sB^\top gx^\top
+$$
+
+$B=0$、随机 $A$ 时，B 可以获得非零梯度，A 的该路径梯度为零；B 更新后 A 才开始通过它学习。若 A/B 都初始化为零，两条梯度都为零，仅靠此双线性分支无法起步。这解释了初始化选择，而不是一条任意惯例。
 
 常见初始化令 $B=0$、随机初始化 $A$。训练开始时 $\Delta W=0$，模型行为与基座一致；第一步 $B$ 能获得梯度，随后非零的 $B$ 再使 $A$ 获得有效梯度。
 
@@ -119,6 +128,8 @@ $$
 
 ## LoRA 与 QLoRA
 
+Hu 等人的原始 LoRA 工作考察低秩适配能否在特定模型与任务上接近全量微调；QLoRA 进一步组合量化基座、NF4、double quantization 和优化器内存管理。前者解释更新参数化，后者解释更低训练内存的组合方案，不能只拿可训练参数比例代替完整方法比较。
+
 LoRA 讨论的是更新的低秩参数化；QLoRA 进一步把冻结基座以低精度量化形式存储，并在量化权重之上训练 LoRA 参数。二者解决不同内存来源：
 
 | 方法 | 基座权重 | 可训练参数 | 主要节省 |
@@ -149,6 +160,6 @@ QLoRA 前向会以量化形式读取 $W_0$，在计算 kernel 中按需要恢复
 
 ## 参考文献
 
-- Hu, E. J. et al. (2022). *LoRA: Low-Rank Adaptation of Large Language Models*.
-- Dettmers, T. et al. (2023). *QLoRA: Efficient Finetuning of Quantized LLMs*.
-- Zhang, Q. et al. (2023). *AdaLoRA: Adaptive Budget Allocation for Parameter-Efficient Fine-Tuning*.
+- Hu, E. J. et al. (2022). [*LoRA: Low-Rank Adaptation of Large Language Models*](https://arxiv.org/abs/2106.09685).
+- Dettmers, T. et al. (2023). [*QLoRA: Efficient Finetuning of Quantized LLMs*](https://arxiv.org/abs/2305.14314).
+- Zhang, Q. et al. (2023). [*AdaLoRA: Adaptive Budget Allocation for Parameter-Efficient Fine-Tuning*](https://arxiv.org/abs/2303.10512).

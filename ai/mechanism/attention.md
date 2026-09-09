@@ -1,6 +1,6 @@
 # Attention：按当前查询读取一组信息
 
-Attention 把固定摘要改成按需读取。给定一个 query 和若干 key-value 对，模型先计算 query 与各 key 的匹配程度，再用归一化权重聚合对应 value。它既可以连接 Encoder 与 Decoder，也可以连接文本与图像、当前状态与外部记忆。
+Attention 根据当前 Query 动态读取 Key/Value。Key 决定匹配，Value 提供内容，归一化将可见候选变成一次可微加权读取；它既不是硬检索，也不是完整 Transformer。先理解一次读取，再推广到矩阵、多头与跨序列接口。
 
 <AttentionReadExplorer />
 
@@ -45,7 +45,7 @@ key 只用于匹配，value 才是最终被读取的内容。二者可以来自�
 | 缩放点积 | $q^\top k/\sqrt{d_k}$ | 控制高维点积的尺度 |
 | 加性 | $v_a^\top\tanh(W_q q+W_k k)$ | 额外引入小型网络 |
 
-缩放点积并非任意常数。若 $q$、$k$ 各维方差近似为 1，点积方差会随 $d_k$ 增长；除以 $\sqrt{d_k}$ 可避免 softmax 输入过大而过早饱和。
+若 Q/K 分量近似零均值、单位方差，且乘积项近似独立，点积方差约为 $d_k$。除以 $\sqrt{d_k}$ 使其回到单位量级；这是缩放动机，不保证训练后所有相关分量仍满足假设。
 
 ### 一个 Query 的读取过程
 
@@ -108,9 +108,25 @@ softmax 按行计算。第 $i$ 行表示第 $i$ 个 query 对所有 key 的读�
 
 训练时，任务损失会同时通过两条路径回传：权重路径更新 query/key 投影，使模型改变「读哪里」；value 与输出路径更新 value 投影，使模型改变「读到什么」。Attention 权重没有独立的正确答案，除非任务额外提供对齐监督。
 
+### 梯度如何改变「读哪里」
+
+设分数为 $e_j$，权重为 $\alpha_j$，则：
+
+$$
+\frac{\partial\alpha_i}{\partial e_j}
+=\alpha_i(\mathbb{1}[i=j]-\alpha_j),\qquad
+\frac{\partial c}{\partial e_j}=\alpha_j(v_j-c)
+$$
+
+第二式由 $c=\sum_i\alpha_i v_i$ 代入第一式得到。提高候选分数会把输出朝其 Value 推动；若所有 Value 相同，改变权重也不改变输出。这解释了为什么权重热图不能单独作为模型决策原因。
+
+实验中降低温度也不保证输出增大，它只让输出更接近最高分候选的 Value。分数、权重和实际输出是三个不同对象。
+
 ---
 
 ## Cross-Attention 怎样解除固定摘要瓶颈
+
+Bahdanau 等人在神经翻译中联合学习软对齐与生成；Luong 等人研究不同打分和局部/全局对齐；Transformer 则把缩放点积多头读取放到序列主干中。它们共享动态读取思想，但输入来源、打分函数与主干并不相同。
 
 早期 Seq2Seq 把整个输入压缩成单个向量 $c$。加入 Attention 后，Decoder 在第 $t$ 步用状态 $s_{t-1}$ 查询全部 Encoder 状态：
 
@@ -133,16 +149,16 @@ Cross-Attention 还用于：
 
 ## 多头读取
 
-单个打分空间必须同时承载多种关系。多头 Attention 为每个头使用独立投影：
+多头例子从未投影的 $X_Q\in\mathbb{R}^{n_q\times d_{\text{model}}}$ 与 $X_{KV}\in\mathbb{R}^{n_k\times d_{\text{model}}}$ 出发，避免把前节已投影的 Q/K/V 再当成原输入：
 
 $$
 \operatorname{head}_r
 =
-\operatorname{Attention}(QW_r^Q,KW_r^K,VW_r^V)
+\operatorname{Attention}(X_QW_r^Q,X_{KV}W_r^K,X_{KV}W_r^V)
 $$
 
 $$
-\operatorname{MHA}(Q,K,V)
+\operatorname{MHA}(X_Q,X_{KV})
 =
 \operatorname{Concat}(\operatorname{head}_1,\ldots,\operatorname{head}_{n_{\text{head}}})W^O
 $$
@@ -168,6 +184,6 @@ Attention 只定义「怎样读取」。它不自带顺序、不定义完整 blo
 
 ## 参考文献
 
-- Bahdanau, D., Cho, K., and Bengio, Y. (2015). *Neural Machine Translation by Jointly Learning to Align and Translate*.
-- Luong, M.-T., Pham, H., and Manning, C. D. (2015). *Effective Approaches to Attention-based Neural Machine Translation*.
-- Vaswani, A. et al. (2017). *Attention Is All You Need*.
+- Bahdanau, D., Cho, K., and Bengio, Y. (2015). [*Neural Machine Translation by Jointly Learning to Align and Translate*](https://arxiv.org/abs/1409.0473).
+- Luong, M.-T., Pham, H., and Manning, C. D. (2015). [*Effective Approaches to Attention-based Neural Machine Translation*](https://aclanthology.org/D15-1166/).
+- Vaswani, A. et al. (2017). [*Attention Is All You Need*](https://arxiv.org/abs/1706.03762).

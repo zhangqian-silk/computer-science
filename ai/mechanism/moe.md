@@ -1,6 +1,6 @@
 # MoE：用稀疏路由扩大参数容量
 
-Mixture of Experts（MoE）把 Transformer 中的某些稠密 FFN 替换为多个专家。每个 token 只激活少量专家，因此总参数量可以大幅增加，而单 token 计算量不必按专家数量同比增长。
+MoE 将一部分稠密 FFN 改为多个可选择的专家，每个 token 仅执行其中少量。总参数、激活参数与实际执行成本是三种不同量：未激活权重仍要存放，路由和通信也要付费。它不是一个独立的语言训练目标，而是条件计算机制。
 
 <MoERouterExplorer />
 
@@ -22,6 +22,8 @@ flowchart LR
 ---
 
 ## 路由与专家计算
+
+Top-k 的选择是离散操作，选中专家的门权重则可参与梯度。若 Top-1 后把唯一权重强制归一化为 1，其数值就不再依赖 Router 概率，主任务通过这个权重的直接梯度会消失。因此具体模型是否保留原门概率、怎样定义辅助目标，是机制的一部分，不能认为所有 Top-k 后处理都等价。
 
 设有 $E$ 个专家，每个专家是独立 FFN：
 
@@ -91,6 +93,10 @@ $$
 
 ## 为什么需要负载均衡
 
+对 Top-k，需要先定义 $\rho_e$ 是以 token 数还是总分配数 $Nk$ 为分母；两种口径相差 k，辅助项的尺度也不同。本文均匀例子采用专家分配归一化，总和为 1。交互图的溢出数也按分配计，一个 token 在 Top-2 下可能贡献两次。
+
+Shazeer 等人的稀疏门控工作强调用条件计算扩大容量；GShard 将大规模分片与 MoE 结合；Switch 用 Top-1 简化路由和通信。它们分别改变容量、分布式实现和选择策略，不能按专家数判断谁在同一预算下更好。
+
 Router 若只优化主任务损失，容易让少数专家持续获胜，形成专家塌缩。常见辅助目标鼓励路由概率和实际分配在专家间更均匀，例如让每个专家的 token 比例 $\rho_e$ 与平均路由概率 $P_e$ 的乘积不过度集中：
 
 $$
@@ -148,6 +154,6 @@ MoE 的收益应在相近训练计算或推理预算下比较稠密模型，而�
 
 ## 参考文献
 
-- Shazeer, N. et al. (2017). *Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer*.
-- Fedus, W., Zoph, B., and Shazeer, N. (2022). *Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity*.
-- Lepikhin, D. et al. (2021). *GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding*.
+- Shazeer, N. et al. (2017). [*Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer*](https://arxiv.org/abs/1701.06538).
+- Fedus, W., Zoph, B., and Shazeer, N. (2022). [*Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity*](https://arxiv.org/abs/2101.03961).
+- Lepikhin, D. et al. (2021). [*GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding*](https://arxiv.org/abs/2006.16668).

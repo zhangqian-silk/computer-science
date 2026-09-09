@@ -1,6 +1,6 @@
 # LSTM：用门控状态改善长期依赖
 
-Long Short-Term Memory（LSTM）把 RNN 的单一隐藏状态拆成细胞状态 $c_t$ 与对外隐藏状态 $h_t$。门控决定哪些信息保留、写入和输出，使梯度拥有一条较稳定的可加性传播路径。
+LSTM 让「保存内部记忆」与「对外输出状态」分开：细胞状态通过门控加法更新，隐藏状态是其受控读出。它改进长期误差信号的传播条件，但仍是有限状态、逐时间递推的模型，并不保证所有长依赖都能学到。
 
 <RecurrentStateExplorer initial-mode="lstm" />
 
@@ -67,21 +67,25 @@ flowchart LR
 
 ## 可加性路径为什么重要
 
+常见的 $\partial c_t/\partial c_{t-1}=f_t$ 应理解为固定门值时的直接细胞路径。门又依赖旧隐藏状态，完整网络中还有其他导数路径；只观察 $f_t$ 不能计算完整训练梯度。
+
+在各步遗忘门都为 0.9 的示意条件下，20 步直接保留量为 $0.9^{20}\approx0.122$，不是 90%。想长期保存就需要门接近 1，并控制写入与输出；但门饱和也会影响其自身梯度。交互实验将门作为独立输入，是为了隔离这条路径，而非实现真实门网络。
+
 普通 RNN 的状态每步都经过新的仿射与非线性变换。LSTM 的细胞状态包含直接乘法与加法路径：
 
 $$
-\frac{\partial c_t}{\partial c_{t-1}}=f_t
+\left.\frac{\partial c_{t,r}}{\partial c_{t-1,r}}\right|_{\text{direct}}=f_{t,r}
 $$
 
 跨多个时间步的直接路径近似为：
 
 $$
-\frac{\partial c_t}{\partial c_k}
-\supset
-\prod_{j=k+1}^{t}f_j
+G^{\text{direct}}_{t,k,r}=\prod_{j=k+1}^{t}f_{j,r}
 $$
 
 当相关维度上的遗忘门接近 1 时，信息与梯度可以较少衰减地向后传播。模型也能在不需要某段信息时主动将门压低。
+
+r 是状态分量；直接路径 Jacobian 是这些因子组成的对角矩阵，门向量本身不是整张 Jacobian。
 
 这并不保证无限记忆：多个小于 1 的门仍会连乘衰减，写入竞争、状态容量与优化也会限制有效依赖长度。LSTM 是改善路径，不是消除长序列问题。
 
@@ -135,7 +139,7 @@ $$
 
 LSTM 与普通 RNN 一样使用 BPTT。前向阶段按时间保存每一步的门值、候选状态、$c_t$ 和 $h_t$；反向阶段从序列末端向前传播。
 
-设从当前输出传来的隐藏状态梯度为 $\bar{h}_t$，从未来时间步传来的细胞状态梯度为 $\bar{c}_t^{\mathrm{future}}$。当前细胞状态接收的总梯度是：
+设 $\bar h_t$ 已累加当前任务头和未来门网络通过 $h_t$ 回传的所有梯度，$\bar c_t^{\mathrm{future}}$ 为未来直接细胞路径的梯度。当前细胞总梯度是：
 
 $$
 \bar{c}_t
@@ -164,7 +168,9 @@ $$
 
 所有时间步共享同一组门参数，因此各步的参数梯度需要累加。长序列训练仍可使用截断 BPTT 和梯度裁剪；padding 位置必须同时屏蔽损失以及 $(c_t,h_t)$ 的无效更新。
 
-训练语言模型时，真实 token 序列右移一位构成输入与目标。每一步读取真实前一 token，计算输出分布并产生交叉熵；门参数并没有单独的监督标签，它们完全由最终任务损失通过上述路径学习。
+各门预激活梯度经权重转置回传到 $[x_t;h_{t-1}]$，隐藏分量必须加到 $\bar h_{t-1}$；遗漏它会丢失未来隐藏路径。本页为无 peephole 的标准单元。
+
+训练语言模型时，输入是目标序列右移并补 BOS 的结果，每一步读取真实前一 token 预测当前目标。门参数没有单独标签，由任务损失经上述完整路径学习。
 
 ---
 
@@ -188,6 +194,8 @@ $$
 其中 $W\in\mathbb{R}^{4d_h\times(d_x+d_h)}$。与同隐藏维度的普通 RNN 相比，门控增加参数和每步矩阵计算；时间递推仍然串行。
 
 包含 bias 时，单层 LSTM 的参数量为：
+
+下式按每门一组合并 bias 计数；某些库分别保存输入与递归 bias，实际参数数目会多一组。
 
 $$
 4d_h(d_x+d_h+1)
@@ -222,6 +230,8 @@ $$
 
 ## 变体与使用边界
 
+原始 LSTM 解决长期误差传播的设计，遗忘门让网络能主动清理不再需要的状态；双向 LSTM 则用两个方向的网络读取完整序列。双向结构适合完整输入已知的编码任务，不可在因果生成时偷看未来。结构变化解决不同问题，不能只按门数量给出优劣排序。
+
 GRU 将细胞与隐藏状态合并，并使用更新门、重置门减少参数。双向 LSTM 读取完整输入的两个方向，适合序列标注；因果生成与流式任务只能使用已经到达的信息。
 
 选择 LSTM 的典型理由包括：
@@ -237,6 +247,6 @@ GRU 将细胞与隐藏状态合并，并使用更新门、重置门减少参数�
 
 ## 参考文献
 
-- Hochreiter, S., and Schmidhuber, J. (1997). *Long Short-Term Memory*.
+- Hochreiter, S., and Schmidhuber, J. (1997). [*Long Short-Term Memory*](https://doi.org/10.1162/neco.1997.9.8.1735).
 - Gers, F. A., Schmidhuber, J., and Cummins, F. (2000). *Learning to Forget: Continual Prediction with LSTM*.
-- Cho, K. et al. (2014). *Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation*.
+- Cho, K. et al. (2014). [*Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation*](https://aclanthology.org/D14-1179/).

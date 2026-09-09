@@ -1,6 +1,6 @@
 # RoPE：用旋转相位编码相对位置
 
-RoPE（Rotary Positional Embedding）不把位置向量加到输入上，而是在计算 Attention 前旋转 query 和 key。它使用绝对位置决定旋转角，却使点积只依赖两个位置的相对差。
+RoPE 用位置决定 Query/Key 的旋转，使点积中的位置因子只依赖相对位移。点积仍依赖内容，不是只看距离的函数；这个限定是理解几何图与真实模型区别的关键。
 
 <PositionEncodingExplorer initial-method="rope" />
 
@@ -54,6 +54,18 @@ $$
 
 ## 多频率如何覆盖不同尺度
 
+一般 $q=(q_1,q_2)$、$k=(k_1,k_2)$ 时，令 $\delta=(n-m)\theta$：
+
+下式 $R_{\text{angle}}$ 直接以角度为参数，区别于前文以位置为参数的 $R_r(t)$。
+
+$$
+q^\top R_{\text{angle}}(\delta)k
+=(q_1k_1+q_2k_2)\cos\delta
++(q_2k_1-q_1k_2)\sin\delta
+$$
+
+同方向单位向量才简化为 $\cos\delta$。真实得分不保证随距离单调下降；共同平移只保持位置因子，内容若因上下文改变，得分仍可能变化。
+
 真实 head 维度被分成多个二维对，每对使用不同频率，例如：
 
 $$
@@ -62,11 +74,13 @@ $$
 
 高频维度对短距离变化敏感，低频维度在更长范围内缓慢旋转。实现可把每个二维对视为复数，乘以 $e^{\mathrm{i}t\theta_r}$；也可用实数的 rotate-half 操作完成相同变换。
 
-RoPE 只作用于 $Q,K$，不旋转 $V$。它改变「怎样匹配」，不直接改变被读取的内容。
+本文采用通常用于语言模型的 Q/K-only RoPE，不旋转 V；其他变体需单独定义。它改变匹配几何，不直接旋转被读取的内容。
 
 ---
 
 ## 与 KV cache 的配合
+
+二维配对布局也属于权重解释。相邻成对与前后半区配对可通过相应参数排列对应，不能只换 rotate-half 实现却保持权重排列不变。相位正确、shape 正确仍不能排除配对错误。
 
 自回归推理时，位置 $t$ 的 key 一旦完成旋转即可写入 cache。未来 query 位于位置 $m$ 时：
 
@@ -88,11 +102,11 @@ RoPE 不降低全局 Attention 的 $O(n^2)$ 连接代价；它只提供位置结
 
 判断扩展是否有效必须测量不同长度和证据位置上的任务表现，而不能只检查位置索引是否还能计算。
 
-RoPE 配置属于模型权重的解释方式。改变 base、缩放函数或位置 offset 后，即使权重张量完全相同，Attention 分数也会变化。服务端切换配置时必须让旧 KV cache 失效，并保证 Prefill 与 Decode 使用相同规则。
+改变 base 或缩放规则通常改变得分；纯 RoPE 下所有 Q/K 共同平移相同 offset 是相对位移不变的例外。若只改新 Query 的 offset 而旧 K 保持原相位，则会失配；需重算或按已证明等价的规则转换缓存，保持两阶段一致。
 
 ---
 
 ## 参考文献
 
-- Su, J. et al. (2021). *RoFormer: Enhanced Transformer with Rotary Position Embedding*.
-- Chen, S. et al. (2023). *Extending Context Window of Large Language Models via Positional Interpolation*.
+- Su, J. et al. (2021). [*RoFormer: Enhanced Transformer with Rotary Position Embedding*](https://arxiv.org/abs/2104.09864).
+- Chen, S. et al. (2023). [*Extending Context Window of Large Language Models via Positional Interpolation*](https://arxiv.org/abs/2306.15595).
