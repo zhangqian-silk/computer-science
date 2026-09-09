@@ -16,6 +16,20 @@ func newKVStore() *kvStore {
 	return &kvStore{val: make(map[string]string), expire: make(map[string]time.Time)}
 }
 
+// counters 支撑 fencing token：每个锁 key 一个单调递增计数器。
+var counters = struct {
+	mu sync.Mutex
+	m  map[string]int64
+}{m: make(map[string]int64)}
+
+// Incr 原子自增并返回 key 的计数值，用作单调递增的 fencing token。
+func (s *kvStore) Incr(key string) int64 {
+	counters.mu.Lock()
+	defer counters.mu.Unlock()
+	counters.m[key]++
+	return counters.m[key]
+}
+
 func (s *kvStore) evictLocked(key string) {
 	if exp, ok := s.expire[key]; ok && time.Now().After(exp) {
 		delete(s.val, key)

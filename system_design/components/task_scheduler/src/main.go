@@ -19,4 +19,15 @@ func main() {
 	for i := 0; i < 21; i++ {
 		w.Advance()
 	}
+
+	// 最小堆调度器：同一批延迟任务，触发时刻应一致
+	fmt.Println("\n最小堆调度器，注册延迟 3/8/20 的任务：")
+	hs := NewHeapScheduler()
+	hs.Add("close-order-A", 3, fire)
+	hs.Add("close-order-B", 8, fire)
+	hs.Add("close-order-C", 20, fire)
+	for i := 0; i < 21; i++ {
+		hs.Advance()
+	}
+	fmt.Printf("剩余待触发：%d\n", hs.Pending())
 }

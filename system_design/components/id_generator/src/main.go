@@ -42,4 +42,23 @@ func main() {
 	}
 	wg.Wait()
 	fmt.Printf("\n并发生成 %d 个 ID，唯一 %d 个，重复 %d 个\n", n, len(seen), dup)
+
+	// 号段模式：跨段连续发号
+	fmt.Println("\n号段模式（step=1000）：")
+	seg := NewSegmentID(&mockDB{maxID: 1000}, 1000)
+	segIDs := make([]int64, 0, 2500)
+	for i := 0; i < 2500; i++ { // 跨越约 3 个号段
+		segIDs = append(segIDs, seg.Next())
+	}
+	fmt.Printf("  生成 %d 个，首=%d 末=%d，连续递增=%v\n",
+		len(segIDs), segIDs[0], segIDs[len(segIDs)-1], isStrictlyIncreasing(segIDs))
+}
+
+func isStrictlyIncreasing(a []int64) bool {
+	for i := 1; i < len(a); i++ {
+		if a[i] != a[i-1]+1 {
+			return false
+		}
+	}
+	return true
 }

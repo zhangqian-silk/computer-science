@@ -18,4 +18,15 @@ func main() {
 	total := cache.Hits + cache.Miss
 	fmt.Printf("\n命中 %d，未命中 %d，命中率 %.0f%%\n",
 		cache.Hits, cache.Miss, float64(cache.Hits)/float64(total)*100)
+
+	// LFU 对比：同一访问序列，观察频率淘汰与 LRU 的差异
+	lfu := NewLFUCache(3)
+	for _, k := range accesses {
+		if _, ok := lfu.Get(k); !ok {
+			lfu.Put(k, "v-"+k)
+		}
+	}
+	lt := lfu.Hits + lfu.Miss
+	fmt.Printf("LFU  命中 %d，未命中 %d，命中率 %.0f%%\n",
+		lfu.Hits, lfu.Miss, float64(lfu.Hits)/float64(lt)*100)
 }
