@@ -13,6 +13,7 @@ type Lock struct {
 	token string
 	ttl   time.Duration
 	stop  chan struct{}
+	Fence int64 // 获取锁时授予的单调递增 fencing token
 }
 
 func newToken() string {
@@ -26,12 +27,14 @@ func NewLock(store *kvStore, key string, ttl time.Duration) *Lock {
 }
 
 // TryLock 尝试加锁；withWatchdog 为 true 时启动后台续约。
+// 获取成功时授予一个单调递增的 fencing token（写入受保护资源时携带）。
 func (l *Lock) TryLock(withWatchdog bool) bool {
 	token := newToken()
 	if !l.store.SetNX(l.key, token, l.ttl) {
 		return false
 	}
 	l.token = token
+	l.Fence = l.store.Incr("fence:" + l.key)
 	if withWatchdog {
 		l.stop = make(chan struct{})
 		go l.watchdog()
