@@ -1,4 +1,8 @@
-# Authentication
+# 认证（Authentication）
+
+> **摘要**：认证解决「你是谁」，通过 Session-Cookie、JWT、SSO、OIDC、MFA 等机制验证用户身份。本文覆盖各机制原理与工作流程，并补充有状态 vs 无状态的取舍、Token 失效与续期、安全要点、常见误区与选型。
+
+> **前置阅读**：认证解决「你是谁」，[授权](./authorization.md)解决「你能做什么」，二者配合；服务间身份见[服务身份与密钥](./service_identity.md)。
 
 认证（Authentication）主要用于验证用户身份的过程，确保用户身份真实有效。
 
@@ -227,3 +231,28 @@ MFA（（Multi-Factor Authentication））是一种安全验证机制，要求�
 - <https://www.cnblogs.com/CKExp/p/16084545.html>
 - <https://www.cnblogs.com/Zhang-Xiang/p/14733907.html>
 - <https://docs.authing.cn/v2/concepts/saml/saml-flow.html>
+
+---
+
+## 有状态 vs 无状态与 Token 治理
+
+- **Session（有状态）**：服务端存会话，易失效/踢人，但需共享存储（Redis）且横向扩展要处理会话共享。
+- **JWT（无状态）**：服务端不存，扩展性好、跨域友好，但**签发后难主动失效**——需短有效期 + Refresh Token 续期，或维护黑名单/版本号来「作废」。
+- **续期**：Access Token 短（分钟级）+ Refresh Token 长（天级）；Refresh 泄露风险高，需可撤销、可轮换（refresh token rotation）。
+
+---
+
+## 常见误区与澄清
+
+- **误区：认证等于授权。** 认证是「你是谁」，授权是「你能做什么」，两回事。
+- **误区：JWT 可以随时注销。** JWT 无状态、签发后自然有效到过期；要主动失效需黑名单/短 TTL + Refresh。
+- **误区：Token 放哪都行。** 存 localStorage 易被 XSS 窃取；敏感场景用 HttpOnly Cookie + CSRF 防护。
+- **误区：SSO 就是一个登录页。** SSO 涉及信任域、票据签发与校验（SAML/OIDC），要防票据重放与劫持。
+- **误区：MFA 可选。** 高价值账户/操作应强制多因子，密码单因子早已不够。
+
+---
+
+## 引用关系
+
+- 配合：[授权](./authorization.md)、[服务身份与密钥](./service_identity.md)
+- 应用：登录鉴权网关、API 网关认证；风控见[风控系统](../../scenarios/risk_control/risk_control_system.md)
