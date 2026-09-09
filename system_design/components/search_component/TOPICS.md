@@ -2,6 +2,8 @@
 
 搜索组件用于提供统一检索能力，覆盖索引构建、召回、排序与查询服务。
 
+> 主文档：[`search_component.md`](./search_component.md)（原理 + 倒排/TF-IDF 交互 + Go demo）。
+
 ---
 
 ## 组件边界

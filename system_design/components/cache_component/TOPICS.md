@@ -2,6 +2,8 @@
 
 缓存组件用于提供统一缓存能力，覆盖本地缓存、分布式缓存与多级缓存协同策略。
 
+> 主文档：[`cache_component.md`](./cache_component.md)（原理 + 淘汰策略交互 + LRU Go demo）。
+
 ---
 
 ## 组件边界

@@ -15,12 +15,12 @@
 
 ## 微服务与服务治理
 
-- 服务注册发现：[部分覆盖]
-- API 网关治理（鉴权、路由、限流）：[部分覆盖]
-- RPC 与服务通信模型：[部分覆盖]
-- 服务配置中心与动态配置：[未建专题]
-- 多环境隔离与发布编排：[未建专题]
-- Service Mesh 与 Sidecar 治理：[部分覆盖]
+- 服务注册发现：[已覆盖] [`../components/service_registry/service_registry.md`](../components/service_registry/service_registry.md)
+- API 网关治理（鉴权、路由、限流）：[部分覆盖] 见[`微服务`](./microservices.md)、[`认证`](./security/authentication.md)、[`限流`](./high_availability/rate_limiting.md)
+- RPC 与服务通信模型：[部分覆盖] 见[`微服务`](./microservices.md)
+- 服务配置中心与动态配置：[已覆盖] [`../components/config_center/config_center.md`](../components/config_center/config_center.md)
+- 多环境隔离与发布编排：[已覆盖] 见[`config_center`](../components/config_center/config_center.md) 与[`release_and_rollback`](../governance/release_and_rollback.md)
+- Service Mesh 与 Sidecar 治理：[部分覆盖] 见[`微服务`](./microservices.md)、[`服务身份`](./security/service_identity.md)
 
 ---
 
@@ -30,19 +30,19 @@
 - 限流：[已覆盖] [`high_availability/rate_limiting.md`](./high_availability/rate_limiting.md)
 - 降级：[已覆盖] [`high_availability/degradation.md`](./high_availability/degradation.md)
 - 熔断：[已覆盖] [`high_availability/circuit_breaker.md`](./high_availability/circuit_breaker.md)
-- 超时与重试预算：[未建专题]
-- 隔离与舱壁模式：[未建专题]
-- 故障注入与稳定性验证：[未建专题]
+- 超时与重试预算：[已覆盖] [`high_availability/timeout_and_retry.md`](./high_availability/timeout_and_retry.md)
+- 隔离与舱壁模式：[已覆盖] [`high_availability/bulkhead_isolation.md`](./high_availability/bulkhead_isolation.md)
+- 故障注入与稳定性验证：[已覆盖] [`../governance/chaos_engineering.md`](../governance/chaos_engineering.md)
 
 ---
 
 ## 一致性与数据可靠性
 
 - 幂等机制：[已覆盖] [`idempotence.md`](./idempotence.md)
-- 分布式事务（TCC、SAGA、Outbox）：[待补充] [`distributed_transaction.md`](./distributed_transaction.md)
-- 缓存一致性与缓存失效策略：[待补充] [`cache_consistency.md`](./cache_consistency.md)
-- 消息可靠性（重试、死信、去重）：[待补充] [`message_reliability.md`](./message_reliability.md)
-- 分片与扩容迁移：[待补充] [`sharding_and_migration.md`](./sharding_and_migration.md)
+- 分布式事务（TCC、SAGA、Outbox）：[已覆盖] [`distributed_transaction.md`](./distributed_transaction.md)
+- 缓存一致性与缓存失效策略：[已覆盖] [`cache_consistency.md`](./cache_consistency.md)
+- 消息可靠性（重试、死信、去重）：[已覆盖] [`message_reliability.md`](./message_reliability.md)
+- 分片与扩容迁移：[已覆盖] [`sharding_and_migration.md`](./sharding_and_migration.md)
 
 ---
 
@@ -50,8 +50,8 @@
 
 - 认证（Session/JWT/SSO/OIDC/MFA）：[已覆盖] [`security/authentication.md`](./security/authentication.md)
 - 授权（RBAC/ABAC/ACL/OAuth）：[已覆盖] [`security/authorization.md`](./security/authorization.md)
-- 密钥管理与轮换策略：[未建专题]
-- 服务间身份认证（mTLS、SPIFFE）：[未建专题]
+- 密钥管理与轮换策略：[已覆盖] [`security/service_identity.md`](./security/service_identity.md)
+- 服务间身份认证（mTLS、SPIFFE）：[已覆盖] [`security/service_identity.md`](./security/service_identity.md)
 
 ---
 

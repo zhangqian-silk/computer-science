@@ -18,7 +18,7 @@
 
 ## 当前主题索引
 
-- 地图系统总体设计（待补充）：`map_system.md`
+- 地图系统总体设计：[`map_system.md`](./map_system.md)（原理 + Geohash 附近查询交互）
 - 相关通用机制：
 	- [load_balancing.md](../../base/high_availability/load_balancing.md)
 	- [rate_limiting.md](../../base/high_availability/rate_limiting.md)
@@ -26,4 +26,3 @@
 - 相关工程治理：
 	- [observability.md](../../governance/observability.md)
 	- [chaos_engineering.md](../../governance/chaos_engineering.md)
-

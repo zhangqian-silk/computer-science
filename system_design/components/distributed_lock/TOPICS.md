@@ -2,6 +2,8 @@
 
 分布式锁组件用于在多实例并发场景下协调互斥访问，避免共享资源竞争导致的数据错乱。
 
+> 主文档：[`distributed_lock.md`](./distributed_lock.md)（原理 + TTL/看门狗交互 + Go demo）。
+
 ---
 
 ## 组件边界

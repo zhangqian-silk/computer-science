@@ -2,6 +2,8 @@
 
 服务注册与发现组件用于维护服务实例元数据，支持健康检查、实例上下线与路由发现。
 
+> 主文档：[`service_registry.md`](./service_registry.md)（原理 + 健康检查交互 + Go demo）。
+
 ---
 
 ## 组件边界

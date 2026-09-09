@@ -18,7 +18,7 @@
 
 ## 当前主题索引
 
-- 排行榜系统总体设计（待补充）：`leaderboard_system.md`
+- 排行榜系统总体设计：[`leaderboard_system.md`](./leaderboard_system.md)（原理 + ZSet 排名交互）
 - 相关通用机制：
 	- [cache_consistency.md](../../base/cache_consistency.md)
 	- [rate_limiting.md](../../base/high_availability/rate_limiting.md)

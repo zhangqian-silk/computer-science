@@ -2,6 +2,8 @@
 
 本目录对应广告业务专题，聚焦流量分发、竞价机制、计费归因与反作弊治理。
 
+> 主文档：[`advertising_system.md`](./advertising_system.md)（原理 + eCPM/第二价格竞价交互）。
+
 ---
 
 ## 核心知识点清单

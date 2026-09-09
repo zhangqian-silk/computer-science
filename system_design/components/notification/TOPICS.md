@@ -2,6 +2,8 @@
 
 通知系统组件用于提供统一消息触达能力，覆盖站内信、短信、邮件、Push 等通道。
 
+> 主文档：[`notification.md`](./notification.md)（原理 + 通知漏斗交互 + Go demo）。
+
 ---
 
 ## 组件边界
