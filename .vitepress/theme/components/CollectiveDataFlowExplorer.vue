@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
 
 type Operation = 'all-reduce' | 'all-gather' | 'reduce-scatter' | 'all-to-all'
 
@@ -32,11 +34,11 @@ const rankRows = computed(() => ranks.map(rank => {
 		output: ranks.map(source => `${source}→${rank}`).join(' · ')
 	}
 }))
+const resetLab = useLabReset(operation)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">Collective 数据流实验台</p>
+	<LearningLab topic="CollectiveDataFlowExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">在四个 rank 上切换通信原语，直接比较每个参与者在操作前后持有什么数据。</p>
 		<div class="infra-tabs" role="group" aria-label="Collective 操作">
 			<button v-for="key in operations" :key="key" type="button" :aria-pressed="operation === key" @click="operation = key">{{ operationNames[key] }}</button>
@@ -50,7 +52,7 @@ const rankRows = computed(() => ranks.map(rank => {
 			</div>
 		</div>
 		<p class="infra-note">图中只表达张量语义，不暗示具体拓扑或算法。Ring、Tree、分层通信及其分块方式属于实现层选择。</p>
-	</div>
+	</LearningLab>
 </template>
 
 <style scoped>

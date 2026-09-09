@@ -1,6 +1,6 @@
 # Self-Attention：让序列位置直接交换信息
 
-Self-Attention 是 Attention 的一个输入约束：query、key、value 都由同一序列产生。每个位置因此可以按内容读取其他位置，并把静态输入改写为上下文化表示。
+Self-Attention 将同一输入投影为 Query、Key 和 Value，再按可见性交换位置信息。「Self」限定来源，不表示只读取自己，也不表示三个投影相同。位置输出由此成为上下文状态，而非词表中的固定参数行。
 
 <AttentionPatternExplorer />
 
@@ -36,11 +36,13 @@ $QK^\top\in\mathbb{R}^{n\times n}$ 可以看成一张有向加权图：第 $i$ �
 
 同一输入 $X$ 产生三种角色，并不表示 $Q=K=V$。三组投影分别学习：当前位置需要检索什么、每个位置以什么特征接受匹配、以及被选中后提供什么内容。某个 token 可以在 key 空间与 query 高度匹配，却通过 value 投影提供完全不同的特征。
 
-Self-Attention 本身对位置排列具有等变性：若输入行以同一置换重排，输出也只会随之重排。模型必须结合[位置表示](./positional-encoding.md)才能区分「狗追猫」与「猫追狗」。
+不含位置项且全可见的 Self-Attention 对排列等变；存在 mask 时必须把它的行列也按同一置换重排。固定因果 mask 或固定局部 mask 一般破坏任意排列等变性；显式[位置表示](./positional-encoding.md)另提供坐标与距离。
 
 ---
 
 ## 可见性由 mask 定义
+
+若先 softmax 再把未来项清零，剩余权重通常不再和为 1；未来项仍参与了分母。应在归一化前限制合法集合。测试时固定前缀、修改未来 token，检查此前位置 logits 是否不变，才能验证真实依赖，而不是仅确认代码里存在三角矩阵。
 
 双向 Encoder 通常只屏蔽 padding；自回归 Decoder 还需要因果掩码：
 
@@ -87,7 +89,7 @@ $$
 
 训练时所有位置的 $Q,K,V$ 可以并行计算。自回归推理却必须逐 token 生成；若每一步重算整个前缀，会重复计算历史 key 和 value。
 
-KV cache 保存每层已经旋转并投影后的历史 $K,V$。新 token 到来时只计算新增项，再让新 query 读取缓存：
+KV cache 保存每层历史 $K,V$；常见 RoPE 实现缓存旋转后的 K，V 通常不旋转。新 token 到来时只计算新增项，再让新 query 读取缓存：
 
 $$
 K_{\le t}=[K_{<t};k_t],\qquad
@@ -120,6 +122,6 @@ $$
 
 ## 参考文献
 
-- Vaswani, A. et al. (2017). *Attention Is All You Need*.
-- Dao, T. et al. (2022). *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness*.
-- Shazeer, N. (2019). *Fast Transformer Decoding: One Write-Head is All You Need*.
+- Vaswani, A. et al. (2017). [*Attention Is All You Need*](https://arxiv.org/abs/1706.03762).
+- Dao, T. et al. (2022). [*FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness*](https://arxiv.org/abs/2205.14135).
+- Shazeer, N. (2019). [*Fast Transformer Decoding: One Write-Head is All You Need*](https://arxiv.org/abs/1911.02150).

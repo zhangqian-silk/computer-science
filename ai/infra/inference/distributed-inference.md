@@ -1,6 +1,6 @@
 # 分布式推理
 
-分布式推理用多个设备获得模型容量、吞吐或上下文容量。与训练不同，在线请求包含队列和逐 token 延迟；高频 Collective 会直接进入 TPOT，副本路由则会影响排队和 KV 局部性。
+多设备可以容纳一个更大的模型，也可以复制模型服务更多请求；这是不同目标。单请求需要跨设备通信时，计算减少与通信增加同时发生；增加独立副本时，单请求计算不变，但排队可能减少。选择并行方式应先区分这两类收益。
 
 ---
 
@@ -20,6 +20,10 @@ Replica 最容易扩吞吐，但每个副本都要容纳权重。TP 减少每卡
 
 ## TP 的延迟边界
 
+简化一轮 Decode：若模型有 $L$ 层，每层存在 $c$ 次不可隐藏通信，单次暴露延迟为 $\alpha$，仅启动延迟就约为 $Lc\alpha$，尚未计字节传输。把矩阵切到更多设备可能减少每卡 FLOPs，却不一定减少这些串行边界。
+
+例如原有 8 张设备，可以组成一个 TP=8 group，也可以组成两个 TP=4 group。前者对单个请求使用更多设备，后者可并发处理更多独立请求。比较应固定总设备预算，并同时测单请求延迟、排队、KV 容量和质量，不只选一组最有利的数字。
+
 层内切分常在 Attention output 和 FFN output 附近执行 AllReduce 或 ReduceScatter。Decode 每 token 都重复，因此通信延迟与同步抖动会直接累积到 TPOT。
 
 高 TP degree 不是免费的容量手段。选择时需比较：
@@ -34,6 +38,8 @@ Replica 最容易扩吞吐，但每个副本都要容纳权重。TP 减少每卡
 ---
 
 ## 路由与 KV 局部性
+
+粘性应绑定「持有这一序列状态的 worker group」，不是某个偶然接收 HTTP 的进程。入口可以重新连接，但继续生成必须找到同一状态或按明确协议重建。多副本负载均衡因此与无状态 Web 请求有实质区别。
 
 有状态生成请求必须在后续 iteration 找到其 KV 所在 worker group。入口路由到 replica 后，内部通常保持粘性。Prefix cache 或 session cache 进一步增加局部性；KV-aware routing 可能降低重复 Prefill，却需维护缓存目录和失效边界。
 
@@ -52,6 +58,8 @@ Replica 最容易扩吞吐，但每个副本都要容纳权重。TP 减少每卡
 ## CPU 路线
 
 多进程 CPU 可验证 TP linear、PP stage、replica router、EP token dispatch 和 group failure。可使用 Gloo/MPI 和小模型。CPU 不能代表 NCCL/NVLink 的逐 token延迟，但能发现 shape、顺序、粘性和状态释放错误。
+
+---
 
 ## 参考资料
 

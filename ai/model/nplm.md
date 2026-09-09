@@ -1,6 +1,6 @@
 # NPLM：用连续表示平滑固定窗口语言模型
 
-神经概率语言模型（Neural Probabilistic Language Model, NPLM）仍使用最近若干 token 预测下一 token，但不再为每个离散 N-gram 独立保存概率。上下文词先映射为向量，再由神经网络共享参数完成预测。
+NPLM 保留固定上下文窗口，却把计数表换成连续表示和共享网络。Bengio 等人的 2003 年工作把词向量与语言概率端到端联合训练，使未见词组也可以通过相似计算路径泛化；它没有因此获得窗口之外的历史。
 
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$\mathcal{V}$ 是词表，$m$ 是上下文窗口长度，$w_t$ 是目标 token；$E$ 是 Embedding 矩阵，$x_t,h_t,z_t$ 分别是拼接输入、隐藏状态和 logits；$W,b$ 表示层参数，$\theta$ 表示全部可训练参数，$\mathcal{B}$ 是 mini-batch 样本集合，$\mathcal{L}$ 表示 batch 平均损失。
@@ -20,7 +20,7 @@ $$
 
 $$
 x_t=
-[E[w_{t-m}];\ldots;E[w_{t-1}]]
+[E[w_{t-m}]^\top;\ldots;E[w_{t-1}]^\top]
 \in\mathbb{R}^{md}
 $$
 
@@ -55,6 +55,10 @@ flowchart LR
 ---
 
 ## 连续表示怎样缓解稀疏
+
+窗口中的词向量按位置拼接而不是平均，因此「猫追狗」与「狗追猫」仍能不同；共享 Embedding 不意味着忽略词序。窗口变长会增加输入维度和第一层参数，而不是只多查几次词向量。
+
+模型输出 softmax 通常为所有词表项给出正概率，但「有正概率」与「泛化正确」不同。输出层偏置可以学习词频倾向，隐藏层和输入表示学习上下文差异；某个未见组合被赋高分仍可能是错误类推，需要 held-out 评估。
 
 在 N-gram 中，「猫 在 睡觉」与「狗 在 睡觉」是两个独立计数事件。NPLM 中，若「猫」和「狗」在训练中承担相似预测角色，其 embedding 与下游隐藏特征会相近；一个上下文的梯度因此可改善附近的上下文。
 
@@ -103,7 +107,7 @@ $$
 - 隐藏层参数；
 - 输出层参数。
 
-Embedding 因此由下一 token 预测目标端到端塑造，谈不上独立预处理。完整 softmax 的输出层参数与计算仍随词表 $|\mathcal{V}|$ 增长；分层 softmax、采样 softmax 等方法可减少训练开销，但会改变优化近似。
+Embedding 由下一 token 目标端到端塑造。完整 softmax 的输出计算随词表增长；分层 softmax 定义另一种树形归一化参数化，采样 softmax 则近似计算原目标，不能都称为同一种近似。
 
 对于单个目标 $y$，softmax 与交叉熵对 logit 的梯度为：
 
@@ -158,6 +162,8 @@ $$
 
 ## 与相邻模型的区别
 
+NPLM 与 word2vec 的关系是共享表示学习思想，而非后者简单替代前者的语言生成接口。NPLM 估计给定有序窗口的下一词分布；Skip-gram 学局部词对关系，SGNS 更不直接提供规范化句子概率。RNN 则改变上下文载体，从固定拼接变为递推状态。
+
 | 模型 | 上下文 | 参数共享方式 | 主要瓶颈 |
 | --- | --- | --- | --- |
 | N-gram | 固定窗口 | 回退与平滑 | 离散组合稀疏 |
@@ -179,5 +185,5 @@ NPLM 的历史意义在于把语言概率、分布式表示和反向传播放进
 
 ## 参考文献
 
-- Bengio, Y. et al. (2003). *A Neural Probabilistic Language Model*.
-- Mnih, A., and Hinton, G. E. (2009). *A Scalable Hierarchical Distributed Language Model*.
+- Bengio, Y. et al. (2003). [*A Neural Probabilistic Language Model*](https://jmlr.org/papers/v3/bengio03a.html).
+- Mnih, A., and Hinton, G. E. (2008，NIPS 会议版本；部分书目按次年论文集标为 2009). *A Scalable Hierarchical Distributed Language Model*.

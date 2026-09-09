@@ -4,7 +4,7 @@
 本页给出源码阅读地图，不固化易变的类名和调用细节。实际学习时应锁定 release 或 commit，并在笔记中记录核验日期。历史 PagedAttention 设计文档不等同于 vLLM 当前全部实现。
 :::
 
-不同推理框架处于不同抽象层：有的提供通用在线 engine，有的围绕 NVIDIA kernel 和编译，有的优先本地 CPU/边缘设备，还有的负责跨节点编排。比较时应先对齐目标层。
+推理框架是已学机制的可运行组合。阅读时追踪同一请求的 token、KV、调度状态与输出，不按项目名判断「先进程度」。本页描述概念接口，不提供未经目标 release 核验的功能保证；任何可执行命令都应来自锁定版本。
 
 ---
 
@@ -12,7 +12,7 @@
 
 | 框架 | 主要定位 | 建议观察路径 |
 | --- | --- | --- |
-| vLLM | 通用高吞吐 LLM engine 与 OpenAI 服务 | API → scheduler → KV manager → model runner → worker |
+| vLLM | 通用 LLM engine 与 OpenAI-compatible API 服务 | API、scheduler、KV manager、worker 内的 model runner |
 | SGLang | 结构化语言程序与高性能 serving runtime | frontend → scheduler → Radix cache → model worker |
 | TensorRT-LLM | NVIDIA GPU 优化 kernel、engine 与 executor | model convert/build → runtime/executor → kernels |
 | llama.cpp | C/C++ 本地与 CPU/多后端推理 | GGUF load → graph build → backend scheduler → decode |
@@ -20,9 +20,23 @@
 
 它们不是简单的同类替代。例如 Dynamo 可以编排其他 engine；TensorRT-LLM 更强调 NVIDIA 执行栈；llama.cpp 对 CPU、边缘和 GGUF 生态尤其重要。
 
+表中路径是阅读导航，不是精确调用顺序；vLLM 的 worker 通常持有 model runner，scheduler 使用 KV manager，不能把它们误画成反向包含关系。
+
 ---
 
 ## vLLM 源码阅读任务
+
+一条最小追踪应建立以下对应关系：
+
+| 逻辑对象 | 需要找到的真实职责 | 不能混淆 |
+| --- | --- | --- |
+| 请求 | 输入、输出上限与停止状态 | HTTP 连接不等于独立模型序列 |
+| 调度结果 | 本轮 token、序列与块表 | 请求数不等于 token 数 |
+| 缓存管理器 | 分配、引用、释放 | 物理 block 不等于逻辑 token |
+| 模型执行器 | 张量准备、图/算子调用 | 数学机制与 kernel 后端不同 |
+| 输出处理 | 采样、解码、流式事件 | token 已生成不等于字节已发送 |
+
+先用单请求、关闭非必要优化建立调用链，再增加两个不同长度请求，观察短请求退出后长请求的状态是否保持。随后才加入 prefix cache、量化或推测执行；每项变化应能落回上表的一项所有权或计算变化。
 
 1. 从 offline/online API 找到一次请求进入 engine 的入口；
 2. 观察输入处理与 sequence/request 对象；
@@ -56,7 +70,11 @@
 
 ## 跨框架对比方法
 
+不要将「特性存在于文档」写成「本模型本硬件组合已支持」。功能验证矩阵应交叉记录模型架构、权重格式、KV 格式、并行方式、约束解码与 adapter，并标注已运行、仅文档声明或未知。历史论文说明设计动机，当前源码说明实现，实际运行说明组合可用，三者不能互相替代。
+
 同一模型和 tokenizer 下固定：输入/输出 token、sampling、精度、并发、硬件和服务协议。先验证输出/质量，再比较 TTFT、TPOT、Goodput、内存和运维复杂度。某框架在一个模型上的最优配置不能推导为普遍排名。
+
+---
 
 ## 官方资料
 

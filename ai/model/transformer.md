@@ -1,6 +1,6 @@
 # Transformer：用全局交互构建可堆叠序列主干
 
-Transformer 以 Self-Attention 取代时间递归，让每个位置直接读取允许范围内的其他位置，再用逐位置前馈网络重加工结果。以下公式采用现代常见的 pre-LN block；原始论文使用 post-LN，二者的归一化位置不同。
+Transformer 将序列交互与逐位置通道变换交替堆叠，用残差和归一化维持统一层间接口。它不是「只有 Attention」：位置、FFN、mask、读出头和训练目标共同决定行为。以下主推导采用 Pre-LN，交互图同时对照原论文的 Post-LN，避免把现代实现倒写成原始设计。
 
 <TransformerBlockFlow />
 
@@ -12,17 +12,21 @@ Transformer 以 Self-Attention 取代时间递归，让每个位置直接读取�
 
 ## 输入与位置
 
-token ID 先查 embedding，并与位置表示组合：
+对加性绝对位置变体，token ID 查表后与位置向量相加：
 
 $$
 H^{(0)}=E[x_1,\ldots,x_n]+P
 $$
 
-Attention 不天然携带顺序，$P$ 可以是绝对位置、相对偏置或 [RoPE](../mechanism/rope.md) 一类作用于 query/key 的变换。不同方案不一定表现为简单向量相加。
+这里 P 只表示加性位置向量。相对偏置加入 score，RoPE 旋转 Q/K，不能代入上式；只用非加性位置机制时，输入可为 Embedding 本身。因果 mask 也能提供顺序约束。
 
 ---
 
 ## 一个 pre-LN Block
+
+主残差流保持 $[B,n,d_{\text{model}}]$，子层暂时改变内部布局再投影回来。头拆分不是序列切分，FFN 升维不是增加 token。
+
+一次 Attention 直接连接所有可见位置，不意味着一层已经完成任意复杂推理。后续层读取的是已更新表示，可以逐步组合关系；深度、宽度和上下文长度增加的是不同能力与成本，不应混为「更大模型」。
 
 对第 $\ell$ 层：
 
@@ -98,6 +102,8 @@ $$
 
 ## Encoder 与 Decoder
 
+原始 Decoder 包含 masked self-attention、读取源端的 cross-attention 和 FFN。Decoder-only 语言模型通常移除源端与 cross-attention，不能仅因为都叫 Decoder 就认为结构完全一样。Encoder-only 也不自动规定 MLM；训练目标是另一个选择轴。
+
 ~~~mermaid
 flowchart LR
 	S["源序列"] --> E["Encoder Stack"]
@@ -144,7 +150,7 @@ Encoder-only 常用掩码语言建模，根据双向上下文恢复被遮蔽 tok
 | --- | --- | --- | --- | --- |
 | 监督目标 | `天气` | `很` | `好` | `<EOS>` |
 
-模型一次输出所有位置的词表 logits，目标序列右移一位后计算交叉熵。因果 mask 保证预测「很」的位置只能读取 `<BOS> 天气`，不会因为整段目标同时位于显存中而偷看「好」。
+模型输出每个输入位置的词表 logits，与其后一 token 的标签计算交叉熵；也可说 Decoder 输入是目标序列右移并补 BOS。预测「很」的位置只读 `<BOS> 天气`，不会偷看「好」。
 
 Encoder-Decoder 训练时，Encoder 先对源序列执行一次双向前向；Decoder 读取完整的真实目标前缀，并通过 Cross-Attention 使用源端表示。Encoder-only 则通常一次处理被遮蔽的完整输入，只在被选位置或任务头位置计算损失。三种结构共享 Block 组件，但训练样本的构造方式不同。
 
@@ -187,6 +193,8 @@ $$
 
 ## 复杂度应怎样理解
 
+原始论文在机器翻译上对比循环/卷积主干，强调并行性、依赖路径与结果；它不证明每种序列长度和硬件上 Attention 都比循环网络更便宜。短序列时投影与 FFN 可能主导，长序列时两两交互增长更快，最终应结合[性能模型](../infra/accelerator/performance-model.md)。
+
 对序列长度 $n$、隐藏维度 $d_{\text{model}}$，全局 Attention 的主要连接代价近似 $O(n^2d_{\text{model}})$，FFN 常含 $O(nd_{\text{model}}^2)$ 的矩阵计算。短序列、大模型时 FFN 可能占更多 FLOPs；超长序列时 $n^2$ 项与中间矩阵成为瓶颈。
 
 理论复杂度不能替代硬件测量。FlashAttention 改善访存并保持精确结果；稀疏 Attention 减少连接；MoE 改变 FFN 的激活参数；状态空间模型换用另一种序列主干。这些方案处理不同成本来源。
@@ -197,7 +205,7 @@ $$
 
 Transformer 的优势来自并行训练、短信息路径与统一 token 接口。它并不自动拥有：
 
-- 位置感：需要显式位置机制；
+- 完整位置关系：因果 mask 只规定可见顺序，坐标与距离还取决于具体位置机制；
 - 事实可靠性：语言建模目标只要求预测分布；
 - 无限上下文：计算、缓存和训练分布都有边界；
 - 严格可解释性：Attention 权重不是因果证明；
@@ -209,6 +217,6 @@ Transformer 的优势来自并行训练、短信息路径与统一 token 接口�
 
 ## 参考文献
 
-- Vaswani, A. et al. (2017). *Attention Is All You Need*.
+- Vaswani, A. et al. (2017). [*Attention Is All You Need*](https://arxiv.org/abs/1706.03762).
 - Xiong, R. et al. (2020). *On Layer Normalization in the Transformer Architecture*.
-- Raffel, C. et al. (2020). *Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer*.
+- Raffel, C. et al. (2020). [*Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer*](https://jmlr.org/papers/v21/20-074.html).

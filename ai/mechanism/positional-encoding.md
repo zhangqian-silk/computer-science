@@ -1,6 +1,6 @@
 # 位置表示：让 Attention 区分顺序与距离
 
-Self-Attention 根据内容建立连接，但不天然区分输入行的顺序。位置表示要提供三类信息：token 在哪里、两个 token 相距多远，以及顺序变化是否应改变交互结果。
+位置机制可以修改输入、打分或 Q/K 几何，不是一种统一的「位置向量加法」。先明确需要绝对坐标、相对距离还是近距先验，再比较实现、缓存与长度边界。
 
 <PositionEncodingExplorer initial-method="sinusoidal" />
 
@@ -12,13 +12,13 @@ Self-Attention 根据内容建立连接，但不天然区分输入行的顺序�
 
 ## 为什么内容向量不够
 
-若没有位置项，对输入 $X$ 做任意置换 $\Pi X$，Self-Attention 输出只会按相同置换重排：
+若没有位置项且全可见，对输入 X 做置换，Self-Attention 输出相应重排；若有 mask，它也须一起置换：
 
 $$
 \operatorname{Attn}(\Pi X)=\Pi\operatorname{Attn}(X)
 $$
 
-因此，「猫追狗」与「狗追猫」包含同样的 token 集合，纯内容交互无法确定主客体顺序。位置机制必须在输入表示、Attention 分数或 query/key 几何中打破这种对称性。
+例如对无位置的双向 Self-Attention 输出作均值池化，同一 token 多重集的排列不能被区分。固定因果 mask 本身带顺序约束，上式不能直接套用；显式位置机制研究的是怎样进一步提供可靠的坐标关系。
 
 ---
 
@@ -71,6 +71,8 @@ $$
 
 ## 相对位置：直接修改两两交互
 
+Shaw 等人将相对表示引入 Key/Value 相关计算，T5 使用距离桶偏置，ALiBi 用线性函数惩罚距离。它们的参数化、截断边界和表达自由度不同，不能仅因同属相对位置就视为等价。
+
 如果任务主要关心距离 $i-j$，可以把相对位置写进 Attention 分数：
 
 $$
@@ -120,6 +122,8 @@ $$
 
 ## 如何比较位置方案
 
+交互图可做两类隔离实验：保持内容与相对距离而整体平移；保持内容而改变距离。固定单位向量仅隔离位置因子，不代表真实多层模型整体不变。
+
 | 方案 | 注入位置 | 主要关系 | 扩长时的直接问题 |
 | --- | --- | --- | --- |
 | 学习式绝对位置 | 输入 | 绝对索引 | 新位置没有训练参数 |
@@ -144,7 +148,7 @@ $$
 
 ## 参考文献
 
-- Vaswani, A. et al. (2017). *Attention Is All You Need*.
-- Shaw, P., Uszkoreit, J., and Vaswani, A. (2018). *Self-Attention with Relative Position Representations*.
-- Raffel, C. et al. (2020). *Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer*.
-- Press, O., Smith, N. A., and Lewis, M. (2022). *Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation*.
+- Vaswani, A. et al. (2017). [*Attention Is All You Need*](https://arxiv.org/abs/1706.03762).
+- Shaw, P., Uszkoreit, J., and Vaswani, A. (2018). [*Self-Attention with Relative Position Representations*](https://aclanthology.org/N18-2074/).
+- Raffel, C. et al. (2020). [*Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer*](https://jmlr.org/papers/v21/20-074.html).
+- Press, O., Smith, N. A., and Lewis, M. (2022). [*Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation*](https://arxiv.org/abs/2108.12409).

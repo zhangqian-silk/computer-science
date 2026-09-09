@@ -1,6 +1,6 @@
 # word2vec：用局部共现学习静态词向量
 
-word2vec 不是一个完整语言模型，而是一组高效的局部预测目标。它把语料转成词对训练样本，使出现在相似上下文中的词获得相近向量。两种基本结构是 CBOW 与 Skip-gram，常用的训练近似是负采样或分层 softmax。
+word2vec 将学习重心从完整句子概率转向可复用静态词向量。CBOW 用局部上下文预测中心词，Skip-gram 反向预测邻居；负采样与分层 softmax 则是不同训练目标/计算方式，不能与前两者并列成四种模型。先读[Embedding](./embedding.md)理解参数行与梯度，再看样本怎样构造。
 
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$\mathcal{V}$ 是固定词表，$w_t$ 是位置 $t$ 的词，$T$ 是序列长度，$m$ 是窗口半径，$\mathcal{C}_t$ 是上下文集合；$v_w$ 与 $u_w$ 分别是词 $w$ 的输入、输出向量，$k$ 是负样本数，$\sigma$ 是 sigmoid 函数，$\ell$ 表示单个训练样本的损失。
@@ -19,7 +19,7 @@ $$
 以中心位置 $t$ 和窗口半径 $m$ 构造上下文：
 
 $$
-\mathcal{C}_t=\{w_{t-m},\ldots,w_{t-1},w_{t+1},\ldots,w_{t+m}\}
+\mathcal{C}_t=[w_{t-m},\ldots,w_{t-1},w_{t+1},\ldots,w_{t+m}]
 $$
 
 例如对「猫 喜欢 吃 鱼」，窗口半径为 1 时，中心词「吃」与「喜欢」「鱼」形成局部关系。word2vec 不建模整句结构，也不保留词序之外的全局状态；它只从大量局部共现中累积统计规律。
@@ -32,6 +32,8 @@ $$
 | `吃` | `{喜欢, 鱼} → 吃` | `(吃, 喜欢)`、`(吃, 鱼)` |
 
 窗口到达句子边界时只保留实际存在的上下文。实现还可以为每个中心词随机选择不超过最大值的窗口半径，使近邻词更频繁地形成训练对。
+
+$\mathcal{C}_t$ 按出现位置保留重复项，不是去重集合；同一个词在窗口中出现两次，就贡献两次向量或词对。CBOW 的求和/平均不利用这些项的顺序。
 
 高频功能词会产生大量低信息样本，语料实现通常对其下采样。窗口大小也改变表示偏好：较小窗口更偏句法和局部搭配，较大窗口更偏主题相关性。
 
@@ -65,7 +67,7 @@ Skip-gram 反转监督方向。对中心词 $w_t$，分别预测窗口中的每�
 $$
 \max_\theta
 \sum_{t=1}^{T}
-\sum_{\substack{-m\le j\le m\\j\ne0}}
+\sum_{\substack{-m\le j\le m\\j\ne0\\1\le t+j\le T}}
 \log P(w_{t+j}\mid w_t)
 $$
 
@@ -81,6 +83,10 @@ $$
 ---
 
 ## 为什么需要训练近似
+
+分层 softmax 用树路径的一系列二分类定义归一化词分布，计算量与路径深度相关；负采样则区分观察到的词对与噪声词对，不再为每个上下文计算完整词表归一化。因而 SGNS 的 sigmoid 输出不是普通下一词概率，不能直接拿它们相乘报告句子 PPL。
+
+负例可能在语料其他位置与中心词真实共现。这里的标签是「来自本次数据词对还是本次噪声采样」，不是「这两个词永远无关」。噪声分布、窗口、频繁词子采样共同改变有效目标，理解这些选择比只记住负例数量更重要。
 
 完整 softmax 的分母遍历整个词表，一次样本的主要代价与 $|\mathcal{V}|$ 同阶。负采样把多分类问题改成少量二分类：真实词对为正样本，从噪声分布抽取 $k$ 个负样本。
 
@@ -130,13 +136,15 @@ $$
 
 所以一次更新会同时把中心词拉向真实上下文的输出向量，并推离抽到的负词输出向量。几何关系是大量这类局部二分类更新叠加的结果。
 
-把这一目标全局化后可以证明：一元负采样分布下，最优内积满足 $v_w^\top u_c=\operatorname{PMI}(w,c)-\log k$，即 SGNS 隐式分解的是平移后的 PMI 矩阵。完整推导见[嵌入的矩阵分解视角](./embedding-matrix-factorization.md)。
+只有噪声等于训练词对的上下文边缘分布、且逐词对得分能独立优化时，正共现项的理想内积才满足 $v_w^\top u_c=\operatorname{PMI}(w,c)-\log k$。使用其他噪声分布需加上下文相关修正，有限维向量还存在耦合；推导见[矩阵分解视角](./embedding-matrix-factorization.md)。
 
 分层 softmax 则没有负样本。若目标词对应树路径「左、右、左」，模型沿三个内部节点分别预测二进制方向，目标词概率是三次路径概率的乘积。高频词通常被放在较短路径上，从而减少平均计算量。
 
 ---
 
 ## 两套向量为什么会出现
+
+输入矩阵与输出矩阵承担两个角色，即使词表相同也不要求同一词的两行参数相等。对可逆矩阵 $A$，变换 $v'_w=Av_w$、$u'_c=A^{-\top}u_c$ 保持所有内积不变。这说明训练目标首先确定词对得分关系，而不唯一确定某一种坐标几何；读向量前必须说明选哪套或如何组合。
 
 训练过程中每个词通常有输入向量 $v_w$ 和输出向量 $u_w$。二者角色不同：
 
@@ -196,6 +204,6 @@ FastText 用字符 $n$-gram 组合词向量以改善未登录词，GloVe 直接�
 
 ## 参考文献
 
-- Mikolov, T. et al. (2013). *Efficient Estimation of Word Representations in Vector Space*.
-- Mikolov, T. et al. (2013). *Distributed Representations of Words and Phrases and their Compositionality*.
-- Levy, O., and Goldberg, Y. (2014). *Neural Word Embedding as Implicit Matrix Factorization*.
+- Mikolov, T. et al. (2013). [*Efficient Estimation of Word Representations in Vector Space*](https://arxiv.org/abs/1301.3781).
+- Mikolov, T. et al. (2013). [*Distributed Representations of Words and Phrases and their Compositionality*](https://arxiv.org/abs/1310.4546).
+- Levy, O., and Goldberg, Y. (2014). [*Neural Word Embedding as Implicit Matrix Factorization*](https://papers.nips.cc/paper/5477-neural-word-embedding-as-implicit-matrix-factorization).

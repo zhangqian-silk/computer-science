@@ -1,6 +1,6 @@
 # 神经网络训练基础：从前向计算到参数更新
 
-神经网络训练可以压缩为一个闭环：用当前参数计算预测，用损失度量预测误差，再沿计算图反向求出每个参数对损失的影响。模型结构可以很复杂，但这条闭环不变。
+神经网络由可训练参数控制一组复合函数。训练并不是把正确答案存进某一行参数，而是计算当前预测如何出错，再沿依赖关系调整参数，使许多样本共享的计算更符合目标。本页从可手算的前向与导数出发，连接 batch、优化器和泛化；张量执行与低精度分别在相邻基础页展开。
 
 ::: info 符号与约定
 沿用[数学与符号约定](./math-notation.md)。$x,y,\hat{y}$ 分别表示输入、监督目标和预测；$W,b$ 是层参数；$z,h$ 是中间状态；$\ell$ 表示局部损失，$\mathcal{L}$ 表示聚合损失；$\theta$ 表示全部待优化参数，$\eta$ 表示学习率，$\mathcal{B}$ 表示一个 mini-batch 样本集合。
@@ -177,6 +177,25 @@ $$
 
 训练日志必须区分 batch loss、按 token 或样本归一化后的 loss，以及跨 step 的移动平均。不同 batch 大小、序列长度或梯度累积设置下，未经归一化的数值不能直接比较。
 
+### Adam 的状态为什么影响下一步
+
+SGD 只用当前梯度决定更新；Adam 还维护梯度的一阶与二阶移动统计。令 $g_t$ 为当前梯度，初始 $m_0=v_0=0$，衰减系数 $\beta_1,\beta_2\in[0,1)$，稳定分母的小常数 $\epsilon>0$：
+
+$$
+m_t=\beta_1m_{t-1}+(1-\beta_1)g_t,\qquad
+v_t=\beta_2v_{t-1}+(1-\beta_2)g_t^2
+$$
+
+平方逐元素进行。由于零初始化使早期统计偏小，使用 $\hat{m}_t=m_t/(1-\beta_1^t)$、$\hat{v}_t=v_t/(1-\beta_2^t)$ 修正，再更新：
+
+$$
+\theta_{t+1}=\theta_t-\eta\frac{\hat{m}_t}{\sqrt{\hat{v}_t}+\epsilon}
+$$
+
+历史梯度尺度参与分母，因此不同参数的实际步长不同。一阶、二阶矩的存在解释了训练内存和检查点为何不止权重。Kingma 与 Ba 的论文贡献是这一自适应更新及其分析和实验，不是所有任务默认配置都最优的保证。
+
+AdamW 将权重衰减与自适应梯度更新分开；在 loss 中添加 $L_2$ 惩罚与所有优化器下的权重衰减并非一概相同。使用哪种更新应写清，否则同一学习率与同一「衰减系数」仍不能复现实验。
+
 ---
 
 ## 训练为什么会不稳定
@@ -219,7 +238,7 @@ $$
 
 - 训练集产生梯度并更新参数；
 - 验证集选择超参数、停止时机与模型版本；
-- 测试集只用于最终的无偏估计；
+- 测试集用于最终泛化估计；无偏解释还依赖独立、具有代表性的采样及没有测试集调参；
 - 推理阶段固定参数，只执行前向计算和必要的解码或检索。
 
 数据泄漏会让测试指标失去意义。Dropout、数据增强等只在训练期启用的行为，也必须在验证和推理时切换到对应模式。
@@ -244,6 +263,7 @@ flowchart LR
 
 ## 参考文献
 
-- Rumelhart, D. E., Hinton, G. E., and Williams, R. J. (1986). *Learning Representations by Back-propagating Errors*.
-- Goodfellow, I., Bengio, Y., and Courville, A. (2016). *Deep Learning*.
-- Kingma, D. P., and Ba, J. (2015). *Adam: A Method for Stochastic Optimization*.
+- Rumelhart, D. E., Hinton, G. E., and Williams, R. J. (1986). [*Learning Representations by Back-propagating Errors*](https://doi.org/10.1038/323533a0).
+- Goodfellow, I., Bengio, Y., and Courville, A. (2016). [*Deep Learning*](https://www.deeplearningbook.org/).
+- Kingma, D. P., and Ba, J. (2015). [*Adam: A Method for Stochastic Optimization*](https://arxiv.org/abs/1412.6980).
+- Loshchilov, I. and Hutter, F. (2019). [*Decoupled Weight Decay Regularization*](https://arxiv.org/abs/1711.05101). 区分自适应优化器中的正则梯度与解耦衰减。

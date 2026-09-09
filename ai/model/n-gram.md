@@ -1,6 +1,6 @@
 # N-gram：用有限上下文估计语言概率
 
-N-gram 语言模型把「下一个 token 是什么」转化为条件概率估计问题：先统计局部序列出现了多少次，再用平滑、回退或插值处理稀疏事件。它的价值不止于构成传统语言模型，还提供了一套可以逐项核对的概率建模范式。
+N-gram 用有限历史近似完整语言条件分布，再从计数估计概率。它的核心学习问题不是存储更多词组，而是怎样在数据有限时给未见事件留出质量，并保持每个历史下概率和为 1。本页从链式法则走到平滑与 Kneser–Ney，作为后续神经模型的可解释基线。
 
 <NGramSmoothingExplorer />
 
@@ -95,6 +95,10 @@ $$
 ---
 
 ## 概率质量为何需要重新分配
+
+需要区分「当前语料没见过」与「定义上不可能」。某词对计数为零通常只是有限样本现象；若整条测试序列有一个条件概率为零，乘积就为零，NLL 无穷大。因此平滑不是给模型随意增加噪声，而是对有限观测的不确定性作估计。
+
+所有计数都为零的历史下，MLE 分母为零，不能定义为所有候选概率都为 0。加法平滑在正系数下给出均匀分布，回退则利用较短历史。交互组件显式显示未定义 MLE，避免把数值占位符误读为概率模型。
 
 平滑不是简单地「给零概率补一个小数」，而是从已见事件中释放一部分概率质量，再分配给低频或未见事件。任何合法方法都必须满足：
 
@@ -202,6 +206,8 @@ P_{\mathrm{disc}}(w\mid h), & C(h,w)>0\\
 $$
 
 $h'$ 是删除最左侧 token 后的较短历史。$\alpha(h)$ 不能随意指定，它必须把高阶模型释放的剩余概率质量，按照低阶分布在未见事件上的相对比例进行归一化。
+
+这要求低阶分布在未见集合上有正质量。若所有候选都已见，或未见集合的低阶质量为零，就不能把折扣质量留给不存在的回退支持；应改变折扣/平滑策略或采用插值，避免零分母和概率和小于 1。
 
 假设候选词为「水、茶、咖啡、牛奶」，高阶历史 $h$ 的计数为：
 
@@ -326,7 +332,7 @@ $$
 
 ### 二元插值式 Kneser–Ney
 
-使用绝对折扣 $D$ 时：
+对 $C(h)>0$ 的历史、整数计数及 $0<D<1$，使用绝对折扣：
 
 $$
 P_{\mathrm{KN}}(w\mid h)
@@ -336,6 +342,8 @@ P_{\mathrm{KN}}(w\mid h)
 $$
 
 第一项保留折扣后的已见计数，第二项按照续接概率分配释放的质量。记：
+
+$C(h)=0$ 时直接用低阶分布，不执行除零。以下权重推导依赖所有正计数大于 D；其他折扣应按实际释放质量计算。
 
 $$
 N_{1+}(h,\ast)=|\{w:C(h,w)>0\}|
@@ -393,6 +401,8 @@ $$
 
 ## 方法对比
 
+评价平滑要同时看未见事件和已见事件：给零计数更多质量会减少其他事件的份额。Kneser–Ney 以不同前缀下的续接多样性构造低阶分布，改善的不是词频估计本身，而是低阶分布在高阶事件稀疏时该表达什么。它的经验优势仍依赖阶数、语料、剪枝和参数选择；应以 held-out NLL 比较，而非只看一个例子。
+
 | 方法 | 已见事件如何处理 | 未见事件依据 | 主要特点 |
 | --- | --- | --- | --- |
 | MLE | 保留原始相对频率 | 概率为 0 | 简单，但无法泛化到未见组合 |
@@ -411,9 +421,10 @@ $$
 TRAIN-N-GRAM(corpus, n)
 	counts ← empty count tables for orders 1..n
 	for each sentence in corpus do
-		tokens ← [<BOS>] + TOKENIZE(sentence) + [<EOS>]
-		for order ← 1 to n do
-			for each window in SLIDING-WINDOW(tokens, order) do
+		tokens ← REPEAT(<BOS>, n - 1) + TOKENIZE(sentence) + [<EOS>]
+		for t ← n to LENGTH(tokens) do
+			for order ← 1 to n do
+				window ← tokens[t - order + 1..t]
 				counts[order][window] ← counts[order][window] + 1
 			end for
 		end for
@@ -422,6 +433,8 @@ TRAIN-N-GRAM(corpus, n)
 	parameters ← ESTIMATE-DISCOUNTS(counts)
 	return BUILD-PROBABILITY-TABLES(counts, parameters)
 ```
+
+索引从 1 开始，预测位置从首个真实 token 到 EOS；虚拟 BOS 只作历史，不作目标，各阶共用同一目标位置集合。
 
 生成时，模型截取最近 $n-1$ 个 token，查询条件分布并采样或选择概率最大的后继；若使用回退模型，则逐级缩短历史，直到获得可用分布。生成 `<EOS>` 后停止。
 
@@ -461,5 +474,5 @@ N-gram 的优势是训练快、概率可解释、错误容易定位，适合作�
 
 - Katz, S. M. (1987). *Estimation of Probabilities from Sparse Data for the Language Model Component of a Speech Recognizer*.
 - Kneser, R., and Ney, H. (1995). *Improved Backing-Off for M-gram Language Modeling*.
-- Chen, S. F., and Goodman, J. (1999). *An Empirical Study of Smoothing Techniques for Language Modeling*.
+- Chen, S. F., and Goodman, J. (1999). [*An Empirical Study of Smoothing Techniques for Language Modeling*](https://doi.org/10.1006/csla.1999.0128).
 - Jurafsky, D., and Martin, J. H. *Speech and Language Processing*.

@@ -55,6 +55,28 @@ ROUGE 更强调参考内容被候选覆盖，常用于摘要。它们适合参�
 
 分词、大小写、平滑和多参考答案都会改变分数，报告时应固定实现与参数。
 
+### 「修正精确率」修正了什么
+
+对每种候选 N-gram，命中次数不能超过参考中允许的次数；多参考时通常取各参考该 N-gram 计数的最大值作为截断上限。否则重复一个常见词就可能获得虚假的高精确率。
+
+手算示例采用空格分词。参考为 `the cat is on the mat`，候选为 `the the the the`。候选有 4 个 unigram，但参考中 `the` 只有 2 次，所以修正 unigram precision 为 $2/4=0.5$，而不是 1。候选 bigram 都是 `the the`，参考中没有，不平滑时 $p_2=0$，使用二阶及以上几何平均的 BLEU 会变成 0。
+
+长度惩罚通常定义为：
+
+$$
+\operatorname{BP}=
+\begin{cases}
+1,&c>r\\
+\exp(1-r/c),&0<c\le r
+\end{cases}
+$$
+
+$c$ 是候选长度，$r$ 是按协议选取的有效参考长度；空候选单独处理。它惩罚过短输出，但不会判断省略的是冗余表达还是关键事实。标准 corpus BLEU 先在语料上聚合匹配计数再计算，不等于逐句 BLEU 的算术平均。
+
+ROUGE-1/2 常计算 unigram/bigram 重合，ROUGE-L 利用最长公共子序列。若用 recall 版本，分母是参考中的单元数；precision 分母是候选单元数；F1 则兼顾二者。仅写「ROUGE 提升」没有说明版本、分词和聚合方式，无法复核。
+
+Papineni 等人提出 BLEU 的核心是用可自动计算的语料级重合近似翻译质量，并研究与人工评判的关系；Lin 的 ROUGE 工作面向摘要评价。二者不是开放问答事实正确性的判定器。
+
 ---
 
 ## 语义相似仍不等于正确
@@ -96,6 +118,23 @@ BERTScore 等方法用上下文化 embedding 对齐候选与参考 token，可�
 
 成对比较时应同时随机化候选左右顺序，并允许「平局」与「两者都失败」。只强迫二选一会把微小风格偏好放大成胜率。若同一评审者处理大量相似样本，还应随机化样本顺序，避免疲劳和前序答案形成锚定。
 
+### 从「总体感觉」变成可复核的评分
+
+对基于资料的问答，可以先分别判断：
+
+| 维度 | 通过条件示例 | 失败证据示例 |
+| --- | --- | --- |
+| 回答问题 | 指明用户询问的对象和结论 | 只复述背景，没有回答 |
+| 来源支持 | 每个关键事实能定位到给定证据 | 凭空补出日期或数量 |
+| 约束遵守 | 输出格式、长度和禁止动作符合要求 | 文本正确但格式无法被下游解析 |
+| 不确定性 | 缺少证据时保留未知或按约定拒答 | 无依据地给出确定答案 |
+
+这些维度应独立打标，不能把流畅文风当作缺失证据的补偿。对成对比较，预先约定平局如何计分；例如用「胜数加半个平局」除以样本总数是一种口径，排除平局再求胜率是另一种，二者不能混报。
+
+同一批 100 个问题中，A 独对 12 个、B 独对 8 个，说明二者正确率差为 4 个百分点。比较证据集中在这些不一致样本；若两模型各有大量相同错误，独立抽样会丢失这一配对结构。配对 bootstrap 应每次抽取问题索引，并同时保留这个问题上的 A、B 结果，再统计差值区间。这个例子只解释方法，不足以直接宣布差异显著。
+
+若一个文档生成了多个问题，或者一个问题采样多个答案，应按独立单元做分组抽样，避免把相关输出当成额外独立证据。验证集用于调整提示与阈值，最终测试集用于冻结后的报告；反复看测试错误改提示会让测试集逐渐变成开发集。
+
 ---
 
 ## 按任务组合指标
@@ -122,6 +161,7 @@ BERTScore 等方法用上下文化 embedding 对齐候选与参考 token，可�
 
 ## 参考文献
 
-- Papineni, K. et al. (2002). *BLEU: a Method for Automatic Evaluation of Machine Translation*.
-- Lin, C.-Y. (2004). *ROUGE: A Package for Automatic Evaluation of Summaries*.
-- Zhang, T. et al. (2020). *BERTScore: Evaluating Text Generation with BERT*.
+- Papineni, K. et al. (2002). [*BLEU: a Method for Automatic Evaluation of Machine Translation*](https://aclanthology.org/P02-1040/). 修正 N-gram precision、长度惩罚与语料级聚合。
+- Lin, C.-Y. (2004). [*ROUGE: A Package for Automatic Evaluation of Summaries*](https://aclanthology.org/W04-1013/). 摘要重合指标家族，而不是单个固定评分函数。
+- Zhang, T. et al. (2020). [*BERTScore: Evaluating Text Generation with BERT*](https://arxiv.org/abs/1904.09675). 上下文化 token 匹配与人工相关性实验，不能直接替代事实核验。
+- Koehn, P. (2004). [*Statistical Significance Tests for Machine Translation Evaluation*](https://aclanthology.org/W04-3250/). 配对重采样与机器翻译系统差异的统计检验。

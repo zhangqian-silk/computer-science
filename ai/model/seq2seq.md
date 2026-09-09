@@ -1,6 +1,6 @@
 # Seq2Seq：把条件生成拆成编码与解码
 
-Sequence-to-Sequence（Seq2Seq）是条件生成框架，而非某一种固定网络：Encoder 读取输入序列 $X$，Decoder 在其条件下逐步生成长度可变的输出 $Y$。RNN、LSTM 或 Transformer 都可以充当主干。
+Seq2Seq 定义条件生成接口：编码输入 $X$，在它和目标前缀的条件下生成 $Y$。输入输出可以不同长度，主干可以是循环网络或 Transformer；固定摘要、Attention 与搜索策略是进一步的设计选择，不应混成一个模型名称。
 
 <Seq2SeqDecodeExplorer />
 
@@ -42,7 +42,7 @@ $$
 $$
 P(y_t\mid y_{<t},X)
 =
-\operatorname{softmax}(W_os_t+b_o)
+\left[\operatorname{softmax}(W_os_t+b_o)\right]_{y_t}
 $$
 
 Encoder 与 Decoder 不要求共享参数、词表或时间长度。输入通过 $c$ 提供条件，输出长度由结束 token 决定。
@@ -110,7 +110,7 @@ $$
 \log P(y_t^*\mid y_{<t}^*,X)
 $$
 
-这种教师强制（teacher forcing）允许稳定、并行地构造监督，但推理时模型只能看到自己之前的预测。一次错误会改变后续输入分布，这种差异称为曝光偏差。
+教师强制允许预先构造所有真实前缀，但不消除 RNN Decoder 的状态串行依赖；Transformer Decoder 才能在因果 mask 下并行计算这些位置。推理前缀来自模型预测，错误会改变后续输入分布，这种训练与使用差异通常称为曝光偏差。
 
 一条翻译样本可以拆成如下数据流：
 
@@ -158,6 +158,8 @@ batch 中的序列长度不同，通常补齐到共同长度。Padding token 不
 
 ## 解码是搜索问题
 
+页面交互的推理模式使用显式玩具概率树实际展开候选，不把参考文本传给搜索器。比较 Greedy 与 Beam 时要固定同一分布，查看累计路径概率而不是每步单独最大值；训练模式展示的真实前缀是另一个接口。
+
 每一步取最大概率 token 的贪心解码不保证得到概率最高的整段序列。Beam Search 保留 $B$ 条部分路径，并累积对数概率：
 
 $$
@@ -181,6 +183,8 @@ $$
 P(\text{<EOS>}\mid A,X)=0.4,\qquad
 P(\text{<EOS>}\mid B,X)=0.9
 $$
+
+再设 A 后剩余 0.6 分给两个概率各 0.3 的候选，B 后其余候选总和 0.1；这样 Greedy 在 A 后确实会选择 EOS，而非未说明的更高概率候选。
 
 两条完整路径的概率分别是：
 
@@ -208,6 +212,8 @@ RNN Decoder 为每条路径保存递归状态；Transformer Decoder 为每条路
 
 ## Transformer 如何继承 Seq2Seq
 
+Sutskever 等人的序列到序列工作展示深层 LSTM 编码与解码；Cho 等人的 Encoder-Decoder 工作也在翻译中学习句对表示；Bahdanau 的动态对齐松开固定摘要瓶颈；Transformer 替换循环主干但保留条件生成分解。它们的关联是接口继承与信息读取改造，不是翻译任务只能选一个历史版本。
+
 Transformer Encoder 并行产生源端上下文化表示，Decoder 使用两类 Attention：
 
 - 带因果 mask 的 Self-Attention 读取目标前缀；
@@ -221,6 +227,6 @@ Transformer Encoder 并行产生源端上下文化表示，Decoder 使用两类 
 
 ## 参考文献
 
-- Sutskever, I., Vinyals, O., and Le, Q. V. (2014). *Sequence to Sequence Learning with Neural Networks*.
-- Cho, K. et al. (2014). *Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation*.
-- Bahdanau, D., Cho, K., and Bengio, Y. (2015). *Neural Machine Translation by Jointly Learning to Align and Translate*.
+- Sutskever, I., Vinyals, O., and Le, Q. V. (2014). [*Sequence to Sequence Learning with Neural Networks*](https://arxiv.org/abs/1409.3215).
+- Cho, K. et al. (2014). [*Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation*](https://aclanthology.org/D14-1179/).
+- Bahdanau, D., Cho, K., and Bengio, Y. (2015). [*Neural Machine Translation by Jointly Learning to Align and Translate*](https://arxiv.org/abs/1409.0473).

@@ -134,6 +134,43 @@ $$
 
 Late interaction 保留 query 与 document 的 token 向量，并在打分阶段做局部匹配。Cross-encoder 则让两段文本一起进入模型，表达能力更强但无法预计算所有文本对。
 
+### 三种交互接口并不只是速度档位
+
+以 ColBERT 的 MaxSim 思想为例，查询保留 $m$ 个 token 向量 $q_i$，文档保留 $n$ 个向量 $d_j$，基础打分为：
+
+这里采用投影后经 $L_2$ 归一化的 token 向量；否则模长也会进入点积。
+
+$$
+s_{\text{late}}(q,d)=\sum_{i=1}^{m}\max_{1\le j\le n}q_i^\top d_j
+$$
+
+对每个查询 token，在文档中找最匹配的局部向量再求和。它与先平均再点积不同：若文档只有一小段匹配查询，先平均可能被大量无关内容稀释；MaxSim 可以保留局部匹配。但每个查询位置独立选择最大值也可能忽略词序、否定和联合关系。
+
+| 接口 | 文档能离线保存什么 | 查询与文档何时交互 | 要付出的主要代价 |
+| --- | --- | --- | --- |
+| 单向量双编码器 | 每文档一个向量 | 最后一次相似度 | 固定向量的信息压缩 |
+| Late interaction | 每文档多个 token 向量 | 局部匹配聚合 | 更多存储、匹配与索引复杂度 |
+| Cross-encoder | 通常不能预存独立文档向量来复现完整打分 | 模型内部联合注意力 | 每个候选对都要运行联合编码 |
+
+因此不是「把双编码器参数调大」就自然得到交叉编码器的接口。常见链路组合召回与重排，正是为了让昂贵交互只发生在少量候选上；召回漏掉的文档仍无法由重排恢复。
+
+---
+
+## 论文之间的改造轴
+
+Sentence-BERT、DPR 和 SimCSE 都可以输出单个文本向量，但不应统称为同一种对比学习配方：
+
+| 工作 | 面对的问题 | 核心信号与改造 | 结论的适用边界 |
+| --- | --- | --- | --- |
+| Sentence-BERT，2019 | BERT 逐对编码不适合大量句子比较 | Siamese/triplet 网络，共享编码并池化，研究 NLI 分类、回归和 triplet 目标 | 不能把原始 SBERT 一概写成批内 InfoNCE |
+| DPR，2020 | 开放域问答需要从大文档库召回证据 | 问题与 passage 双编码器，正例、批内负例及困难负例 | 衡量的是回答证据召回，不是对称语义相似度 |
+| SimCSE，2021 | 句向量空间需要更好的区分性 | 无监督版用同一句的独立 dropout 视图作为正对；监督版利用 NLI | 无监督不等于没有构造正负标签，也不保证所有检索域有效 |
+| ColBERT，2020 | 单向量压缩限制细粒度匹配 | 延迟 token 交互和 MaxSim | 更丰富的打分仍需考虑存储、索引和关系理解 |
+
+SimCSE 的无监督训练不是用另一条随机句子作正例，而是同一句话经过两次带独立 dropout 的编码。去掉这种随机性后，正例几乎成为完全相同的向量，训练信号会发生变化。论文中的消融研究这一选择；它不意味着任意强度的数据扰动都能改善语义表示。
+
+以上分别改变任务、监督来源和交互粒度，不是一条「后者全面替代前者」的路线。要选择训练配方，应先写清正例究竟是同义句、蕴含关系，还是能回答问题的证据段落，再决定损失与候选集合。
+
 ---
 
 ## 评估与部署
@@ -154,7 +191,7 @@ flowchart LR
 	ANN --> R["过滤与重排"]
 ```
 
-文档编码可以批量离线完成，查询编码位于在线延迟路径。两侧必须使用兼容的模型版本、维度、归一化和指令前缀；模型升级后只更新查询编码器、却保留旧文档向量，会使两个空间失配。
+文档编码可以离线完成，查询编码位于在线路径。未经兼容训练和验证就只更新查询编码器，可能使旧文档空间失配；两侧需要兼容接口，并非版本号必须完全相同。
 
 编码器最大长度之外的文本不会自动获得完整表示。截断、滑窗分块或层级聚合会改变检索单元，应和索引版本一起记录。向量缓存也要把模型版本与预处理配置纳入 key，不能仅按原始文本复用。
 
@@ -162,6 +199,7 @@ flowchart LR
 
 ## 参考文献
 
-- Reimers, N., and Gurevych, I. (2019). *Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks*.
-- Karpukhin, V. et al. (2020). *Dense Passage Retrieval for Open-Domain Question Answering*.
-- Gao, T., Yao, X., and Chen, D. (2021). *SimCSE: Simple Contrastive Learning of Sentence Embeddings*.
+- Reimers, N., and Gurevych, I. (2019). [*Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks*](https://aclanthology.org/D19-1410/). 网络、池化与多种目标的区别。
+- Karpukhin, V. et al. (2020). [*Dense Passage Retrieval for Open-Domain Question Answering*](https://aclanthology.org/2020.emnlp-main.550/). 双编码器、负例选择及开放域问答证据召回。
+- Gao, T., Yao, X., and Chen, D. (2021). [*SimCSE: Simple Contrastive Learning of Sentence Embeddings*](https://aclanthology.org/2021.emnlp-main.552/). Dropout 正对、NLI 监督与句向量空间分析。
+- Khattab, O. and Zaharia, M. (2020). [*ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT*](https://arxiv.org/abs/2004.12832). MaxSim 与可预计算文档表示的边界。

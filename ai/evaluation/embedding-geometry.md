@@ -1,6 +1,6 @@
 # 向量表示分析：几何诊断不能替代任务评估
 
-Embedding 把对象放入向量空间后，可以检查近邻、聚类、方向和分布形状。这类分析适合发现模型学到了什么、哪里出现偏差，但只有下游任务能验证这些结构是否有用。
+向量几何是诊断工具，不是语义真值。近邻、主成分、聚类和探针可以揭示某些关系可被读出，却不能单独证明模型实际使用了它们。先固定表示来源、池化、归一化和任务，再解释图形。
 
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$u,v,w$ 表示同一空间中的向量，$\|\cdot\|_2$ 是欧氏范数，$\operatorname{cos}(u,v)$ 是余弦相似度；$\mathcal{A},\mathcal{B}$ 表示两个近邻结果集合，$J(\mathcal{A},\mathcal{B})$ 是它们的 Jaccard 相似度。向量下标中的英文单词只用于标记对应词项。
@@ -49,6 +49,10 @@ $$
 
 ## 聚类与降维
 
+同一高维数据可因降维超参数和随机种子形成很不同的二维图。t-SNE 中两个簇在屏幕上相距很远，不保证原空间也有同样距离；PCA 的最大方差方向也可能主要反映频率、长度或数据来源，而非任务语义。
+
+一个可复核比较应固定同一批样本和标签，先在原空间比较邻域、类别区分与任务分数，再看降维图是否提供额外解释。只选择清晰的三个簇、隐藏混杂样本，会把可视化变成展示而非分析。
+
 聚类可检查类别是否在空间中自然分离。若有标签，可报告 Adjusted Rand Index、NMI 或基于聚类的任务指标；只展示几个彩色簇容易受样本选择影响。
 
 PCA、t-SNE、UMAP 将高维向量投影到二维。它们会丢失信息并强调不同结构：
@@ -62,6 +66,10 @@ PCA、t-SNE、UMAP 将高维向量投影到二维。它们会丢失信息并强�
 ---
 
 ## 各向异性与空间坍缩
+
+各向异性不等于完全坍缩：向量集中在某些方向仍可能保留任务信息；完全相同向量则无法用该表示区分对象。All-but-the-Top 研究移除公共主方向的后处理，但后处理可能删去任务信号，必须在独立任务上验收。
+
+比较不同训练得到的表示时，坐标轴本身可能旋转。逐坐标差异大并不等于语义完全变化；相似度结构、可读出属性和下游表现更接近要检验的对象。
 
 若大量向量集中在狭窄方向，随机样本间余弦也可能普遍偏高，导致相似度区分度下降。可观察：
 
@@ -110,4 +118,4 @@ $$
 ## 参考文献
 
 - Mikolov, T. et al. (2013). *Linguistic Regularities in Continuous Space Word Representations*.
-- Mu, J., Bhat, S., and Viswanath, P. (2018). *All-but-the-Top: Simple and Effective Postprocessing for Word Representations*.
+- Mu, J., Bhat, S., and Viswanath, P. (2018). [*All-but-the-Top: Simple and Effective Postprocessing for Word Representations*](https://arxiv.org/abs/1702.01417).

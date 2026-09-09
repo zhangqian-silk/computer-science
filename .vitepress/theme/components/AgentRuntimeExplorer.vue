@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
 
 type Scenario = 'success' | 'tool-error' | 'permission-denied'
 
@@ -32,11 +34,11 @@ const current = computed(() => currentSteps.value[step.value])
 watch(scenario, () => { step.value = 0 })
 const advance = () => { step.value = Math.min(step.value + 1, currentSteps.value.length - 1) }
 const reset = () => { step.value = 0 }
+const resetLab = useLabReset(scenario, step)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">Agent Runtime 状态实验台</p>
+	<LearningLab topic="AgentRuntimeExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">切换正常、工具失败和权限不足三条路径，观察模型建议与控制器承诺之间的边界。</p>
 		<div class="infra-tabs" role="group" aria-label="Agent 场景">
 			<button type="button" :aria-pressed="scenario === 'success'" @click="scenario = 'success'">正常完成</button>
@@ -54,7 +56,7 @@ const reset = () => { step.value = 0 }
 			<button type="button" :disabled="step === currentSteps.length - 1" @click="advance">推进一步</button>
 		</div>
 		<p class="infra-note">失败路径默认采用明确终止或请求授权；重试、恢复 worker 和持久状态只有在外部承诺与证据支持时才应加入。</p>
-	</div>
+	</LearningLab>
 </template>
 
 <style scoped>

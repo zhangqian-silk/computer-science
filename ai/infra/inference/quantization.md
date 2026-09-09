@@ -1,6 +1,6 @@
 # 推理量化
 
-量化把权重、激活或 KV 映射到更低位宽表示，以减少存储、读带宽或计算成本。是否提速取决于目标硬件和 kernel 是否原生支持目标格式；是否可用则取决于模型质量、算子覆盖和服务特性。
+量化将实数近似为有限网格上的数，首先是一种带误差的表示变换，其次才可能节省容量与带宽。权重、激活和 KV 的统计分布及复用方式不同，不能用一个「INT4 模型」名称概括所有数值路径。
 
 <QuantizationTradeoff />
 
@@ -21,6 +21,8 @@
 
 ## Scale 粒度
 
+对量化整数 $q$，重建值一般为 $\hat{x}=s(q-z)$。对称形式令 $z=0$，通常还需裁剪到允许整数范围。下式适用于组内最大绝对值非零；全零组必须另设正的合法 scale，并令输出全零，避免除零。
+
 对称 group-wise 量化把一组 $G$ 个值共享 scale：
 
 $$
@@ -31,9 +33,15 @@ $$
 
 group 越小通常更能适应局部范围，但 scale 元数据更多、kernel 解码更复杂。还需记录是否非对称、是否有 zero point、布局如何 pack、计算时使用何种累加精度。
 
+以对称整数范围 $[-7,7]$ 和组内值 $(0.1,0.2,0.3,7)$ 为例，scale 为 1，前三个值都可能舍入成 0。单个离群值决定了整组网格。若拆组，小值可以用更细 scale，但每组都要额外保存元数据；这解释了 group size 的质量—容量折中。
+
+在未被裁剪且普通舍入的区间内，标量重建误差最多约 $s/2$，但网络输出误差还受输入、权重相关性及多层传播影响。逐权重误差小不必然等于任务误差小，所以校准方法会利用激活或曲率信息。
+
 ---
 
 ## 算法与制品格式
+
+GPTQ 近似研究量化某些权重后，如何补偿同一层其余权重以减小输出重建误差；AWQ 关注由激活反映的重要通道并通过缩放改善量化；SmoothQuant 用等价缩放把激活中的量化困难迁移给权重。这是不同误差建模策略，不是三种文件后缀。比较论文结果时需控制校准集、位宽、group 和 kernel。
 
 - GPTQ 是基于近似二阶信息的 post-training weight quantization 方法；
 - AWQ 依据激活观察保护重要权重通道，并配合 weight-only kernel；
@@ -72,9 +80,11 @@ Weight-only 量化在小 batch Decode 中常有机会减少权重带宽；大 ba
 
 CPU 是量化的重要部署目标。llama.cpp、GGML/BLAS 或 PyTorch quantization 可以验证 INT8/INT4 制品、SIMD kernel、内存和质量。报告 CPU 型号、ISA、线程数、NUMA 和量化格式。CPU 结果与 GPU kernel 不直接可比，但可以形成一条完整的低成本推理路线。
 
+---
+
 ## 参考文献
 
-- Frantar, E. et al. (2022). *GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers*.
-- Lin, J. et al. (2023). *AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration*.
-- Xiao, G. et al. (2022). *SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models*.
+- Frantar, E. et al. (2022). [*GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers*](https://arxiv.org/abs/2210.17323).
+- Lin, J. et al. (2023). [*AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration*](https://arxiv.org/abs/2306.00978).
+- Xiao, G. et al. (2022). [*SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models*](https://arxiv.org/abs/2211.10438).
 - [GGUF Specification](https://github.com/ggml-org/ggml/blob/master/docs/gguf.md).

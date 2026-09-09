@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, useId } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
+const labId = useId()
+const fieldId = (name: string) => `${labId}-${name}`
 
 const proposals = ['海', '边', '的', '风', '很', '轻']
 const draftCount = ref(4)
@@ -11,20 +15,20 @@ const tokenStates = computed(() => proposals.slice(0, draftCount.value).map((tok
 })))
 const advancedTokens = computed(() => accepted.value < draftCount.value ? accepted.value + 1 : draftCount.value + 1)
 const savedTargetIterations = computed(() => Math.max(0, advancedTokens.value - 1))
+const resetLab = useLabReset(draftCount, accepted)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">Speculative Decoding 实验台</p>
+	<LearningLab topic="SpeculativeDecodingExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">调整草稿长度与连续接受数，观察一次目标模型验证能把序列推进多少个 token。</p>
 		<div class="infra-controls">
 			<div class="infra-control">
-				<label for="speculative-draft-count">草稿 token 数：{{ draftCount }}</label>
-				<input id="speculative-draft-count" v-model.number="draftCount" type="range" min="1" max="6" step="1">
+				<label :for="fieldId('speculative-draft-count')">草稿 token 数：{{ draftCount }}</label>
+				<input :id="fieldId('speculative-draft-count')" v-model.number="draftCount" type="range" min="1" max="6" step="1">
 			</div>
 			<div class="infra-control">
-				<label for="speculative-accepted">连续接受数：{{ accepted }}</label>
-				<input id="speculative-accepted" v-model.number="accepted" type="range" min="0" :max="draftCount" step="1">
+				<label :for="fieldId('speculative-accepted')">连续接受数：{{ accepted }}</label>
+				<input :id="fieldId('speculative-accepted')" v-model.number="accepted" type="range" min="0" :max="draftCount" step="1">
 			</div>
 		</div>
 		<div class="token-strip" aria-live="polite">
@@ -36,7 +40,7 @@ const savedTargetIterations = computed(() => Math.max(0, advancedTokens.value - 
 			<div class="infra-result"><span>草稿接受比例</span><strong>{{ (accepted / draftCount * 100).toFixed(1) }}%</strong></div>
 		</div>
 		<p class="infra-note">若全部草稿被接受，目标模型还可给出一个额外 token；若中途拒绝，则由目标分布修正该位置。实际收益还取决于草稿成本、验证批次和接受率。</p>
-	</div>
+	</LearningLab>
 </template>
 
 <style scoped>

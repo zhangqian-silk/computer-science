@@ -39,7 +39,7 @@ $$
 
 原始配方选择 15% token，其中 80% 替换为 mask token、10% 替换为随机 token、10% 保持不变。后两种情况减轻预训练只见特殊 mask 的偏差。
 
-双向可见不代表目标位置的答案仍在输入中；被选位置已经被破坏，模型必须利用左右文恢复它。
+双向可见不代表所有目标答案都能从原位置复制：大部分被选位置已被替换。保持不变的 10% 分支确实仍含原 token，所以不能把「被选中」等同于「必定被遮住」；完整混合目标主要训练结合上下文恢复与辨认 token 的能力。
 
 ### 一条 MLM 样本怎样形成
 
@@ -124,17 +124,66 @@ MLM Head 也可以在推理时填补 mask，但多个 mask 位置默认是基于
 | --- | --- | --- |
 | 训练配方 | RoBERTa | 去除 NSP、更多数据、更长训练与动态 mask |
 | 参数共享 | ALBERT | 分解 embedding，跨层共享参数 |
-| 预训练目标 | ELECTRA | 判别哪些 token 被生成器替换 |
+| 预训练目标 | ELECTRA | 判别输入 token 是否仍与原 token 一致 |
 | 位置与解耦 | DeBERTa | 内容与相对位置分开建模 |
 | 句向量 | Sentence-BERT | 双塔与相似度目标 |
 
 这些模型分别修改数据、目标、参数组织或使用接口，并不沿单一「版本号」递增。比较时应明确改动轴，不把训练配方收益误写成架构收益。
 
+### RoBERTa：先排除训练不足，再讨论结构
+
+RoBERTa 保留 BERT 类双向主干，系统研究训练时长、batch、数据规模、动态 mask 和样本组织。动态 mask 允许同一句话在不同访问时产生不同预测位置，而不是永远复用预先固定的一份破坏结果。
+
+「去掉 NSP 后分数更高」不能脱离输入构造理解：随机拼接不相邻文本会同时改变上下文的连贯性。论文通过不同样本形式与训练配方比较说明原始 BERT 存在训练不足空间；不是证明所有句间监督都无效。ALBERT 的句序预测就是另一个监督定义。
+
+### ALBERT：参数复用不等于少执行几层
+
+设词表大小为 $|\mathcal{V}|$，隐藏宽度为 $d_h$。普通输入词嵌入需要 $|\mathcal{V}|d_h$ 个参数。ALBERT 先学习宽度较小的 $d_e$ 维词嵌入，再投影到隐藏空间：
+
+$$
+E\in\mathbb{R}^{|\mathcal{V}|\times d_e},\qquad
+P\in\mathbb{R}^{d_e\times d_h}
+$$
+
+参数量变成 $|\mathcal{V}|d_e+d_ed_h$。以示意配置 $|\mathcal{V}|=30\,000$、$d_h=768$、$d_e=128$ 为例，输入表示从 23,040,000 个参数降到 3,938,304 个；这不是完整模型参数量，也不包含任务头。
+
+跨层参数共享则让多个深度步骤使用相同权重。若一组子层参数为 $\theta$，仍需执行：
+
+$$
+H^{(\ell+1)}=F_\theta(H^{(\ell)})
+$$
+
+每层输入状态不同，计算结果也不同；减少独立参数不等于把多层合成一次前向。权重和优化器状态可以减少，但激活、重复计算和注意力长度成本不会按独立参数比例一起消失。
+
+ALBERT 还研究 Sentence Order Prediction：对来自同一文档的连续片段，区分正确顺序与交换顺序，意图降低只靠主题差异判断 NSP 的捷径。因此「ALBERT 就是共享权重的 BERT」仍遗漏了监督目标的改造。
+
+### ELECTRA：从少量恢复位置到逐位置真伪判别
+
+ELECTRA 先让较小的生成器恢复被遮位置，从其分布采样 token，填回输入得到 $\hat{X}$。判别器输出 $D_i=P(\hat{x}_i=x_i\mid\hat{X})$，对有效位置做二分类：
+
+$$
+r_i=\mathbb{1}[\hat{x}_i=x_i],\qquad
+\mathcal{L}_{\text{RTD}}
+=-\sum_i\left[r_i\log D_i+(1-r_i)\log(1-D_i)\right]
+$$
+
+这里 $r_i$ 的标签依据实际 token 是否等于原文，而不是这个位置是否经过采样。若生成器恰好采回原 token，标签仍为真。生成器接受 MLM 训练，判别器接受 replaced token detection；它不是让生成器以欺骗判别器为目标训练的标准 GAN。
+
+训练后通常保留判别器作为下游编码器。相较 BERT 仅对一部分位置恢复词表标签，RTD 在所有有效位置提供真假信号，改善监督密度；但每位置的二分类与词表恢复不是等量信息，也不能只按监督位置数推算加速倍数。原论文的质量—计算结论来自其控制模型规模、数据和计算预算的实验。
+
+### DeBERTa：位置并非只能先加进内容
+
+原始 BERT 在输入侧相加 token 与绝对位置向量。DeBERTa 将内容与相对位置分开，在注意力打分时分别考虑内容—内容、内容—位置、位置—内容关系。这样可以区分「这个词是什么」与「另一个词相对我在哪里」，而不是从已经相加的向量中隐式恢复两者。
+
+它还在 MLM 预测侧引入绝对位置信息。论文题名中的 enhanced mask decoder 是掩码预测模块，不应误认为整个模型变成了 GPT 式自回归 Decoder-only。更晚的 DeBERTaV3 又引入 ELECTRA 风格目标；讨论「DeBERTa 的训练目标」必须指定版本。
+
+这些变体最后都可返回逐 token 表示。若要做大规模句子检索，还需改变读出、监督或交互接口，而非仅替换主干，见[文本嵌入中的论文改造轴](../representation/text-embedding.md#论文之间的改造轴)。
+
 ---
 
 ## 使用边界
 
-BERT 适合需要完整输入后再判断的任务。它的双向 Attention 不满足从左到右生成的因果约束，若用于生成需要另接 Decoder 或改变 mask 与训练目标。
+BERT 的标准双向编码不直接提供因果逐 token 解码。要获得这类接口通常需改造结构或目标；也可以采用前文的迭代填 MASK 策略，但那是另一种生成协议，不是标准因果语言模型。
 
 主要限制包括：
 
@@ -148,7 +197,9 @@ BERT 适合需要完整输入后再判断的任务。它的双向 Attention 不�
 
 ## 参考文献
 
-- Devlin, J. et al. (2019). *BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding*.
-- Liu, Y. et al. (2019). *RoBERTa: A Robustly Optimized BERT Pretraining Approach*.
-- Clark, K. et al. (2020). *ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators*.
-- He, P. et al. (2021). *DeBERTa: Decoding-enhanced BERT with Disentangled Attention*.
+- Devlin, J. et al. (2019). [*BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding*](https://aclanthology.org/N19-1423/).
+- Liu, Y. et al. (2019). [*RoBERTa: A Robustly Optimized BERT Pretraining Approach*](https://arxiv.org/abs/1907.11692). 训练配方与输入构造的受控比较。
+- Lan, Z. et al. (2020). [*ALBERT: A Lite BERT for Self-supervised Learning of Language Representations*](https://arxiv.org/abs/1909.11942). 输入嵌入分解、跨层共享及句序预测；2019 年预印本，2020 年 ICLR。
+- Clark, K. et al. (2020). [*ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators*](https://arxiv.org/abs/2003.10555). 样本构造、RTD 与计算预算比较。
+- He, P. et al. (2021). [*DeBERTa: Decoding-enhanced BERT with Disentangled Attention*](https://arxiv.org/abs/2006.03654). 内容/位置解耦与掩码解码；2020 年预印本，2021 年 ICLR。
+- He, P. et al. (2021). [*DeBERTaV3: Improving DeBERTa using ELECTRA-Style Pre-Training with Gradient-Disentangled Embedding Sharing*](https://arxiv.org/abs/2111.09543). 说明结构演进与目标演进可组合，不能把 V3 目标倒写进原版。

@@ -1,11 +1,11 @@
 # 稀疏注意力：用连接图控制长序列交互
 
-全局 Self-Attention 让每个位置连接所有位置，形成 $n\times n$ 分数矩阵。稀疏注意力预先或动态选择其中一部分边，只在允许的 query-key 对上计算 Attention。它降低连接数量，也同时改变信息能怎样传播。
+稀疏 Attention 改变哪些 token 之间可以直接交换信息，同时减少允许连接的数量。它与 FlashAttention 的精确分块不同：前者改变数学图，后者主要改变同一图的执行。学习应同时追踪删掉的边、跨层路径和实际 kernel，而非只记复杂度阶数。
 
 <AttentionPatternExplorer />
 
 ::: info 符号与约定
-沿用[数学与符号约定](../foundations/math-notation.md)。$n,d$ 是序列长度与特征维度，$A\in\{0,1\}^{n\times n}$ 是可见性邻接矩阵，$M$ 是由 $A$ 构造的加性 mask；$Q,K,V$ 沿用 Attention 含义；$k$ 是每个 Query 的平均连接数，$w$ 是局部窗口宽度，$L$ 是堆叠层数。
+沿用[数学与符号约定](../foundations/math-notation.md)。$n,d$ 是序列长度与特征维度，$A\in\{0,1\}^{n\times n}$ 是可见性邻接矩阵，$M$ 是由 A 构造的加性 mask；Q/K/V 沿用 Attention 含义；k 是每个 Query 的平均连接数，w 是局部窗口单侧跨度，L 是堆叠层数。
 :::
 
 ---
@@ -37,7 +37,7 @@ $$
 
 | 模式 | 每个位置主要连接 | 适合的依赖 | 风险 |
 | --- | --- | --- | --- |
-| 滑动窗口 | 附近 $w$ 个位置 | 局部连续信号 | 远距传播需多层 |
+| 滑动窗口 | 单侧跨度 w；因果最多 w+1、双向最多 2w+1 个位置（含自身） | 局部连续信号 | 远距传播需多层 |
 | 分块 | 同一块或相邻块 | 段落、patch 分区 | 块边界割裂关系 |
 | 跨步 / 扩张 | 间隔采样的位置 | 更大感受野 | 可能跳过关键局部边 |
 | 全局 token | 少量锚点与所有位置 | 汇总和广播 | 锚点形成带宽瓶颈 |
@@ -66,7 +66,7 @@ $$
 O(nkd)
 $$
 
-当 $k$ 与长度无关时，长度项近似线性；若 $k$ 随 $n$ 增长，收益会相应减弱。局部窗口宽度为 $w$ 时，常写为 $O(nwd)$。
+当 k 与长度无关时，长度项近似线性；k 随 n 增长则收益减弱。此处 w 指单侧跨度，与下文的感受野和交互窗口一致；$w\ge1$ 时写为 $O(nwd)$。
 
 理论边数不能直接代表速度。小而不规则的稀疏操作可能比大块密集矩阵更难利用 GPU。比较方案时应同时报告：
 
@@ -78,6 +78,10 @@ $$
 ---
 
 ## 多层连通性决定表达能力
+
+Longformer 组合局部窗口与任务相关全局位置，BigBird 组合局部、随机和全局连接，并在特定图条件下分析表达性质。理论保证依赖构造假设，不意味着任意随手设置的稀疏 mask 都保留相同能力。
+
+因果模型中，位于序列开头的全局 Key 只能提供它当时看到的内容，不能神奇汇总未来。若让它先读取全部未来再被早期位置读取，就已经产生信息泄漏。双向图中的两跳汇总结论不可无条件移植到因果图。
 
 一层只能沿当前图的边读取信息，多层叠加才形成远距传播。若每层只有半径 $w$ 的局部窗口，$L$ 层后理论感受野约为 $Lw$；但信息还要经过多次非线性与压缩，不等于全局 Attention 的直接连接。
 
@@ -125,6 +129,6 @@ $$
 
 ## 参考文献
 
-- Child, R. et al. (2019). *Generating Long Sequences with Sparse Transformers*.
-- Beltagy, I., Peters, M. E., and Cohan, A. (2020). *Longformer: The Long-Document Transformer*.
-- Zaheer, M. et al. (2020). *Big Bird: Transformers for Longer Sequences*.
+- Child, R. et al. (2019). [*Generating Long Sequences with Sparse Transformers*](https://arxiv.org/abs/1904.10509).
+- Beltagy, I., Peters, M. E., and Cohan, A. (2020). [*Longformer: The Long-Document Transformer*](https://arxiv.org/abs/2004.05150).
+- Zaheer, M. et al. (2020). [*Big Bird: Transformers for Longer Sequences*](https://arxiv.org/abs/2007.14062).

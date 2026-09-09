@@ -1,6 +1,20 @@
 # CUDA、Triton 与 Kernel
 
-Kernel 把 Tensor 级公式映射为线程、内存访问和同步。CUDA C++ 提供直接控制，Triton 用 block program 和编译器抽象表达相同数据并行；二者都需要先证明正确，再通过 profile 证明性能。
+Kernel 是 Tensor 公式的执行实现，不是另一种模型机制。同一个 softmax 可以产生许多不同的线程和访存组织，只要输入输出语义一致。CUDA C++ 侧重线程与硬件原语，Triton 侧重一组元素的张量化程序；二者最终都需要面对地址、归约、资源占用和同步。
+
+---
+
+## 用一行 Softmax 连接公式与实现
+
+对有限输入行 $x_1,\ldots,x_n$，先求 $m=\max_i x_i$，再求 $s=\sum_i e^{x_i-m}$，最后输出 $e^{x_i-m}/s$。减最大值避免指数上溢；并行化的困难在于两个统计量依赖整行，而不是逐元素独立。
+
+若一个 program 负责一行，可以先把该行加载到寄存器中的张量，完成最大值、指数和求和，再写回。长度不是块尺寸整数倍时，加载的额外位置对最大值应等价于 $-\infty$，对指数和应贡献 0；不能默认填 0 后仍得到相同最大值。
+
+但「全被 mask 的行」不是这个推导的合法普通输入：最大值为 $-\infty$ 时，减法会产生非有限值。模型或 kernel 必须明确这种行是否可能出现、若出现应该输出什么；不能用一个随意的 epsilon 掩盖可见性错误。
+
+融合的收益可以按流量估算。若分成多个逐元素 kernel，中间指数向量会写回再读出；保留在片上可以消除这些往返。反例是行很长导致寄存器 spill，或单个 block 过大降低并行度。此时多阶段归约可能优于强行单 kernel。
+
+没有 GPU 时，先写一个高精度 CPU 参考，验证每行和接近 1、输出非负以及整体平移不变。GPU 实验再测真实布局、边界长度和累加精度；不能把参考实现速度当成 CUDA 优化基线。
 
 ---
 
@@ -51,6 +65,8 @@ Kernel 把 Tensor 级公式映射为线程、内存访问和同步。CUDA C++ �
 CPU 可以用 Go、C++、OpenMP、SIMD intrinsics 或 BLAS 实现同一算子，学习 blocking、融合和数据布局。它适合建立 reference kernel，并可验证减少内存往返的方向。Triton 与 CUDA kernel 本身要求支持的加速器，CPU 版本不是相同性能实验。
 
 仓库的编译前后端知识见[经典编译流程](../../../fundamentals/compiler/classic-pipeline.md)与[中间表示和后端](../../../fundamentals/compiler/intermediate-and-backend.md)。
+
+---
 
 ## 参考资料
 

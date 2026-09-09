@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch, useId } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
+const labId = useId()
+const fieldId = (name: string) => `${labId}-${name}`
 
 type Pattern = 'bidirectional' | 'causal' | 'sliding' | 'global'
 
@@ -7,6 +11,10 @@ const pattern = ref<Pattern>('causal')
 const length = ref(7)
 const query = ref(4)
 const windowSize = ref(2)
+watch(length, value => {
+	query.value = Math.min(query.value, value - 1)
+	windowSize.value = Math.min(windowSize.value, value - 1)
+})
 
 const allowed = (row: number, column: number) => {
 	if (pattern.value === 'bidirectional') return true
@@ -18,11 +26,11 @@ const visibleCount = computed(() => Array.from({ length: length.value }, (_, col
 const patternName = computed(() => ({
 	bidirectional: '双向全局', causal: '因果全局', sliding: '因果滑动窗口', global: '因果局部 + 全局 Key'
 })[pattern.value])
+const resetLab = useLabReset(pattern, length, query, windowSize)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">Attention 可见性实验台</p>
+	<LearningLab topic="AttentionPatternExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">矩阵行是 Query，列是 Key；高亮格表示该 Query 可以读取对应 Key。</p>
 		<div class="infra-tabs" role="group" aria-label="Attention 模式">
 			<button type="button" :aria-pressed="pattern === 'bidirectional'" @click="pattern = 'bidirectional'">双向</button>
@@ -31,9 +39,9 @@ const patternName = computed(() => ({
 			<button type="button" :aria-pressed="pattern === 'global'" @click="pattern = 'global'">全局 Key</button>
 		</div>
 		<div class="infra-controls">
-			<div class="infra-control"><label for="attention-length">序列长度：{{ length }}</label><input id="attention-length" v-model.number="length" type="range" min="4" max="10" @input="query = Math.min(query, length - 1)"></div>
-			<div class="infra-control"><label for="attention-query">观察 Query：{{ query }}</label><input id="attention-query" v-model.number="query" type="range" min="0" :max="length - 1"></div>
-			<div v-if="pattern === 'sliding' || pattern === 'global'" class="infra-control"><label for="attention-window">窗口：{{ windowSize }}</label><input id="attention-window" v-model.number="windowSize" type="range" min="1" :max="length - 1"></div>
+			<div class="infra-control"><label :for="fieldId('attention-length')">序列长度：{{ length }}</label><input :id="fieldId('attention-length')" v-model.number="length" type="range" min="4" max="10"></div>
+			<div class="infra-control"><label :for="fieldId('attention-query')">观察 Query：{{ query }}</label><input :id="fieldId('attention-query')" v-model.number="query" type="range" min="0" :max="length - 1"></div>
+			<div v-if="pattern === 'sliding' || pattern === 'global'" class="infra-control"><label :for="fieldId('attention-window')">窗口：{{ windowSize }}</label><input :id="fieldId('attention-window')" v-model.number="windowSize" type="range" min="1" :max="length - 1"></div>
 		</div>
 		<div class="attention-matrix" :style="{ '--matrix-size': length }" role="img" :aria-label="`${patternName}可见性矩阵，Query ${query} 可读取 ${visibleCount} 个位置`">
 			<template v-for="row in length" :key="row">
@@ -50,7 +58,7 @@ const patternName = computed(() => ({
 			<div class="infra-result"><span>Query {{ query }} 可读取</span><strong>{{ visibleCount }} / {{ length }} 个位置</strong></div>
 		</div>
 		<p class="infra-note">稀疏模式减少的是连接集合；只有 kernel 和数据布局真正跳过被屏蔽连接时，理论稀疏才可能转化为性能收益。</p>
-	</div>
+	</LearningLab>
 </template>
 
 <style scoped>

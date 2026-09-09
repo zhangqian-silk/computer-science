@@ -1,6 +1,6 @@
 # AI Infra 岗位能力路线
 
-本页把知识、源码、实验和作品映射到岗位证据。文档可以建立完整知识面，但岗位胜任还需要在真实代码和目标硬件上形成可复现结果；仅阅读页面不构成性能工程经验。
+本页把学习深度分成解释、实现和验证三层。能够解释状态与公式是基础，能够修改一条执行路径是实践，能够用目标 workload 证明质量与性能才是岗位证据。这里是课程能力地图，不是对所有团队岗位要求的统一声明。
 
 ---
 
@@ -96,7 +96,7 @@
 
 ## 岗位要求参考
 
-能力矩阵参考了当前公开岗位中反复出现的要求：模型推理岗位强调 PyTorch、NVIDIA GPU、CUDA/NCCL、高速互联、延迟/吞吐、分布式系统与可观测性；训练性能岗位还强调分片、Collective、Checkpoint、数据 I/O 和容错训练循环。Serving 平台方向则更重视部署编排、发布、容量与事件响应。岗位描述会变化，求职前仍应核对目标团队的当前职责。
+下列岗位页面仅作外部阅读线索，未在本轮核验是否仍开放；不作为当前招聘结论。选择方向时应读目标团队的实际职责，并把每条要求映射为可以展示的代码、运行记录或诊断报告。推理、训练与平台共享基础，但深入的接口不同。
 
 - OpenAI. [Software Engineer, Model Inference](https://openai.com/careers/software-engineer-model-inference-san-francisco/).
 - OpenAI. [Training Performance Engineer](https://openai.com/careers/training-performance-engineer-san-francisco/).

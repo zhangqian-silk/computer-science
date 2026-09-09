@@ -1,10 +1,16 @@
 # 后训练 Runtime
 
-后训练仍建立在 Transformer 训练与推理之上，但不同算法会额外引入参考模型、奖励模型、生成 worker、经验数据和多阶段同步。系统设计应从算法需要的数据流出发，而不是把 RLHF 简化成另一种 loss。
+后训练改变了监督与数据生成方式，因此也改变执行系统。SFT 消费给定回答，DPO 消费偏好对和参考概率，在线策略优化还需要生成、评分与版本同步。不能把所有过程统称为「再跑一遍微调」，也不能仅因有奖励就断言需要同一套 RL 架构。
 
 ---
 
 ## 工作负载类型
+
+对一个偏好对 $(x,y^+,y^-)$，DPO 会比较策略与参考模型的序列对数概率差。序列概率是回答 token 的对数概率求和，padding 和 prompt 的 loss mask 必须一致；否则比较可能反映模板和长度处理差异，而非偏好本身。参考分数可在固定参考权重和固定预处理下预计算，但换任一版本后旧分数不再兼容。
+
+在线 rollout 还应保存生成时策略版本、必要的旧 log-prob、终止原因和有效 token mask。训练器不能仅凭回答文本重建当时策略概率；拿新权重重算得到的是另一分布。
+
+Ouyang 等人的工作展示监督微调、奖励建模和策略优化的组合；Rafailov 等人的 DPO 将特定偏好优化问题改写为直接训练目标；DeepSeekMath 的 GRPO 用同题样本组构造相对信号。这些贡献分别改变监督流程、目标推导和优势估计，不能仅按「需要几个模型」判断算法等价。
 
 | 阶段 | 主要计算 | 额外状态或服务 |
 | --- | --- | --- |
@@ -19,6 +25,8 @@ SFT 的系统形态最接近预训练。DPO 增加成对序列和参考概率。
 ---
 
 ## 生成—训练闭环
+
+若生成端每秒产出 $r_g$ 个可用回答，训练端每秒消费 $r_t$ 个，长期 $r_g>r_t$ 会积累队列与版本陈旧度，反之训练器等待。增加 worker 前先测验收过滤后的可用率；生成 token 多不代表有效训练样本多。有限批次同步可以用明确的停顿换取容易解释的版本边界。
 
 ```mermaid
 flowchart LR
@@ -53,8 +61,10 @@ flowchart LR
 
 小模型可以在 CPU 上验证 SFT、DPO loss、rollout 数据结构、版本字段和队列背压。在线 RL 的系统拓扑也可用 mock model 模拟。真实生成与训练吞吐、低精度 kernel 和多 GPU 权重同步仍需 GPU 环境。
 
+---
+
 ## 参考文献
 
-- Ouyang, L. et al. (2022). *Training Language Models to Follow Instructions with Human Feedback*.
-- Rafailov, R. et al. (2023). *Direct Preference Optimization*.
-- Shao, Z. et al. (2024). *DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models*.
+- Ouyang, L. et al. (2022). [*Training Language Models to Follow Instructions with Human Feedback*](https://arxiv.org/abs/2203.02155).
+- Rafailov, R. et al. (2023). [*Direct Preference Optimization*](https://arxiv.org/abs/2305.18290).
+- Shao, Z. et al. (2024). [*DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models*](https://arxiv.org/abs/2402.03300).

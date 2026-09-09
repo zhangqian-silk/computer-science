@@ -31,6 +31,119 @@
 	box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
 }
 
+/* Learning instruments share one visual grammar; the surrounding site is unchanged. */
+.learning-lab {
+	--lab-accent: var(--vp-c-brand-1);
+	border-radius: 8px;
+	border-top: 1px solid var(--vp-c-divider);
+	padding: 0;
+	background: var(--vp-c-bg);
+	box-shadow: none;
+	overflow: hidden;
+}
+.learning-lab__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1.15rem 1.25rem;
+	border-bottom: 1px solid var(--vp-c-divider);
+}
+.learning-lab__eyebrow {
+	display: block;
+	color: var(--vp-c-text-2);
+	font-size: .72rem;
+	letter-spacing: .06em;
+}
+.VPDoc .learning-lab__header h3 {
+	margin: .3rem 0 0;
+	font-size: 1.12rem;
+	line-height: 1.5;
+	border: 0;
+	padding: 0;
+}
+.learning-lab button:focus-visible,
+.learning-lab input:focus-visible,
+.learning-lab select:focus-visible {
+	outline: 2px solid var(--lab-accent);
+	outline-offset: 3px;
+}
+.learning-lab__reset {
+	flex-shrink: 0;
+	padding: .45rem .65rem;
+	min-height: 44px;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 5px;
+	font-size: .75rem;
+	color: var(--vp-c-text-2);
+	cursor: pointer;
+}
+.learning-lab__reset:hover { border-color: var(--lab-accent); color: var(--lab-accent); }
+.VPDoc .learning-lab__question {
+	margin: 0;
+	padding: .8rem 1.25rem;
+	background: var(--vp-c-bg-soft);
+	font-size: .9rem;
+	line-height: 1.65;
+	border-left: 3px solid var(--lab-accent);
+}
+.learning-lab__question span {
+	display: block;
+	color: var(--lab-accent);
+	font-size: .72rem;
+	font-weight: 600;
+}
+.learning-lab__body { padding: 1.15rem 1.25rem; min-width: 0; }
+.learning-lab .infra-lab__hint { margin-top: 0; line-height: 1.7; }
+.learning-lab .infra-controls { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); }
+.learning-lab .infra-control { border: 0; padding: .45rem 0; background: transparent; }
+.learning-lab .infra-control label { color: var(--vp-c-text-1); }
+.learning-lab .infra-control input:not([type='range']),
+.learning-lab .infra-control select { min-height: 44px; border: 1px solid var(--vp-c-divider); padding: .45rem; border-radius: 5px; }
+.learning-lab .infra-result { border-radius: 4px; background: var(--vp-c-bg-soft); border: 0; border-left: 2px solid var(--vp-c-divider); }
+.learning-lab .infra-result strong { font-variant-numeric: tabular-nums; font-size: 1rem; line-height: 1.6; }
+.learning-lab .infra-bar > i { background: var(--lab-accent); }
+.learning-lab__footer { border-top: 1px solid var(--vp-c-divider); }
+.learning-lab__footer > button {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	min-height: 48px;
+	padding: .7rem 1.25rem;
+	font-size: .85rem;
+	font-weight: 600;
+	text-align: left;
+	cursor: pointer;
+}
+.learning-lab__footer > button:hover { background: var(--vp-c-bg-soft); }
+.learning-lab__answer { padding: 0 1.25rem 1rem; font-size: .88rem; line-height: 1.8; }
+.learning-lab__boundary { color: var(--vp-c-text-2); }
+.learning-lab table { display: block; overflow-x: auto; font-variant-numeric: tabular-nums; }
+.learning-lab .infra-tabs { flex-wrap: wrap; }
+.learning-lab .infra-tabs button { min-height: 44px; }
+.learning-lab .lab-equation { overflow-x: auto; padding: .7rem; background: var(--vp-c-bg-soft); font-family: var(--vp-font-family-mono); font-size: .8rem; }
+.dark .learning-lab,
+.dark .learning-map {
+	--vp-c-brand-1: #94baff;
+	--vp-c-brand-2: #bad2ff;
+	--vp-c-brand-3: #4879d2;
+}
+@media (max-width: 640px) {
+	.infra-lab.learning-lab { padding: 0; }
+	.learning-lab__header { align-items: start; }
+	.learning-lab__header, .learning-lab__body { padding: .85rem; }
+	.VPDoc .learning-lab__question { padding: .65rem .85rem; }
+	.learning-lab__answer { padding-inline: .85rem; }
+	.learning-lab .infra-controls:has(> .infra-control:nth-child(3)) {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		overflow: visible;
+	}
+	.learning-lab .infra-tabs { flex-wrap: wrap; overflow: visible; }
+	.learning-lab .infra-results { grid-template-columns: 1fr; }
+}
+
 .infra-lab__title {
 	margin: 0 0 0.35rem;
 	font-weight: 700;

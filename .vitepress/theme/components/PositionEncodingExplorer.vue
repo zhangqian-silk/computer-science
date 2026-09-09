@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from "vue"
+import LearningLab from "./LearningLab.vue"
+import { useLabReset } from "../use-lab-reset"
+const labId = useId()
+const fieldId = (name: string) => `${labId}-${name}`
 
 type PositionMethod = 'sinusoidal' | 'relative' | 'rope' | 'alibi'
 
@@ -15,6 +19,8 @@ const slope = ref(0.2)
 const distance = computed(() => keyPosition.value - queryPosition.value)
 const queryAngle = computed(() => queryPosition.value * frequency.value)
 const keyAngle = computed(() => keyPosition.value * frequency.value)
+const queryDisplayAngle = computed(() => method.value === "sinusoidal" ? queryAngle.value - Math.PI / 2 : -queryAngle.value)
+const keyDisplayAngle = computed(() => method.value === "sinusoidal" ? keyAngle.value - Math.PI / 2 : -keyAngle.value)
 const relativeDot = computed(() => Math.cos(distance.value * frequency.value))
 const alibiAllowed = computed(() => keyPosition.value <= queryPosition.value)
 const alibiBias = computed(() => alibiAllowed.value ? -slope.value * Math.abs(distance.value) : null)
@@ -24,11 +30,11 @@ const methodSummary = computed(() => ({
 	rope: '旋转 Q/K，使点积依赖相位差',
 	alibi: '按距离在线性 score 上施加惩罚'
 })[method.value])
+const resetLab = useLabReset(method, queryPosition, keyPosition, frequency, slope)
 </script>
 
 <template>
-	<div class="infra-lab">
-		<p class="infra-lab__title">位置表示实验台</p>
+	<LearningLab topic="PositionEncodingExplorer" @reset="resetLab">
 		<p class="infra-lab__hint">改变两个位置，观察绝对角度、相对位移和 Attention score 修正之间的区别。</p>
 		<div class="infra-tabs" role="group" aria-label="位置表示方法">
 			<button type="button" :aria-pressed="method === 'sinusoidal'" @click="method = 'sinusoidal'">正弦余弦</button>
@@ -37,25 +43,25 @@ const methodSummary = computed(() => ({
 			<button type="button" :aria-pressed="method === 'alibi'" @click="method = 'alibi'">ALiBi</button>
 		</div>
 		<div class="infra-controls">
-			<div class="infra-control"><label for="position-query">Query 位置：{{ queryPosition }}</label><input id="position-query" v-model.number="queryPosition" type="range" min="0" max="16"></div>
-			<div class="infra-control"><label for="position-key">Key 位置：{{ keyPosition }}</label><input id="position-key" v-model.number="keyPosition" type="range" min="0" max="16"></div>
-			<div v-if="method === 'sinusoidal' || method === 'rope'" class="infra-control"><label for="position-frequency">示例频率：{{ frequency.toFixed(2) }}</label><input id="position-frequency" v-model.number="frequency" type="range" min="0.1" max="1.5" step="0.05"></div>
-			<div v-if="method === 'alibi'" class="infra-control"><label for="alibi-slope">斜率：{{ slope.toFixed(2) }}</label><input id="alibi-slope" v-model.number="slope" type="range" min="0.05" max="1" step="0.05"></div>
+			<div class="infra-control"><label :for="fieldId('position-query')">Query 位置：{{ queryPosition }}</label><input :id="fieldId('position-query')" v-model.number="queryPosition" type="range" min="0" max="16"></div>
+			<div class="infra-control"><label :for="fieldId('position-key')">Key 位置：{{ keyPosition }}</label><input :id="fieldId('position-key')" v-model.number="keyPosition" type="range" min="0" max="16"></div>
+			<div v-if="method === 'sinusoidal' || method === 'rope'" class="infra-control"><label :for="fieldId('position-frequency')">示例频率：{{ frequency.toFixed(2) }}</label><input :id="fieldId('position-frequency')" v-model.number="frequency" type="range" min="0.1" max="1.5" step="0.05"></div>
+			<div v-if="method === 'alibi'" class="infra-control"><label :for="fieldId('alibi-slope')">斜率：{{ slope.toFixed(2) }}</label><input :id="fieldId('alibi-slope')" v-model.number="slope" type="range" min="0.05" max="1" step="0.05"></div>
 		</div>
 		<div v-if="method === 'sinusoidal' || method === 'rope'" class="angle-stage" aria-label="二维位置相位">
-			<div class="angle-vector query-vector" :style="{ transform: `rotate(${queryAngle}rad)` }"><span>Q</span></div>
-			<div class="angle-vector key-vector" :style="{ transform: `rotate(${keyAngle}rad)` }"><span>K</span></div>
+			<div class="angle-vector query-vector" :style="{ transform: `rotate(${queryDisplayAngle}rad)` }"><span>Q</span></div>
+			<div class="angle-vector key-vector" :style="{ transform: `rotate(${keyDisplayAngle}rad)` }"><span>K</span></div>
 		</div>
 		<div class="infra-results">
 			<div class="infra-result"><span>相对位移 K − Q</span><strong>{{ distance }}</strong></div>
 			<div class="infra-result"><span>注入方式</span><strong>{{ methodSummary }}</strong></div>
 			<div v-if="method === 'rope'" class="infra-result"><span>单位向量旋转后点积</span><strong>cos(Δθ) = {{ relativeDot.toFixed(3) }}</strong></div>
 			<div v-if="method === 'sinusoidal'" class="infra-result"><span>当前位置二维坐标</span><strong>[{{ Math.sin(keyAngle).toFixed(2) }}, {{ Math.cos(keyAngle).toFixed(2) }}]</strong></div>
-			<div v-if="method === 'relative'" class="infra-result"><span>偏置索引</span><strong>b({{ distance }})</strong></div>
+			<div v-if="method === 'relative'" class="infra-result"><span>偏置索引 Q − K（与正文一致）</span><strong>b({{ -distance }})</strong></div>
 			<div v-if="method === 'alibi'" class="infra-result"><span>Score 偏置</span><strong>{{ alibiBias === null ? '未来 Key：先被因果 mask 屏蔽' : alibiBias.toFixed(2) }}</strong></div>
 		</div>
-		<p class="infra-note">二维频率只用于展示相位；真实正弦位置和 RoPE 会并行使用多组频率。位置可计算不等于超出训练长度后仍能正确利用。</p>
-	</div>
+		<p class="infra-note">正弦图展示 [sin θ, cos θ] 坐标；RoPE 图以两个原始向量都为 [1, 0] 的特殊情形展示逆时针旋转。真实多频得分仍依赖内容，位置可计算不等于有效外推。</p>
+	</LearningLab>
 </template>
 
 <style scoped>

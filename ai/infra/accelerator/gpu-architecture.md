@@ -1,6 +1,23 @@
 # GPU 执行与存储层级
 
-GPU 通过大量并行线程隐藏运算和内存等待。一个 kernel 是否高效，不只取决于总 FLOPs，还取决于线程如何成组执行、数据是否合并访问、工作集放在哪一层存储，以及每个 SM 能同时驻留多少工作。
+GPU 将一个张量操作拆成大量工作块，由多个 SM 并发执行。它擅长的不是「单条线程比 CPU 更快」，而是让许多可并行工作在计算和等待之间交替推进。本页以 NVIDIA CUDA 的执行概念为基线，不把具体代际的资源上限当作通用规格；先理解[Tensor 布局](../../foundations/tensor-and-memory.md)，再把地址与线程对应起来。
+
+---
+
+## 一次矩阵乘如何落到设备
+
+设 $A\in\mathbb{R}^{m\times k}$、$B\in\mathbb{R}^{k\times n}$，输出元素 $C_{ij}=\sum_{r=1}^{k}A_{ir}B_{rj}$。若每个线程只负责一个输出，并独自从显存读取整条 A 行和 B 列，相邻输出会反复读取相同数据。
+
+分块计算的关键是让一个 block 负责 $C$ 的一个 tile：
+
+1. 共同把相应 A/B 子块从设备内存搬到片上；
+2. 在需要的位置同步，保证消费者读到完整子块；
+3. 每个线程或线程组在寄存器中累加自己的输出片段；
+4. 沿 $k$ 维继续加载、累加，最后写回结果。
+
+这里复用的是数据，不是跳过必要乘法。较大 tile 可以增加复用，却同时增加寄存器、Shared Memory 和边界处理；大到驻留 block 过少时，可能反而无法隐藏访存等待。
+
+「局部变量」也不等于「寄存器变量」。寄存器不足时可能 spill 到 local memory；CUDA 的 local 指线程私有地址空间，物理访问仍可能经过设备内存。读 profile 时不能把 local memory 当成片上 Shared Memory。
 
 ---
 
@@ -32,7 +49,7 @@ flowchart TB
 | Register | thread | 最快、容量有限 | 标量、中间累加 |
 | Shared Memory | block | 软件管理、低延迟 | tile 复用、归约 |
 | L1/L2 Cache | SM/设备 | 硬件缓存 | 重用 global load |
-| HBM/Global Memory | 设备 | 容量大、延迟高 | 权重、激活、KV cache |
+| Global Memory | 设备地址空间 | 通常由 HBM 或 GDDR 等设备内存承载 | 权重、激活、KV cache |
 | Host Memory | CPU | 经 PCIe/NVLink 访问 | 输入、权重 staging、offload |
 
 高效 kernel 通常把 HBM 数据分块搬入 Shared Memory 或寄存器，在片上多次复用后再写回。若每个元素只做少量运算便被丢弃，性能更可能受内存带宽限制。
@@ -66,6 +83,10 @@ Occupancy 描述一个 SM 上活跃 Warp 相对上限的比例。寄存器、Sha
 CPU 的对应概念是 core、hardware thread、SIMD、cache line、L1/L2/L3 与 NUMA。CPU 通常用少量强核和大 cache 优化低延迟与复杂控制流；GPU 用更多执行单元优化规则数据并行。
 
 无 GPU 时可以在 CPU 上研究 cache blocking、SIMD、线程扩展和 NUMA，但不能据此推断 Warp 分歧、Shared Memory 或 Tensor Core 行为。
+
+能解释硬件层次后，下一步应计算每个输出需要的 FLOPs 和跨存储层字节数，进入[性能模型](./performance-model.md)；只有确认数据复用与瓶颈，才能在 [Kernel](./cuda-and-kernels.md) 中合理选择分块。
+
+---
 
 ## 参考资料
 

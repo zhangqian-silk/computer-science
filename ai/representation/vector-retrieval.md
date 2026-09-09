@@ -1,6 +1,6 @@
 # 向量检索：从 Embedding 到候选文档
 
-向量检索把文本、图像或其他对象编码为向量，再从大规模集合中找出相似候选。Embedding 只提供打分空间；一个可用检索系统还要处理索引、过滤、更新、重排与延迟预算。
+向量检索解决「在给定打分空间里寻找候选」，不保证找到的就是能回答问题的证据。编码器决定语义关系，索引近似决定漏掉哪些近邻，权限过滤与重排再改变最终集合。评估应拆开这些误差，而不是只报告一个 Recall。
 
 ::: info 符号与约定
 沿用[数学与符号约定](../foundations/math-notation.md)。$q,x_i\in\mathbb{R}^d$ 分别是查询向量与第 $i$ 个候选向量，$N$ 是候选总数，$K$ 是返回数量，$s(q,x_i)$ 是相似度；$\operatorname{TopK}_{\mathrm{exact}}$ 与 $\operatorname{TopK}_{\mathrm{ANN}}$ 分别表示精确搜索和近似搜索的前 $K$ 个结果集合。
@@ -20,6 +20,12 @@ flowchart LR
 ---
 
 ## 精确搜索与 ANN
+
+HNSW 的基本思路是在多层邻接图中先粗后细寻找接近查询的节点，搜索宽度控制探索多少候选；IVF 先把向量分到粗聚类单元，查询时只探测部分单元；PQ 则把向量拆为子空间并用小码本近似，重点减少存储和距离计算。
+
+它们改变的对象不同：图索引改变遍历路径，倒排聚类改变候选区域，量化改变向量或距离近似，可以组合但不是同一种算法。扩宽搜索通常增加成本并提高与精确 Top-K 的一致度，仍不能修复编码器把正确证据排得很低的问题。
+
+若精确搜索把相关文档排到 100 名外，提高 ANN 对精确排序的复现度不能保证将它送进 Top-10。近似误差可能偶然返回它，但不应依赖误差修复语义排序。精确排名良好而 ANN 漏掉时，才应优先调整索引。
 
 给定查询 $q\in\mathbb{R}^{d}$ 与 $N$ 个候选向量，精确搜索计算：
 
@@ -73,6 +79,8 @@ $$
 ---
 
 ## 过滤、更新与分块
+
+先取全局 Top-10 再按权限过滤，可能只剩一条；先限制授权候选再检索，目标集合不同。可通过扩大候选再过滤或索引级过滤实现，但需要测过滤选择率与召回，不能靠泄露未授权候选来调试。
 
 真实查询常带租户、权限、时间、语言或文档类型条件。过滤发生在 ANN 之前、之中还是之后，会影响召回和延迟；先召回再过滤可能导致最终候选不足。
 
@@ -149,6 +157,6 @@ flowchart LR
 
 ## 参考文献
 
-- Malkov, Y. A., and Yashunin, D. A. (2020). *Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs*.
-- Johnson, J., Douze, M., and Jégou, H. (2019). *Billion-scale Similarity Search with GPUs*.
-- Khattab, O., and Zaharia, M. (2020). *ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT*.
+- Malkov, Y. A., and Yashunin, D. A. (2020). [*Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs*](https://arxiv.org/abs/1603.09320).
+- Johnson, J., Douze, M., and Jégou, H. (2019). [*Billion-scale Similarity Search with GPUs*](https://arxiv.org/abs/1702.08734).
+- Khattab, O., and Zaharia, M. (2020). [*ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT*](https://arxiv.org/abs/2004.12832).
