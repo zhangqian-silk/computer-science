@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "model": {
+    "provider": "set-me",
+    "model": "set-me",
+    "timeout_seconds": 30,
+    "max_transport_retries": 0
+  },
+  "context": {
+    "output_reserve_tokens": 2048,
+    "tool_result_policy": "store_full_send_preview",
+    "require_source_revision": true
+  },
+  "execution": {
+    "max_model_steps": 12,
+    "tool_concurrency": 4,
+    "non_idempotent_retry": "reconcile",
+    "unattended_approval": "pause"
+  },
+  "evaluation": {
+    "trusted_suite": "set-me",
+    "model_judge_is_final_authority": false
+  },
+  "notes": "教学配置；不是任何产品原生配置，数值仅为实验起点，不是建议默认值。"
+}

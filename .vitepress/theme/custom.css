@@ -474,3 +474,84 @@
 		margin-top: 0.7rem;
 	}
 }
+
+/* Agent 开发笔记的 SVG 结构图使用 --diagram-* 变量着色；此处提供浅/深色两套取值，
+   使导入的图示与站点主题一致。取值沿用笔记包 reader.css 的调色板。 */
+:root {
+	--diagram-bg: #fff;
+	--diagram-host: #f3f5f7;
+	--diagram-model: #eaf2fb;
+	--diagram-model-stroke: #36678e;
+	--diagram-tool: #faf6ed;
+	--diagram-tool-stroke: #9a8458;
+	--diagram-ink: #24313e;
+	--diagram-muted: #596677;
+	--diagram-edge: #657485;
+	--diagram-stroke: #7e8794;
+	--diagram-line: #cbd2da;
+	--diagram-active: #146957;
+	--diagram-active-fill: #e1f3ec;
+}
+
+.dark {
+	--diagram-bg: #19232d;
+	--diagram-host: #263440;
+	--diagram-model: #263e52;
+	--diagram-model-stroke: #88adce;
+	--diagram-tool: #343329;
+	--diagram-tool-stroke: #b3a475;
+	--diagram-ink: #e1e8ef;
+	--diagram-muted: #b7c6d5;
+	--diagram-edge: #99acbc;
+	--diagram-stroke: #8a9aa8;
+	--diagram-line: #526171;
+	--diagram-active: #9ce3ca;
+	--diagram-active-fill: #284d42;
+}
+
+/* Agent 笔记结构图的响应式排版：
+   - 竖版流程图（单次生成、工具执行、Workflow、Agent Loop）在桌面端限制宽度并居中，避免铺满整幅、被迫上下滚动；
+   - 宽版图（模型交互、多轮对话、多 Agent）在桌面端使用横向布局，在窄屏切换为移动端竖排重排图，保证文字可读。 */
+.notes-figure {
+	margin: 1.5rem 0;
+}
+
+.notes-figure p {
+	margin: 0;
+	text-align: center;
+}
+
+.notes-figure img {
+	display: inline-block;
+	height: auto;
+	max-width: 100%;
+}
+
+.notes-figure--portrait img {
+	width: 100%;
+	max-width: 480px;
+}
+
+.notes-figure--wide img {
+	width: 100%;
+	max-width: 820px;
+}
+
+/* 宽版图默认显示桌面版（第一张），隐藏移动版（第二张） */
+.notes-figure--wide p:nth-of-type(2) {
+	display: none;
+}
+
+@media (max-width: 640px) {
+	.notes-figure--wide p:nth-of-type(1) {
+		display: none;
+	}
+
+	.notes-figure--wide p:nth-of-type(2) {
+		display: block;
+	}
+
+	.notes-figure--wide img {
+		max-width: 420px;
+	}
+}

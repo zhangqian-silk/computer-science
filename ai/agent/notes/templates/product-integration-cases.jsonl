@@ -1,0 +1,16 @@
+{"id": "truncated-arguments", "topic": "模型响应", "injection": "工具参数未完成就断流", "expected": "工具执行次数为 0", "status": "未联调"}
+{"id": "approval-mutation", "topic": "工具网关", "injection": "审批后参数/工具版本/策略版本改变", "expected": "重新审批或拒绝", "status": "未联调"}
+{"id": "cancel-during-tool", "topic": "执行环境", "injection": "运行工具期间取消", "expected": "不再派发新工作；已启动工作可查询", "status": "未联调"}
+{"id": "unknown-write", "topic": "恢复", "injection": "远端成功、本地回执前断线", "expected": "查询对账，不盲重试", "status": "未联调"}
+{"id": "stream-vs-final", "topic": "可观测性", "injection": "终态到达而清理阻塞", "expected": "终态不被静默超时覆盖", "status": "未联调"}
+{"id": "context-cut", "topic": "上下文", "injection": "压缩边界落在 call/result 中间", "expected": "拒绝候选压缩或移动边界", "status": "未联调"}
+{"id": "old-revision", "topic": "检索", "injection": "索引版本落后于工作区", "expected": "检测差异并刷新证据", "status": "未联调"}
+{"id": "missing-worker", "topic": "多 Agent", "injection": "一个工作者返回 null", "expected": "覆盖验证失败，不默默丢弃", "status": "未联调"}
+{"id": "cache-cold-warm", "topic": "缓存", "injection": "相同输入冷/暖与前缀变更", "expected": "记录原始usage与质量，不假设命中", "status": "未联调"}
+{"id": "mcp-versions", "topic": "协议", "injection": "新旧协议宿主组合", "expected": "显式探测支持，不静默丢配置", "status": "未联调"}
+{"id": "late-generation", "topic": "调度", "injection": "失去租约工作者迟到写入", "expected": "资源侧拒绝旧资格", "status": "未联调"}
+{"id": "tenant-boundary", "topic": "安全", "injection": "相同问题但不同资源权限", "expected": "检索、缓存、Memory均不串租户", "status": "未联调"}
+{"id": "plugin-live-upgrade", "topic": "扩展", "injection": "在途工具绑定时替换插件", "expected": "旧请求语义明确，旧清理不删新实例", "status": "未联调"}
+{"id": "native-resume", "topic": "会话", "injection": "原生会话不存在或不可重放", "expected": "区分失效与暂时传输故障", "status": "未联调"}
+{"id": "first-token-stall", "topic": "调度", "injection": "模型推理长时间无用户文本", "expected": "不把无文本简单等同死锁", "status": "未联调"}
+{"id": "log-injection", "topic": "观测", "injection": "工具输出伪造终态事件", "expected": "日志数据不改变权威状态", "status": "未联调"}
