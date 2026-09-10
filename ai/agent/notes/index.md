@@ -20,9 +20,9 @@ LLM 应用可以只调用一次模型，也可以由程序组织多个步骤，�
 
 ### 1.1 输入组成
 
-**任务与指令**包括 System／Developer 指令、User Query、约束和输出要求。**资料与状态**包括用户材料、RAG 检索片段、相关历史及已有工具结果。**能力说明**描述模型可以提出的动作，例如工具用途与参数、Skill 的发现信息和已加载正文。它们是逻辑分类，不是所有 API 都具有的同名字段。
+输入分为四类：**指令**是 System／Developer 指令，**任务**是用户问题与要求，**资料**是附件、RAG 与相关历史，**能力**是工具说明与 Skill 内容。这四类都由程序选择、组织与授权，是逻辑分类，不是所有 API 都具有的同名字段。
 
-工具描述不会执行函数，Skill 正文不会自动取得权限。MCP 是程序连接外部工具、资源等能力的协议，不是一种与 system／user 并列的消息角色。它发现的工具说明、读取的资料，可以由宿主选择后放入请求。详见 [模型接口](model/llm-api.md)、[上下文工程](context/context-engineering.md)、[Skills](tools/skills.md) 与 [MCP](tools/mcp-connectors.md)。[[2]](references.md#source-openai-functions) [[40]](references.md#source-skills-spec)
+工具描述不会执行函数，Skill 正文不会自动取得权限。MCP 是程序连接外部工具、资源等能力的协议，不是一种与 system／user 并列的消息角色。它发现的工具说明、读取的资料，可以由宿主选择后放入请求。[[2]](references.md#source-openai-functions) [[40]](references.md#source-skills-spec)
 
 ### 1.2 输出处理
 
@@ -48,7 +48,7 @@ if response.status != "completed":
 print(response.output_text)
 ```
 
-这个例子没有声明工具，只取出文本。含工具或多类型条目的请求需要使用完整响应处理，见 [模型输出与结构化结果](model/outputs.md)。传输层的重试与后续 Agent 步骤不是同一个概念。
+这个例子没有声明工具，只取出文本。含工具或多类型条目的请求需要使用完整响应处理。传输层的重试与后续 Agent 步骤不是同一个概念。
 
 </details>
 
@@ -56,7 +56,7 @@ print(response.output_text)
 
 ## 2. 控制流程
 
-以下四图比较的是**应用怎样安排后续动作**，不是四个互斥的产品类型，也不是成熟度排名。单次生成和单次工具执行可以看作很小的预定义流程；复杂系统也可以在 Workflow 的一个节点中运行 Agent。多轮对话与多 Agent 分别讨论信息连续性和执行者组织，放在下一节。[[3]](references.md#source-anthropic-agents)
+以下四图比较的是**应用怎样安排后续动作**，不是四个互斥的产品类型，也不是成熟度排名。单次生成和单次工具执行可以看作很小的预定义流程；复杂系统也可以在 Workflow 的一个节点中运行 Agent。多轮对话与多 Agent 分别讨论信息连续性和执行者组织。[[3]](references.md#source-anthropic-agents)
 
 图中矩形表示程序处理，圆角蓝色节点表示模型调用，虚线边框节点表示工具执行；菱形表示分支，横条表示并行分派或汇合，**返回上游的箭头表示观察反馈**。各图展示一种典型实现，实际调用次数以执行路径为准。
 
@@ -115,7 +115,7 @@ Workflow 也可以包含程序规定的重试、校验与循环；有循环、�
 
 **控制主体**：模型依据观察提出下一步，程序保留权限、预算和停止边界。**结果去向**：进入下一次模型输入。**示例**：订单信息不足时进一步查询物流，再根据实际结果决定是否需要更多信息。
 
-Agent 可以第一步直接回答，也可以多次使用工具。图中的“核对与交付”不代表存在万能验证器；代码修改、事实问答与普通聊天需要不同的完成检查。详见 [ReAct 与 Agent Loop](control/react-loop.md)、[评测与故障注入](runtime/evaluation.md)。
+Agent 可以第一步直接回答，也可以多次使用工具。图中的“核对与交付”不代表存在万能验证器；代码修改、事实问答与普通聊天需要不同的完成检查。
 
 <!-- mode-comparison:end -->
 
@@ -147,11 +147,11 @@ Agent 可以第一步直接回答，也可以多次使用工具。图中的“�
 
 </div>
 
-保存的消息历史、本轮发送的上下文、结构化任务状态、长期记忆和 KV Cache 分属不同职责。前四者处理信息的保存与使用，KV Cache 处理模型计算的复用；会话能继续，不意味着缓存一定命中。主页面为 [会话状态与长期记忆](context/conversation-memory.md)、[上下文工程](context/context-engineering.md)、[KV Cache 与请求缓存](model/kv-cache.md)。
+保存的消息历史、本轮发送的上下文、结构化任务状态、长期记忆和 KV Cache 分属不同职责。前四者处理信息的保存与使用，KV Cache 处理模型计算的复用；会话能继续，不意味着缓存一定命中。
 
 ### 3.2 多 Agent：执行者的组织
 
-多 Agent 描述如何分配任务、上下文和结果，而不是第五种固定的控制流程。下面的两个工作者分别拥有自己的上下文和执行循环；这与“同一轮并行执行两个工具”不同。协调者可以是预定义程序，也可以是一个主 Agent。[Subagent 与多 Agent 协作](control/subagents-multi-agent.md) 负责委派契约、所有权、通信和集成。[[3]](references.md#source-anthropic-agents)
+多 Agent 描述如何分配任务、上下文和结果，而不是第五种固定的控制流程。下面的两个工作者分别拥有自己的上下文和执行循环；这与“同一轮并行执行两个工具”不同。协调者可以是预定义程序，也可以是一个主 Agent。[[3]](references.md#source-anthropic-agents)
 
 <div class="notes-figure notes-figure--wide">
 

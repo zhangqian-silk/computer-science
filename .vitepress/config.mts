@@ -277,7 +277,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{
 				text: '推理 Runtime',
 				link: '/ai/infra/inference/',
-				collapsed: false,
+				collapsed: true,
 				items: [
 					{ text: '请求生命周期', link: '/ai/infra/inference/request-lifecycle' },
 					{ text: 'Prefill 与 Decode', link: '/ai/infra/inference/prefill-decode' },

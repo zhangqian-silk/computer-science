@@ -1,6 +1,6 @@
 # KV Cache 与请求缓存
 
-缓存复用的是计算或结果，不是模型对用户的长期记忆。这里区分模型内部 KV、跨请求前缀复用、供应商计费缓存和应用结果缓存；输入内容怎样选择见 [Context Engineering](../context/context-engineering.md)，持久业务状态见 [Memory](../context/conversation-memory.md)。
+缓存复用的是计算或结果，不是模型对用户的长期记忆。这里区分模型内部 KV、跨请求前缀复用、供应商计费缓存和应用结果缓存。
 
 ## KV Cache 的复用原理
 
