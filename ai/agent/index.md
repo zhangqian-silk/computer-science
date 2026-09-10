@@ -238,6 +238,22 @@ Agent 会把模型的不确定输出转化为真实动作，因此风险主要�
 
 ---
 
+## 开发笔记：从原理到实现
+
+本页给出概念框架，[LLM 应用与 Agent 总览](./notes/index.md)在此之上展开从模型交互到运行系统的实现细节，按职责分为五组专题：
+
+| 专题 | 覆盖内容 | 入口页 |
+| --- | --- | --- |
+| 模型交互 | 一次请求的输入、输出、协议与计算复用 | [LLM API 与消息接口](./notes/model/llm-api.md) |
+| 上下文与记忆 | 信息的选择、检索、保存、召回和压缩 | [上下文工程](./notes/context/context-engineering.md) |
+| 工具与能力扩展 | 从能力描述到实际执行与扩展生命周期 | [工具调用与执行网关](./notes/tools/tool-calling.md) |
+| 控制流程与协作 | Workflow、ReAct、规划、委派与动态编排 | [Workflow 与流程控制](./notes/control/workflows.md) |
+| 运行系统与质量 | 持续运行、恢复、调度、安全、评测与调优 | [Harness 架构与接口](./notes/runtime/harness-architecture.md) |
+
+工程落地可从[产品实现索引](./notes/implementation-index.md)按项目反查专题，用[代码示例与实验](./notes/labs.md)核对实现不变量，并在[参考资料](./notes/references.md)确认来源与版本范围。
+
+---
+
 ## 参考文献
 
 - Yao, S. et al. (2023). [*ReAct: Synergizing Reasoning and Acting in Language Models*](https://arxiv.org/abs/2210.03629).

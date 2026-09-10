@@ -1,0 +1,296 @@
+{
+  "interaction": {
+    "width": 900,
+    "height": 320,
+    "title": "单次模型交互",
+    "description": "程序组织输入并发起模型请求。响应中可以同时包含文本或结构化内容、推理相关条目和工具调用；实际执行由程序负责。",
+    "nodes": [
+      "model"
+    ],
+    "edges": [
+      "request",
+      "response"
+    ]
+  },
+  "mode-direct": {
+    "width": 520,
+    "height": 620,
+    "title": "单次生成",
+    "description": "程序提供已有资料，调用一次模型，处理文本或结构化结果后结束。图中没有工具执行，也没有返回模型的反馈边。",
+    "nodes": [
+      "format",
+      "input",
+      "model",
+      "return"
+    ],
+    "edges": [
+      "answer",
+      "ask",
+      "deliver"
+    ]
+  },
+  "mode-tool": {
+    "width": 520,
+    "height": 620,
+    "title": "单次工具执行",
+    "description": "模型只负责选择一个工具和参数。程序按调用名称分派至一个已授权工具，执行后直接返回，不把结果再次发给模型。两条工具路径是互斥选择，不是并行。",
+    "nodes": [
+      "dispatch",
+      "input",
+      "model",
+      "order",
+      "return",
+      "shipment"
+    ],
+    "edges": [
+      "ask",
+      "choose-order",
+      "choose-shipment",
+      "propose",
+      "return-order",
+      "return-shipment"
+    ]
+  },
+  "mode-workflow": {
+    "width": 520,
+    "height": 650,
+    "title": "预定义工作流",
+    "description": "代码规定抽取订单号、校验、并行查询订单与时效、汇总生成的流程。订单号无效时走预定义澄清分支；独立的两个工具可以并行。分支、并行与重试不意味着自主 Agent。",
+    "nodes": [
+      "clarify",
+      "extract",
+      "fork",
+      "input",
+      "join",
+      "order",
+      "sla",
+      "summarize",
+      "valid"
+    ],
+    "edges": [
+      "ask",
+      "check",
+      "deliver",
+      "fork-a",
+      "fork-b",
+      "join-a",
+      "join-b",
+      "no",
+      "summarize",
+      "yes"
+    ]
+  },
+  "mode-agent": {
+    "width": 520,
+    "height": 650,
+    "title": "观察驱动循环",
+    "description": "模型依据当前上下文提出动作，程序解析响应。工具调用经校验执行后形成新观察，反馈给下一次模型调用；答复提议进入程序验证与交付。模型可以首轮直接作答，也可以重复工具反馈循环。",
+    "nodes": [
+      "context",
+      "finish",
+      "kind",
+      "model",
+      "observe",
+      "tool"
+    ],
+    "edges": [
+      "candidate",
+      "decision",
+      "end",
+      "feedback",
+      "observe",
+      "request",
+      "tool-call"
+    ]
+  },
+  "conversation": {
+    "width": 900,
+    "height": 462,
+    "title": "多轮对话与历史续接",
+    "description": "每轮由用户的新输入触发。第一轮响应被保存为历史，第二轮构造输入时选择相关历史。历史在轮次间传递不等于程序自动启动下一轮。",
+    "nodes": [
+      "c1",
+      "c2",
+      "history",
+      "m1",
+      "m2",
+      "u1",
+      "u2"
+    ],
+    "edges": [
+      "c1-m1",
+      "c2-m2",
+      "history-c2",
+      "reply",
+      "save",
+      "u1-c1",
+      "u2-c2"
+    ]
+  },
+  "multi-agent": {
+    "width": 900,
+    "height": 525,
+    "title": "多 Agent 的并行委派",
+    "description": "协调者向两个具有独立上下文的 Agent 委派工作，每个 Agent 内部可以运行自己的模型与工具反馈循环。最终由协调程序汇总结果并验证；控制者可以是固定程序或主 Agent。",
+    "nodes": [
+      "a-model",
+      "a-tool",
+      "b-model",
+      "b-tool",
+      "coordinator",
+      "integrate"
+    ],
+    "edges": [
+      "a-call",
+      "a-feedback",
+      "b-call",
+      "b-feedback",
+      "delegate-a",
+      "delegate-b",
+      "result-a",
+      "result-b"
+    ]
+  },
+  "mode-direct-preview": {
+    "width": 440,
+    "height": 260,
+    "title": "单次生成：无反馈边",
+    "description": "输入交给一次模型调用，输出由程序处理并返回。",
+    "nodes": [
+      "input",
+      "model",
+      "return"
+    ],
+    "edges": [
+      "ask",
+      "deliver"
+    ]
+  },
+  "mode-tool-preview": {
+    "width": 440,
+    "height": 300,
+    "title": "单次工具执行：按名称选一条工具路径",
+    "description": "模型输出工具名称和参数，程序选择一个工具执行，直接返回。",
+    "nodes": [
+      "dispatch",
+      "model",
+      "order",
+      "shipment"
+    ],
+    "edges": [
+      "a",
+      "b",
+      "propose",
+      "ra",
+      "rb"
+    ]
+  },
+  "mode-workflow-preview": {
+    "width": 440,
+    "height": 335,
+    "title": "Workflow：预定义分支与并行",
+    "description": "程序预先定义校验分支、工具并行与汇总节点，模型不逐轮决定后续路径。",
+    "nodes": [
+      "clarify",
+      "extract",
+      "fork",
+      "join",
+      "order",
+      "sla",
+      "summarize",
+      "valid"
+    ],
+    "edges": [
+      "check",
+      "fa",
+      "fb",
+      "ja",
+      "jb",
+      "no",
+      "sum",
+      "yes"
+    ]
+  },
+  "mode-agent-preview": {
+    "width": 440,
+    "height": 335,
+    "title": "Agent Loop：观察反馈形成闭环",
+    "description": "工具执行产生新观察，沿左侧反馈边返回上下文，再由模型提出下一步。答复提议走右侧交付分支。",
+    "nodes": [
+      "context",
+      "finish",
+      "kind",
+      "model",
+      "tool"
+    ],
+    "edges": [
+      "action",
+      "candidate",
+      "decision",
+      "feedback",
+      "request"
+    ]
+  },
+  "interaction-mobile": {
+    "width": 420,
+    "height": 682,
+    "title": "单次模型交互",
+    "description": "输入、一次模型调用和响应内容纵向排列，适合窄屏。",
+    "nodes": [
+      "model"
+    ],
+    "edges": [
+      "request",
+      "response"
+    ]
+  },
+  "conversation-mobile": {
+    "width": 420,
+    "height": 670,
+    "title": "多轮对话与历史续接",
+    "description": "两轮都由用户输入触发，历史只为第二轮提供信息，不自动发起下一轮。",
+    "nodes": [
+      "c1",
+      "c2",
+      "history",
+      "m1",
+      "m2",
+      "return",
+      "u1",
+      "u2"
+    ],
+    "edges": [
+      "c1-m1",
+      "c2-m2",
+      "history",
+      "return",
+      "save",
+      "u1-c1",
+      "u2-c2"
+    ]
+  },
+  "multi-agent-mobile": {
+    "width": 420,
+    "height": 762,
+    "title": "多 Agent 的并行委派",
+    "description": "主程序或主 Agent 向两个独立上下文中的 Agent 分派工作。两个框上下排列仅适应手机屏幕，不表示串行。左右外围连接线表示分派和汇总。",
+    "nodes": [
+      "a-model",
+      "a-tool",
+      "b-model",
+      "b-tool",
+      "coordinator",
+      "integrate"
+    ],
+    "edges": [
+      "a-call",
+      "a-feedback",
+      "b-call",
+      "b-feedback",
+      "delegate-a",
+      "delegate-b",
+      "result-a",
+      "result-b"
+    ]
+  }
+}

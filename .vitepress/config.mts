@@ -332,7 +332,78 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 	},
 	{
 		text: 'Agent 系统',
-		link: '/ai/agent/'
+		link: '/ai/agent/',
+		collapsed: false,
+		items: [
+			{ text: 'LLM 应用与 Agent 总览', link: '/ai/agent/notes/' },
+			{
+				text: '模型交互',
+				collapsed: true,
+				items: [
+					{ text: 'LLM API 与消息接口', link: '/ai/agent/notes/model/llm-api' },
+					{ text: '模型输出与结构化结果', link: '/ai/agent/notes/model/outputs' },
+					{ text: '流式响应与模型适配', link: '/ai/agent/notes/model/streaming' },
+					{ text: 'KV Cache 与请求缓存', link: '/ai/agent/notes/model/kv-cache' }
+				]
+			},
+			{
+				text: '上下文与记忆',
+				collapsed: true,
+				items: [
+					{ text: '提示工程（Prompt Engineering）', link: '/ai/agent/notes/context/prompt-engineering' },
+					{ text: '上下文工程（Context Engineering）', link: '/ai/agent/notes/context/context-engineering' },
+					{ text: 'RAG 与代码检索', link: '/ai/agent/notes/context/rag-retrieval' },
+					{ text: '会话状态与长期记忆', link: '/ai/agent/notes/context/conversation-memory' },
+					{ text: '上下文压缩', link: '/ai/agent/notes/context/compaction' }
+				]
+			},
+			{
+				text: '工具与能力扩展',
+				collapsed: true,
+				items: [
+					{ text: '工具调用与执行网关', link: '/ai/agent/notes/tools/tool-calling' },
+					{ text: '文件、进程与浏览器环境', link: '/ai/agent/notes/tools/execution-environments' },
+					{ text: 'MCP 与外部连接器', link: '/ai/agent/notes/tools/mcp-connectors' },
+					{ text: 'Skills 与操作知识加载', link: '/ai/agent/notes/tools/skills' },
+					{ text: 'Hooks、Plugins 与扩展管理', link: '/ai/agent/notes/tools/hooks-plugins' }
+				]
+			},
+			{
+				text: '控制流程与协作',
+				collapsed: true,
+				items: [
+					{ text: 'Workflow 与流程控制', link: '/ai/agent/notes/control/workflows' },
+					{ text: 'ReAct 与 Agent Loop', link: '/ai/agent/notes/control/react-loop' },
+					{ text: 'Reasoning、Planning 与计划修订', link: '/ai/agent/notes/control/reasoning-planning' },
+					{ text: 'Subagent 与多 Agent 协作', link: '/ai/agent/notes/control/subagents-multi-agent' },
+					{ text: 'Dynamic Workflows 与代码编排', link: '/ai/agent/notes/control/dynamic-workflows' }
+				]
+			},
+			{
+				text: '运行系统与质量',
+				collapsed: true,
+				items: [
+					{ text: 'Harness 架构与接口', link: '/ai/agent/notes/runtime/harness-architecture' },
+					{ text: '人工交互与执行控制', link: '/ai/agent/notes/runtime/human-control' },
+					{ text: '持久化与故障恢复', link: '/ai/agent/notes/runtime/persistence-recovery' },
+					{ text: '任务调度与 Agent 接入', link: '/ai/agent/notes/runtime/scheduling-protocols' },
+					{ text: '安全与权限边界', link: '/ai/agent/notes/runtime/security' },
+					{ text: '可观测性与故障诊断', link: '/ai/agent/notes/runtime/observability' },
+					{ text: '评测与故障注入', link: '/ai/agent/notes/runtime/evaluation' },
+					{ text: '性能、成本与模型路由', link: '/ai/agent/notes/runtime/performance-cost' },
+					{ text: '版本管理与发布', link: '/ai/agent/notes/runtime/versioning-release' }
+				]
+			},
+			{
+				text: '资料与实验',
+				collapsed: true,
+				items: [
+					{ text: '产品实现索引', link: '/ai/agent/notes/implementation-index' },
+					{ text: '代码示例与实验', link: '/ai/agent/notes/labs' },
+					{ text: '参考资料', link: '/ai/agent/notes/references' }
+				]
+			}
+		]
 	}
 ]
 
@@ -351,7 +422,12 @@ export default withMermaid(
 		base: `/${repoName}/`,
 		lastUpdated: true,
 		cleanUrls: true,
-		srcExclude: ['**/AGENTS.md'],
+		srcExclude: [
+			'**/AGENTS.md',
+			// Agent 笔记的参考代码与模板按源码方式保留（可在 GitHub 浏览），不作为站点页面构建
+			'**/ai/agent/notes/examples/**',
+			'**/ai/agent/notes/templates/**'
+		],
 		ignoreDeadLinks: [
 			/^https?:\/\//
 		],
