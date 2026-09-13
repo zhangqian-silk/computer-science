@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" role="img" aria-labelledby="interaction-title interaction-desc" data-diagram="interaction">
+<title id="interaction-title">单次模型交互</title><desc id="interaction-desc">程序组织输入并发起模型请求。响应中可以同时包含文本或结构化内容、推理相关条目和工具调用；实际执行由程序负责。</desc><style>
+svg{font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+.bg{fill:var(--diagram-bg,#fff)}
+.node .shape{fill:var(--diagram-host,#f3f5f7);stroke:var(--diagram-stroke,#7e8794);stroke-width:1.5}
+.node--model .shape{fill:var(--diagram-model,#eaf2fb);stroke:var(--diagram-model-stroke,#36678e);stroke-width:1.8}
+.node--tool .shape{fill:var(--diagram-tool,#faf6ed);stroke:var(--diagram-tool-stroke,#9a8458);stroke-width:1.5;stroke-dasharray:5 3}
+.node .label{fill:var(--diagram-ink,#24313e);font-weight:550;font-size:20px}
+.node .role{fill:var(--diagram-muted,#596677);font-size:13px;letter-spacing:.6px}
+.edge path{fill:none;stroke:var(--diagram-edge,#657485);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.edge .edge-label{fill:var(--diagram-muted,#596677);font-size:16px;paint-order:stroke;stroke:var(--diagram-bg,#fff);stroke-width:5px;stroke-linejoin:round}
+.note{fill:var(--diagram-muted,#596677);font-size:15px}
+.lane{fill:var(--diagram-bg,#fff);stroke:var(--diagram-line,#cbd2da);stroke-width:1.4;stroke-dasharray:6 4}
+.lane-title{fill:var(--diagram-ink,#24313e);font-size:19px;font-weight:600}
+.bar{fill:var(--diagram-edge,#657485)}
+.node.is-visited .shape{stroke:var(--diagram-active,#146957);stroke-width:2.2}
+.node.is-current .shape{fill:var(--diagram-active-fill,#e1f3ec);stroke:var(--diagram-active,#146957);stroke-width:3.5}
+.edge.is-visited path{stroke:var(--diagram-active,#146957);stroke-width:3}
+.edge.is-current path{stroke:var(--diagram-active,#146957);stroke-width:3.8}
+</style><defs><marker id="interaction-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,4 L0,8 Z" fill="var(--diagram-edge,#657485)"/></marker></defs><rect class="bg" width="900" height="320"/><rect class="lane" x="15" y="30" width="270" height="258" rx="7"/><text class="lane-title" x="33" y="59" text-anchor="start" >请求输入</text><text class="note" x="35" y="96" text-anchor="start" >指令：System / Developer</text><text class="note" x="35" y="134" text-anchor="start" >任务：用户问题与要求</text><text class="note" x="35" y="172" text-anchor="start" >资料：附件、RAG、历史</text><text class="note" x="35" y="210" text-anchor="start" >能力：工具说明、Skill 内容</text><text class="note" x="150" y="262" text-anchor="middle" >由程序选择、组织与授权</text><g class="node node--model" data-node="model" id="interaction-node-model"><rect class="shape" x="340" y="104" width="188" height="106" rx="15"/><text class="role" x="434.0" y="124" text-anchor="middle">LLM</text><text class="label" style="font-size:20px" x="434.0" y="172.2" text-anchor="middle">一次模型调用</text></g><rect class="lane" x="585" y="30" width="300" height="258" rx="7"/><text class="lane-title" x="603" y="59" text-anchor="start" >响应内容</text><text class="note" x="605" y="96" text-anchor="start" >文本与结构化结果 → 展示或校验</text><text class="note" x="605" y="145" text-anchor="start" >推理相关条目 → 按接口保留</text><text class="note" x="605" y="194" text-anchor="start" >工具调用 → 程序校验并执行</text><text class="note" x="735" y="262" text-anchor="middle" >完整性与结束状态需要另行判断</text><g class="edge" data-edge="request" id="interaction-edge-request"><path d="M285 158 H340" marker-end="url(#interaction-arrow)"/></g><g class="edge" data-edge="response" id="interaction-edge-response"><path d="M528 158 H585" marker-end="url(#interaction-arrow)"/></g></svg>
