@@ -343,7 +343,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 				text: '上下文管理与优化',
 				collapsed: true,
 				items: [
-					{ text: '上下文组织、存取与选择', link: '/ai/agent/notes/context/context-engineering' },
+					{ text: 'Prompt and Context', link: '/ai/agent/notes/context/context-engineering' },
 					{ text: 'RAG 与代码检索', link: '/ai/agent/notes/context/rag-retrieval' },
 					{ text: '长期记忆', link: '/ai/agent/notes/context/conversation-memory' },
 					{ text: '上下文压缩', link: '/ai/agent/notes/context/compaction' }

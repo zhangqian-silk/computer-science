@@ -5,7 +5,7 @@
 | 主题 | 主要来源 |
 | --- | --- |
 | 模型交互 | [消息](#source-openai-text)、[工具](#source-openai-functions)、[提示](#source-openai-prompt)、[图片](#source-openai-image-input) |
-| 上下文 | [上下文工程](#source-anthropic-context)、[RAG](#source-rag-paper)、[记忆](#source-langgraph-memory) |
+| 上下文 | [上下文工程](#source-anthropic-context)、[RAG](#source-rag-paper)、[记忆](#source-langgraph-memory)、[长上下文失效](#source-breunig-longctx) |
 | 工具与扩展 | [工具设计](#source-anthropic-tools)、[MCP 版本化架构](#source-mcp-architecture-202511)、[Skills](#source-skills-spec) |
 | 流程方法 | [Workflow 与 Agent](#source-anthropic-agents)、[ReAct](#source-react-paper) |
 | 运行时 | [长任务](#source-anthropic-long-harness)、[恢复](#source-langgraph-persistence)、[中断](#source-langgraph-interrupts) |
@@ -1103,3 +1103,17 @@
 - [Tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
 
 阅读范围：Host、Client、Server 的职责，资源、工具和提示的区分，以及工具能力声明和用户控制。已读取架构主体与工具规范的概述、交互及能力部分；连接会话的说明只适用于该版本。
+
+---
+
+<a id="source-breunig-longctx"></a>
+
+## [78] Drew Breunig：How Long Contexts Fail
+
+来源类型：作者工程分析/社区综述。核验日期：2026-09-13。在线文章未固定源码提交。
+
+[Drew Breunig：How Long Contexts Fail](https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html)
+
+阅读范围：长上下文的四种失效模式——上下文中毒、干扰、混淆、冲突——的命名与定义，以及裁剪、摘要、工具收敛等应对方向。文中以 Gemini 玩 Pokémon 的目标中毒、工具过多导致选择困难等公开案例说明各模式。
+
+访问状态：经检索片段核验 URL 与四类定义，用于组织教学判断；这是诊断分类而非完备性证明，不作为上游实现契约。
