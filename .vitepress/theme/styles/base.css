@@ -69,6 +69,34 @@
 	}
 }
 
+/* 模式流程图：桌面端使用横向概览版，窄屏切换为纵向详版，兼顾 PC 与移动端 */
+.notes-figure--mode img {
+	width: 100%;
+	height: auto;
+}
+
+.notes-figure--mode p:nth-of-type(1) img {
+	max-width: 600px;
+}
+
+.notes-figure--mode p:nth-of-type(2) {
+	display: none;
+}
+
+.notes-figure--mode p:nth-of-type(2) img {
+	max-width: 430px;
+}
+
+@media (max-width: 640px) {
+	.notes-figure--mode p:nth-of-type(1) {
+		display: none;
+	}
+
+	.notes-figure--mode p:nth-of-type(2) {
+		display: block;
+	}
+}
+
 /* 尊重系统的「减少动态效果」设置 */
 @media (prefers-reduced-motion: reduce) {
 	.infra-lab *,

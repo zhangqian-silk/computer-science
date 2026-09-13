@@ -15,7 +15,7 @@ Agent 系统以模型交互为基础，把外部资料、工具操作和多步�
 | [Agent 运行时与工程化](notes/runtime/harness-architecture.md) | 程序组成、生命周期、人工控制、恢复、调度与安全 |
 | [评测、可观测性与优化](notes/quality/evaluation.md) | 标准、实验、Trace、性能成本、回归与发布 |
 
-[学习总览与完整阅读目录](notes/index.md)给出前置关系；[练习与实验](notes/labs.md)提供消息构造、过程推演和数据比较。
+[学习总览](notes/index.md)讲清从单次生成到多 Agent 的各种执行范式；[练习与实验](notes/labs.md)提供消息构造、过程推演和数据比较。
 
 ---
 
