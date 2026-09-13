@@ -82,9 +82,9 @@ const resetLab = useLabReset(algo, rate, capacity)
 
 <style scoped>
 .rl-grid { display: grid; grid-template-columns: 48px repeat(var(--cols), 1fr); gap: 3px; margin: .8rem 0; overflow-x: auto; }
-.rl-label { font-size: .72rem; color: var(--vp-c-text-3); display: flex; align-items: center; }
-.rl-cell { text-align: center; padding: .3rem 0; font-size: .8rem; background: var(--vp-c-bg-soft); border-radius: 4px; font-variant-numeric: tabular-nums; }
-.rl-pass { background: var(--vp-c-green-soft); color: var(--vp-c-green-1); }
-.rl-reject { background: var(--vp-c-danger-soft); color: var(--vp-c-danger-1); }
-.rl-level { background: var(--vp-c-brand-soft); color: var(--vp-c-brand-1); }
+.rl-label { font-size: var(--cs-text-2xs); color: var(--cs-color-text-subtle); display: flex; align-items: center; }
+.rl-cell { text-align: center; padding: .3rem 0; font-size: var(--cs-text-sm); background: var(--cs-color-bg-soft); border-radius: var(--cs-radius-xs); font-variant-numeric: tabular-nums; }
+.rl-pass { background: var(--cs-color-success-soft); color: var(--cs-color-success); }
+.rl-reject { background: var(--cs-color-danger-soft); color: var(--cs-color-danger); }
+.rl-level { background: var(--cs-color-brand-soft); color: var(--cs-color-brand); }
 </style>

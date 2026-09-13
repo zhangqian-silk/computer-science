@@ -5,6 +5,7 @@ import texmath from 'markdown-it-texmath'
 import katex from 'katex'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { installAgentArchive } from './agent-archive.mjs'
+import { csThemeInlineScript } from './theme/theme-registry'
 
 const repoName = 'computer-science'
 
@@ -438,8 +439,12 @@ export default withMermaid(
 		base: `/${repoName}/`,
 		lastUpdated: true,
 		cleanUrls: true,
+		// 首屏同步写入 data-cs-theme，避免默认主题先绘制一帧再切换造成闪烁
+		head: [['script', {}, csThemeInlineScript]],
 		srcExclude: [
 			'**/AGENTS.md',
+			// 面向贡献者的工程文档，与 CONTRIBUTING.md 同类，不作为站点页面构建
+			'docs/**',
 			// Agent 笔记的参考代码与模板按源码方式保留（可在 GitHub 浏览），不作为站点页面构建
 			'**/ai/agent/notes/examples/**',
 			'**/ai/agent/notes/templates/**',

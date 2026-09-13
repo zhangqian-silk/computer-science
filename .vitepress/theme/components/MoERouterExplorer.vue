@@ -50,9 +50,9 @@ const resetLab = useLabReset(topK, capacityFactor, skew)
 </template>
 
 <style scoped>
-.expert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .55rem; margin-top: .9rem; }
-.expert-card { padding: .65rem; border: 1px solid var(--vp-c-divider); border-radius: 8px; background: var(--vp-c-bg); }
-.expert-card span, .expert-card small { display: block; color: var(--vp-c-text-2); font-size: .75rem; }
-.expert-card strong { display: block; margin: .15rem 0; color: var(--vp-c-text-1); }
+.expert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--cs-space-3); margin-top: .9rem; }
+.expert-card { padding: .65rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-md); background: var(--cs-color-bg); }
+.expert-card span, .expert-card small { display: block; color: var(--cs-color-text-muted); font-size: var(--cs-text-xs); }
+.expert-card strong { display: block; margin: .15rem 0; color: var(--cs-color-text); }
 @media (max-width: 640px) { .expert-grid { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); } }
 </style>

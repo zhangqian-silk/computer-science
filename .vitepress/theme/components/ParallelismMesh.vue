@@ -38,8 +38,8 @@ const resetLab = useLabReset(dp, tp, pp, ep)
 </template>
 
 <style scoped>
-.mesh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: .45rem; margin-top: .9rem; }
-.mesh-cell { padding: .5rem; border: 1px solid var(--vp-c-divider); border-radius: 7px; background: var(--vp-c-bg); text-align: center; }
-.mesh-cell strong, .mesh-cell span { display: block; font-size: .78rem; }
-.mesh-cell span { color: var(--vp-c-text-2); }
+.mesh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: var(--cs-space-3); margin-top: .9rem; }
+.mesh-cell { padding: .5rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-sm); background: var(--cs-color-bg); text-align: center; }
+.mesh-cell strong, .mesh-cell span { display: block; font-size: var(--cs-text-xs); }
+.mesh-cell span { color: var(--cs-color-text-muted); }
 </style>

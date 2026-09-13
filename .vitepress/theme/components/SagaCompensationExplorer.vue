@@ -56,15 +56,15 @@ const resetLab = useLabReset(failStep)
 </template>
 
 <style scoped>
-.saga-track { list-style: none; padding: 0; margin: 1rem 0; display: flex; flex-direction: column; gap: .4rem; }
-.saga-track li { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; padding: .5rem .6rem; border: 1px solid var(--vp-c-divider); border-left-width: 3px; border-radius: 6px; background: var(--vp-c-bg); }
-.saga-track li strong { font-size: .85rem; font-weight: 500; }
-.saga-state { font-size: .74rem; padding: .1rem .5rem; border-radius: 999px; background: var(--vp-c-default-soft); color: var(--vp-c-text-2); }
-.saga-track li em { font-size: .78rem; color: var(--vp-c-warning-1); font-style: normal; }
-.s-ok { border-left-color: var(--vp-c-green-1); }
-.s-ok .saga-state { background: var(--vp-c-green-soft); color: var(--vp-c-green-1); }
-.s-fail { border-left-color: var(--vp-c-danger-1); }
-.s-fail .saga-state { background: var(--vp-c-danger-soft); color: var(--vp-c-danger-1); }
-.s-compensated { border-left-color: var(--vp-c-warning-1); }
+.saga-track { list-style: none; padding: 0; margin: 1rem 0; display: flex; flex-direction: column; gap: var(--cs-space-2); }
+.saga-track li { display: flex; align-items: center; gap: var(--cs-space-4); flex-wrap: wrap; padding: .5rem .6rem; border: 1px solid var(--cs-color-border); border-left-width: 3px; border-radius: var(--cs-radius-sm); background: var(--cs-color-bg); }
+.saga-track li strong { font-size: var(--cs-text-sm); font-weight: 500; }
+.saga-state { font-size: var(--cs-text-xs); padding: .1rem .5rem; border-radius: var(--cs-radius-pill); background: var(--cs-color-neutral-soft); color: var(--cs-color-text-muted); }
+.saga-track li em { font-size: var(--cs-text-xs); color: var(--cs-color-warning); font-style: normal; }
+.s-ok { border-left-color: var(--cs-color-success); }
+.s-ok .saga-state { background: var(--cs-color-success-soft); color: var(--cs-color-success); }
+.s-fail { border-left-color: var(--cs-color-danger); }
+.s-fail .saga-state { background: var(--cs-color-danger-soft); color: var(--cs-color-danger); }
+.s-compensated { border-left-color: var(--cs-color-warning); }
 .s-skip { opacity: .5; }
 </style>

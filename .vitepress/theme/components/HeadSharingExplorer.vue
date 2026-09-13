@@ -49,8 +49,8 @@ const resetLab = useLabReset(queryHeads, kvHeads, layers, sequenceLength, headDi
 </template>
 
 <style scoped>
-.head-map { display: flex; flex-wrap: wrap; gap: .35rem; margin: .9rem 0; }
-.head-map span { padding: .25rem .45rem; border: 1px solid color-mix(in srgb, var(--vp-c-brand-1) 35%, var(--vp-c-divider)); border-radius: 6px; background: var(--vp-c-bg); font-size: .72rem; }
+.head-map { display: flex; flex-wrap: wrap; gap: var(--cs-space-2); margin: .9rem 0; }
+.head-map span { padding: .25rem .45rem; border: 1px solid color-mix(in srgb, var(--cs-color-brand) 35%, var(--cs-color-border)); border-radius: var(--cs-radius-sm); background: var(--cs-color-bg); font-size: var(--cs-text-2xs); }
 @media (max-width: 640px) {
 	.head-map { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .25rem; }
 	.head-map span { flex: 0 0 auto; }

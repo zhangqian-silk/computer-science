@@ -32,8 +32,8 @@ const resetLab = useLabReset(ax, ay, bx, by)
 		</div>
 		<svg class="vector-plane" viewBox="0 0 220 220" role="img" :aria-label="`向量 A 和 B，余弦相似度 ${cosineText}`">
 			<defs>
-				<marker :id="fieldId('arrow-a')" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--vp-c-brand-1)" /></marker>
-				<marker :id="fieldId('arrow-b')" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--vp-c-green-1)" /></marker>
+				<marker :id="fieldId('arrow-a')" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--cs-color-brand)" /></marker>
+				<marker :id="fieldId('arrow-b')" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--cs-color-success)" /></marker>
 			</defs>
 			<line x1="20" y1="110" x2="200" y2="110" class="axis" />
 			<line x1="110" y1="20" x2="110" y2="200" class="axis" />
@@ -52,13 +52,13 @@ const resetLab = useLabReset(ax, ay, bx, by)
 </template>
 
 <style scoped>
-.vector-plane { display: block; width: min(100%, 260px); margin: .9rem auto; border: 1px solid var(--vp-c-divider); border-radius: 10px; background: var(--vp-c-bg); }
-.axis { stroke: var(--vp-c-divider); stroke-width: 1; }
+.vector-plane { display: block; width: min(100%, 260px); margin: .9rem auto; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-md); background: var(--cs-color-bg); }
+.axis { stroke: var(--cs-color-border); stroke-width: 1; }
 .vector { stroke-width: 4; stroke-linecap: round; }
-.vector-a { stroke: var(--vp-c-brand-1); }
-.vector-b { stroke: var(--vp-c-green-1); }
+.vector-a { stroke: var(--cs-color-brand); }
+.vector-b { stroke: var(--cs-color-success); }
 .label-a, .label-b { font-size: 12px; font-weight: 700; text-anchor: middle; }
-.label-a { fill: var(--vp-c-brand-1); }
-.label-b { fill: var(--vp-c-green-1); }
+.label-a { fill: var(--cs-color-brand); }
+.label-b { fill: var(--cs-color-success); }
 @media (max-width: 640px) { .vector-plane { width: min(100%, 220px); } }
 </style>

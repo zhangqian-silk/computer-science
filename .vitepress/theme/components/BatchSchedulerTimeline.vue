@@ -30,10 +30,10 @@ const resetLab = useLabReset(mode, shortLength)
 
 <style scoped>
 .timeline { margin-top: .9rem; overflow-x: auto; }
-.timeline-row { display: grid; grid-template-columns: 60px repeat(var(--rounds), minmax(36px, 1fr)); gap: .3rem; margin-bottom: .3rem; align-items: center; }
-.timeline-row strong { font-size: .78rem; }
-.cell { padding: .35rem; border-radius: 5px; text-align: center; background: var(--vp-c-default-soft); }
-.cell-P { background: var(--vp-c-brand-soft); color: var(--vp-c-brand-1); }
-.cell-D { background: var(--vp-c-green-soft); color: var(--vp-c-green-1); }
-.cell-等 { color: var(--vp-c-text-3); }
+.timeline-row { display: grid; grid-template-columns: 60px repeat(var(--rounds), minmax(36px, 1fr)); gap: var(--cs-space-2); margin-bottom: .3rem; align-items: center; }
+.timeline-row strong { font-size: var(--cs-text-xs); }
+.cell { padding: .35rem; border-radius: var(--cs-radius-sm); text-align: center; background: var(--cs-color-neutral-soft); }
+.cell-P { background: var(--cs-color-brand-soft); color: var(--cs-color-brand); }
+.cell-D { background: var(--cs-color-success-soft); color: var(--cs-color-success); }
+.cell-等 { color: var(--cs-color-text-subtle); }
 </style>

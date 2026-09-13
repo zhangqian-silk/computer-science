@@ -44,7 +44,7 @@ const resetLab = useLabReset(draftCount, accepted)
 </template>
 
 <style scoped>
-.token-chip.is-accepted { border-color: var(--vp-c-green-1); background: var(--vp-c-green-soft); color: var(--vp-c-green-1); }
-.token-chip.is-rejected { border-color: var(--vp-c-danger-1); background: var(--vp-c-danger-soft); color: var(--vp-c-danger-1); }
-.token-chip.is-unverified { border-style: dashed; color: var(--vp-c-text-3); }
+.token-chip.is-accepted { border-color: var(--cs-color-success); background: var(--cs-color-success-soft); color: var(--cs-color-success); }
+.token-chip.is-rejected { border-color: var(--cs-color-danger); background: var(--cs-color-danger-soft); color: var(--cs-color-danger); }
+.token-chip.is-unverified { border-style: dashed; color: var(--cs-color-text-subtle); }
 </style>

@@ -1,0 +1,250 @@
+/* 组件：数据展示（结果卡片、条形图、芯片、序列节点、指标行、状态色）
+ *
+ * 这里收敛了原先散落在 39 个 <style scoped> 里的重复模式：
+ *   - 「有色边框 + 浅色底」的状态块  → .cs-state--*
+ *   - 「圆点 + 名称 + 条 + 数值」的行 → .cs-legend-row
+ *   - 「选中 / 弱化」的芯片          → .token-chip 修饰类
+ */
+
+/* ---------- 结果与卡片 ---------- */
+.infra-result,
+.infra-card {
+	padding: var(--cs-space-5);
+	border: var(--cs-border);
+	border-radius: var(--cs-radius-md);
+	background: var(--cs-color-bg);
+}
+
+.infra-result span,
+.infra-card span {
+	display: block;
+	margin-bottom: var(--cs-space-1);
+	color: var(--cs-color-text-muted);
+	font-size: var(--cs-text-sm);
+}
+
+.infra-result strong,
+.infra-card strong {
+	display: block;
+	color: var(--cs-color-brand);
+	font-size: var(--cs-text-lg);
+	overflow-wrap: anywhere;
+}
+
+/* ---------- 条形图 ---------- */
+.infra-bar {
+	height: var(--cs-lab-bar-height);
+	margin-top: var(--cs-space-3);
+	overflow: hidden;
+	border-radius: var(--cs-radius-pill);
+	background: var(--cs-color-neutral-soft);
+}
+
+.infra-bar > i {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, var(--cs-color-brand), var(--cs-color-success));
+}
+
+.metric-row {
+	padding: var(--cs-space-3);
+	border: var(--cs-border);
+	border-radius: var(--cs-radius-md);
+	background: var(--cs-color-bg);
+}
+
+.metric-row span {
+	color: var(--cs-color-text-muted);
+	font-size: var(--cs-text-xs);
+}
+
+.metric-row .infra-bar {
+	margin-top: 0;
+}
+
+/* ---------- 芯片 ---------- */
+.token-chip {
+	padding: var(--cs-space-1) var(--cs-space-3);
+	border: var(--cs-border);
+	border-radius: var(--cs-radius-sm);
+	background: var(--cs-color-bg);
+	color: var(--cs-color-text);
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-sm);
+	transition: var(--cs-transition-colors);
+}
+
+.token-chip.is-selected {
+	border-color: var(--cs-color-brand);
+	background: var(--cs-color-brand-soft);
+	color: var(--cs-color-brand);
+}
+
+.token-chip.is-muted {
+	border-style: dashed;
+	color: var(--cs-color-text-subtle);
+	opacity: 0.68;
+}
+
+/* ---------- 序列节点 ---------- */
+.sequence-node {
+	min-width: 92px;
+	padding: var(--cs-space-3);
+	border: var(--cs-border);
+	border-radius: var(--cs-radius-md);
+	background: var(--cs-color-bg);
+}
+
+.sequence-node span,
+.sequence-node strong {
+	display: block;
+	font-size: var(--cs-text-2xs);
+}
+
+.sequence-node span {
+	color: var(--cs-color-text-muted);
+}
+
+.sequence-node.is-active {
+	border-color: var(--cs-color-brand);
+	box-shadow: 0 0 0 2px var(--cs-color-brand-soft);
+}
+
+/* ---------- 状态语义类 ----------
+ * 组件模板直接写 class="cs-state cs-state--pass" 即可，
+ * 不必在每个 scoped 样式里重复 border-color + background 的组合。 */
+.cs-state {
+	border: var(--cs-border);
+	border-radius: var(--cs-radius-sm);
+	background: var(--cs-color-bg);
+	transition: var(--cs-transition-colors);
+}
+
+.cs-state--pass {
+	border-color: var(--cs-color-success);
+	background: var(--cs-color-success-soft);
+	color: var(--cs-color-success);
+}
+
+.cs-state--warn {
+	border-color: var(--cs-color-warning);
+	background: var(--cs-color-warning-soft);
+	color: var(--cs-color-warning);
+}
+
+.cs-state--fail {
+	border-color: var(--cs-color-danger);
+	background: var(--cs-color-danger-soft);
+	color: var(--cs-color-danger);
+}
+
+.cs-state--active {
+	border-color: var(--cs-color-brand);
+	background: var(--cs-color-brand-soft);
+	color: var(--cs-color-brand);
+}
+
+.cs-state--idle {
+	color: var(--cs-color-text-subtle);
+	opacity: 0.6;
+}
+
+/* 只需要左侧色条、不需要整块底色时使用 */
+.cs-state-bar {
+	border-left: var(--cs-border-width-emphasis) solid var(--cs-color-border);
+}
+
+.cs-state-bar.cs-state--pass {
+	border-left-color: var(--cs-color-success);
+}
+
+.cs-state-bar.cs-state--warn {
+	border-left-color: var(--cs-color-warning);
+}
+
+.cs-state-bar.cs-state--fail {
+	border-left-color: var(--cs-color-danger);
+}
+
+/* ---------- 左侧色条的语义修饰 ----------
+ * 多个组件用「左边框颜色」表达时序步骤的性质（正常 / 告警 / 失败 / 当前）。
+ * 这里统一提供，组件模板直接写 tone-success 等即可，不必各自重复定义。
+ * 与 .cs-state--* 的区别：tone-* 只改左边框，不改底色与文字色。 */
+.tone-success {
+	border-left-color: var(--cs-color-success);
+}
+
+.tone-warning {
+	border-left-color: var(--cs-color-warning);
+}
+
+.tone-danger {
+	border-left-color: var(--cs-color-danger);
+}
+
+.tone-active {
+	border-left-color: var(--cs-color-brand);
+}
+
+.tone-neutral {
+	border-left-color: var(--cs-color-border);
+}
+
+/* ---------- 徽标 ---------- */
+.cs-badge {
+	display: inline-block;
+	padding: 0.1rem var(--cs-space-3);
+	border-radius: var(--cs-radius-pill);
+	background: var(--cs-color-neutral-soft);
+	color: var(--cs-color-text-muted);
+	font-size: var(--cs-text-2xs);
+}
+
+/* ---------- 图例行：圆点 + 名称 + 条 + 数值 ---------- */
+.cs-legend-row {
+	display: flex;
+	align-items: center;
+	gap: var(--cs-space-3);
+	font-size: var(--cs-text-sm);
+}
+
+.cs-legend-dot {
+	flex: 0 0 auto;
+	width: 10px;
+	height: 10px;
+	border-radius: var(--cs-radius-circle);
+}
+
+.cs-legend-name {
+	width: 28px;
+	color: var(--cs-color-text-muted);
+}
+
+.cs-legend-bar {
+	flex: 1;
+	height: var(--cs-lab-bar-height);
+	background: var(--cs-color-bg-soft);
+	border-radius: var(--cs-radius-sm);
+	overflow: hidden;
+}
+
+.cs-legend-bar > i {
+	display: block;
+	height: 100%;
+}
+
+.cs-legend-row strong {
+	width: 34px;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 等宽数字 ---------- */
+.cs-num {
+	font-variant-numeric: tabular-nums;
+}
+
+.cs-mono {
+	font-family: var(--cs-font-mono);
+}

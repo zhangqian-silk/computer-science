@@ -75,17 +75,12 @@ const resetLab = useLabReset(ttl, workTime, watchdog, uniqueToken)
 </template>
 
 <style scoped>
-.dl-toggles { display: flex; flex-wrap: wrap; gap: .8rem; margin: .6rem 0; font-size: .84rem; color: var(--vp-c-text-2); }
-.dl-toggles label { display: flex; align-items: center; gap: .4rem; }
-.dl-track { list-style: none; padding: 0; margin: .8rem 0; display: flex; flex-direction: column; gap: .35rem; }
-.dl-track li { display: flex; align-items: center; gap: .6rem; padding: .45rem .6rem; border: 1px solid var(--vp-c-divider); border-left-width: 3px; border-radius: 6px; background: var(--vp-c-bg); }
-.dl-track li strong { font-size: .82rem; font-weight: 500; }
-.dl-time { font-variant-numeric: tabular-nums; font-size: .72rem; color: var(--vp-c-text-3); width: 34px; flex: 0 0 auto; }
-.tone-active { border-left-color: var(--vp-c-brand-1); }
-.tone-neutral { border-left-color: var(--vp-c-divider); }
-.tone-success { border-left-color: var(--vp-c-green-1); }
-.tone-warning { border-left-color: var(--vp-c-warning-1); }
-.tone-danger { border-left-color: var(--vp-c-danger-1); }
-.dl-ok strong { color: var(--vp-c-green-1); }
-.dl-bad strong { color: var(--vp-c-danger-1); }
+.dl-toggles { display: flex; flex-wrap: wrap; gap: var(--cs-space-5); margin: .6rem 0; font-size: var(--cs-text-sm); color: var(--cs-color-text-muted); }
+.dl-toggles label { display: flex; align-items: center; gap: var(--cs-space-2); }
+.dl-track { list-style: none; padding: 0; margin: .8rem 0; display: flex; flex-direction: column; gap: var(--cs-space-2); }
+.dl-track li { display: flex; align-items: center; gap: var(--cs-space-4); padding: .45rem .6rem; border: 1px solid var(--cs-color-border); border-left-width: 3px; border-radius: var(--cs-radius-sm); background: var(--cs-color-bg); }
+.dl-track li strong { font-size: var(--cs-text-sm); font-weight: 500; }
+.dl-time { font-variant-numeric: tabular-nums; font-size: var(--cs-text-2xs); color: var(--cs-color-text-subtle); width: 34px; flex: 0 0 auto; }
+.dl-ok strong { color: var(--cs-color-success); }
+.dl-bad strong { color: var(--cs-color-danger); }
 </style>

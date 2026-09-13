@@ -1,0 +1,78 @@
+/* 第 1 层：原始色板（primitives）
+ *
+ * 本层只声明「颜色本身」，不表达任何用途。命名一律为「色相 + 明度台阶」，
+ * 台阶沿用 50..900 的常规刻度，数值越大越深。
+ *
+ * 约束：
+ * - 只有 themes.css 可以引用本层变量；组件与页面样式一律禁止直接引用。
+ * - 需要新色时在此追加台阶，不要在组件里写字面量色值。
+ */
+
+:root {
+	/* 中性色：承担背景、边框、正文与弱化文字 */
+	--cs-slate-50: #f8fafc;
+	--cs-slate-100: #f1f5f9;
+	--cs-slate-200: #e2e8f0;
+	--cs-slate-300: #cbd5e1;
+	--cs-slate-400: #94a3b8;
+	--cs-slate-500: #64748b;
+	--cs-slate-600: #475569;
+	--cs-slate-700: #334155;
+	--cs-slate-800: #1e293b;
+	--cs-slate-900: #0f172a;
+
+	/* 蓝：默认主题的品牌色 */
+	--cs-blue-300: #93c5fd;
+	--cs-blue-400: #60a5fa;
+	--cs-blue-500: #3b82f6;
+	--cs-blue-600: #2563eb;
+	--cs-blue-700: #1d4ed8;
+	--cs-blue-800: #1e40af;
+
+	/* 青：ocean 主题的品牌色 */
+	--cs-teal-200: #99f6e4;
+	--cs-teal-300: #5eead4;
+	--cs-teal-400: #2dd4bf;
+	--cs-teal-500: #14b8a6;
+	--cs-teal-600: #0d9488;
+	--cs-teal-700: #0f766e;
+	--cs-teal-800: #115e59;
+
+	/* 绿：graphite 主题的品牌色，同时承担「成功 / 通过」语义 */
+	--cs-green-300: #6ee7b7;
+	--cs-green-400: #34d399;
+	--cs-green-500: #10b981;
+	--cs-green-600: #059669;
+	--cs-green-700: #047857;
+	--cs-green-800: #065f46;
+
+	/* 紫：sunset 主题的品牌色，同时承担数据系列色 */
+	--cs-violet-300: #c4b5fd;
+	--cs-violet-400: #a78bfa;
+	--cs-violet-500: #8b5cf6;
+	--cs-violet-600: #7c3aed;
+	--cs-violet-700: #6d28d9;
+	--cs-violet-800: #5b21b6;
+
+	/* 琥珀：承担「警告 / 降级 / 补偿」语义 */
+	--cs-amber-300: #fcd34d;
+	--cs-amber-400: #fbbf24;
+	--cs-amber-500: #f59e0b;
+	--cs-amber-600: #d97706;
+	--cs-amber-700: #b45309;
+
+	/* 红：承担「失败 / 拒绝 / 溢出」语义 */
+	--cs-red-300: #fca5a5;
+	--cs-red-400: #f87171;
+	--cs-red-500: #ef4444;
+	--cs-red-600: #dc2626;
+	--cs-red-700: #b91c1c;
+
+	/* 粉：数据系列色补位 */
+	--cs-pink-400: #f472b6;
+	--cs-pink-500: #ec4899;
+
+	/* 绝对色：仅用于「填充块之上的反色文字」等无需随主题变化的场合 */
+	--cs-white: #ffffff;
+	--cs-black: #000000;
+}

@@ -58,12 +58,12 @@ const resetLab = useLabReset(ads)
 </template>
 
 <style scoped>
-.ad-inputs { display: flex; flex-direction: column; gap: .5rem; margin: .6rem 0; }
-.ad-row { display: grid; grid-template-columns: 60px auto 1fr auto 1fr; gap: .5rem; align-items: center; font-size: .78rem; }
-.ad-rank { list-style: none; padding: 0; margin: .6rem 0; display: flex; flex-direction: column; gap: .25rem; }
-.ad-rank li { display: flex; align-items: center; gap: .6rem; padding: .35rem .6rem; border-radius: 5px; background: var(--vp-c-bg-soft); font-size: .82rem; }
-.ad-rank li.win { background: var(--vp-c-brand-soft); }
-.ad-rank li span:first-child { width: 26px; color: var(--vp-c-text-3); }
+.ad-inputs { display: flex; flex-direction: column; gap: var(--cs-space-3); margin: .6rem 0; }
+.ad-row { display: grid; grid-template-columns: 60px auto 1fr auto 1fr; gap: var(--cs-space-3); align-items: center; font-size: var(--cs-text-xs); }
+.ad-rank { list-style: none; padding: 0; margin: .6rem 0; display: flex; flex-direction: column; gap: var(--cs-space-1); }
+.ad-rank li { display: flex; align-items: center; gap: var(--cs-space-4); padding: .35rem .6rem; border-radius: var(--cs-radius-sm); background: var(--cs-color-bg-soft); font-size: var(--cs-text-sm); }
+.ad-rank li.win { background: var(--cs-color-brand-soft); }
+.ad-rank li span:first-child { width: 26px; color: var(--cs-color-text-subtle); }
 .ad-rank li strong { flex: 1; }
 @media (max-width: 640px) { .ad-row { grid-template-columns: 1fr 1fr; } }
 </style>

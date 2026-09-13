@@ -1,0 +1,23 @@
+/* 设计系统样式入口
+ *
+ * 导入顺序即层级顺序，后者可覆盖前者，不要随意调整：
+ *
+ *   1. palette   原始色板    —— 只有 themes.css 可引用
+ *   2. tokens    语义 token  —— 组件唯一允许消费的来源
+ *   3. themes    主题配色集  —— 覆盖语义 token，并桥接到 --vp-*
+ *   4. base      基础排版    —— 元素级样式（公式、表格、结构图）
+ *   5. layout    布局原语    —— 只管排布，不管颜色
+ *   6. components 组件样式   —— 按关注点拆分
+ *
+ * 新增组件样式文件时在本文件末尾追加 import，并在
+ * docs/design-system.md 记录其职责。
+ */
+
+@import './palette.css';
+@import './tokens.css';
+@import './themes.css';
+@import './base.css';
+@import './layout.css';
+@import './components/lab.css';
+@import './components/controls.css';
+@import './components/data-display.css';

@@ -65,12 +65,12 @@ const resetLab = useLabReset(method, queryPosition, keyPosition, frequency, slop
 </template>
 
 <style scoped>
-.angle-stage { position: relative; width: 150px; height: 150px; margin: 1rem auto; border: 1px solid var(--vp-c-divider); border-radius: 50%; background: radial-gradient(circle, var(--vp-c-bg) 0 8%, transparent 9%), linear-gradient(var(--vp-c-divider), var(--vp-c-divider)) center/1px 100% no-repeat, linear-gradient(90deg, var(--vp-c-divider), var(--vp-c-divider)) center/100% 1px no-repeat; }
-.angle-vector { position: absolute; left: 50%; top: calc(50% - 2px); width: 62px; height: 4px; transform-origin: left center; border-radius: 999px; }
+.angle-stage { position: relative; width: 150px; height: 150px; margin: 1rem auto; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-circle); background: radial-gradient(circle, var(--cs-color-bg) 0 8%, transparent 9%), linear-gradient(var(--cs-color-border), var(--cs-color-border)) center/1px 100% no-repeat, linear-gradient(90deg, var(--cs-color-border), var(--cs-color-border)) center/100% 1px no-repeat; }
+.angle-vector { position: absolute; left: 50%; top: calc(50% - 2px); width: 62px; height: 4px; transform-origin: left center; border-radius: var(--cs-radius-pill); }
 .angle-vector::after { content: ''; position: absolute; right: -2px; top: -4px; border-left: 8px solid currentColor; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
-.angle-vector span { position: absolute; right: 4px; bottom: 7px; font-size: .72rem; font-weight: 700; }
-.query-vector { background: var(--vp-c-brand-1); color: var(--vp-c-brand-1); }
-.key-vector { background: var(--vp-c-green-1); color: var(--vp-c-green-1); }
+.angle-vector span { position: absolute; right: 4px; bottom: 7px; font-size: var(--cs-text-2xs); font-weight: 700; }
+.query-vector { background: var(--cs-color-brand); color: var(--cs-color-brand); }
+.key-vector { background: var(--cs-color-success); color: var(--cs-color-success); }
 @media (max-width: 640px) {
 	.angle-stage { width: 120px; height: 120px; }
 	.angle-vector { width: 48px; }

@@ -80,14 +80,14 @@ const resetLab = useLabReset(shards)
 </template>
 
 <style scoped>
-.sm-bars { display: flex; flex-direction: column; gap: .5rem; margin: .8rem 0; }
-.sm-row { display: flex; align-items: center; gap: .6rem; font-size: .82rem; }
-.sm-name { flex: 0 0 200px; color: var(--vp-c-text-2); }
-.sm-bar { flex: 1; height: 14px; background: var(--vp-c-bg-soft); border-radius: 7px; overflow: hidden; }
+.sm-bars { display: flex; flex-direction: column; gap: var(--cs-space-3); margin: .8rem 0; }
+.sm-row { display: flex; align-items: center; gap: var(--cs-space-4); font-size: var(--cs-text-sm); }
+.sm-name { flex: 0 0 200px; color: var(--cs-color-text-muted); }
+.sm-bar { flex: 1; height: 14px; background: var(--cs-color-bg-soft); border-radius: var(--cs-radius-sm); overflow: hidden; }
 .sm-bar > i { display: block; height: 100%; }
-.t-danger { background: var(--vp-c-danger-1); }
-.t-warning { background: var(--vp-c-warning-1); }
-.t-success { background: var(--vp-c-green-1); }
+.t-danger { background: var(--cs-color-danger); }
+.t-warning { background: var(--cs-color-warning); }
+.t-success { background: var(--cs-color-success); }
 .sm-row strong { width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .sm-name { flex-basis: 130px; } }
 </style>

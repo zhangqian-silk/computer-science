@@ -54,8 +54,8 @@ const resetLab = useLabReset(instances, grayPercent, pushMode, rolledBack)
 </template>
 
 <style scoped>
-.cc-bar { display: flex; width: 100%; height: 40px; border-radius: 6px; overflow: hidden; margin: .8rem 0; }
-.cc-seg { display: flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; min-width: 0; }
-.cc-new { background: var(--vp-c-brand-1); }
-.cc-old { background: var(--vp-c-default-3, #94a3b8); color: var(--vp-c-text-1); }
+.cc-bar { display: flex; width: 100%; height: 40px; border-radius: var(--cs-radius-sm); overflow: hidden; margin: .8rem 0; }
+.cc-seg { display: flex; align-items: center; justify-content: center; color: var(--cs-color-on-brand); font-size: var(--cs-text-xs); min-width: 0; }
+.cc-new { background: var(--cs-color-brand); }
+.cc-old { background: var(--cs-color-text-subtle); color: var(--cs-color-text); }
 </style>

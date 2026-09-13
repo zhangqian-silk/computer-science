@@ -67,7 +67,7 @@ const resetLab = useLabReset(failNode, isolation)
 				</select>
 			</div>
 		</div>
-		<label class="fp-toggle"><input type="checkbox" v-model="isolation"> 开启隔离（熔断 + 舱壁 + 降级兜底）</label>
+		<label class="cs-toggle"><input type="checkbox" v-model="isolation"> 开启隔离（熔断 + 舱壁 + 降级兜底）</label>
 		<div class="fp-graph">
 			<div v-for="(layer, li) in layers" :key="li" class="fp-layer">
 				<div v-for="n in layer" :key="n" class="fp-node" :class="`fp-${status[n]}`">
@@ -81,14 +81,13 @@ const resetLab = useLabReset(failNode, isolation)
 </template>
 
 <style scoped>
-.fp-toggle { display: flex; align-items: center; gap: .5rem; margin: .6rem 0; font-size: .85rem; color: var(--vp-c-text-2); }
-.fp-graph { display: flex; flex-direction: column; gap: .5rem; margin: .8rem 0; }
-.fp-layer { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; }
-.fp-node { flex: 1 1 90px; max-width: 160px; text-align: center; padding: .5rem; border: 1px solid var(--vp-c-divider); border-radius: 8px; background: var(--vp-c-bg); }
-.fp-node strong { display: block; font-size: .82rem; }
-.fp-node span { font-size: .7rem; color: var(--vp-c-text-3); }
-.fp-healthy { border-color: var(--vp-c-green-1); }
-.fp-failed { border-color: var(--vp-c-danger-1); background: var(--vp-c-danger-soft); }
-.fp-cascade { border-color: var(--vp-c-danger-1); background: var(--vp-c-danger-soft); opacity: .85; }
-.fp-degraded { border-color: var(--vp-c-warning-1); background: var(--vp-c-warning-soft); }
+.fp-graph { display: flex; flex-direction: column; gap: var(--cs-space-3); margin: .8rem 0; }
+.fp-layer { display: flex; gap: var(--cs-space-3); flex-wrap: wrap; justify-content: center; }
+.fp-node { flex: 1 1 90px; max-width: 160px; text-align: center; padding: .5rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-md); background: var(--cs-color-bg); }
+.fp-node strong { display: block; font-size: var(--cs-text-sm); }
+.fp-node span { font-size: var(--cs-text-2xs); color: var(--cs-color-text-subtle); }
+.fp-healthy { border-color: var(--cs-color-success); }
+.fp-failed { border-color: var(--cs-color-danger); background: var(--cs-color-danger-soft); }
+.fp-cascade { border-color: var(--cs-color-danger); background: var(--cs-color-danger-soft); opacity: .85; }
+.fp-degraded { border-color: var(--cs-color-warning); background: var(--cs-color-warning-soft); }
 </style>

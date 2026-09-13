@@ -60,15 +60,15 @@ const resetLab = useLabReset(scenario, step)
 </template>
 
 <style scoped>
-.state-track { display: flex; gap: .45rem; margin: 1rem 0; padding: 0; overflow-x: auto; list-style: none; }
-.state-track li { min-width: 95px; padding: .55rem; border: 1px solid var(--vp-c-divider); border-radius: 8px; background: var(--vp-c-bg); opacity: .55; }
+.state-track { display: flex; gap: var(--cs-space-3); margin: 1rem 0; padding: 0; overflow-x: auto; list-style: none; }
+.state-track li { min-width: 95px; padding: .55rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-md); background: var(--cs-color-bg); opacity: .55; }
 .state-track li span, .state-track li strong { display: block; }
-.state-track li span { color: var(--vp-c-text-3); font-size: .7rem; }
-.state-track li strong { font-size: .82rem; }
+.state-track li span { color: var(--cs-color-text-subtle); font-size: var(--cs-text-2xs); }
+.state-track li strong { font-size: var(--cs-text-sm); }
 .state-track li.is-done { opacity: .8; }
-.state-track li.is-active { opacity: 1; border-color: var(--vp-c-brand-1); box-shadow: 0 0 0 2px var(--vp-c-brand-soft); }
-.state-track li.is-active.tone-success { border-color: var(--vp-c-green-1); }
-.state-track li.is-active.tone-warning { border-color: var(--vp-c-warning-1); }
-.state-track li.is-active.tone-danger { border-color: var(--vp-c-danger-1); }
+.state-track li.is-active { opacity: 1; border-color: var(--cs-color-brand); box-shadow: 0 0 0 2px var(--cs-color-brand-soft); }
+.state-track li.is-active.tone-success { border-color: var(--cs-color-success); }
+.state-track li.is-active.tone-warning { border-color: var(--cs-color-warning); }
+.state-track li.is-active.tone-danger { border-color: var(--cs-color-danger); }
 .state-detail { margin-top: .8rem; }
 </style>

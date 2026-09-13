@@ -82,7 +82,7 @@ const resetLab = useLabReset(strategy, concurrentRead)
 			<button type="button" :aria-pressed="strategy === 'del-then-write'" @click="strategy = 'del-then-write'">先删缓存后写 DB</button>
 			<button type="button" :aria-pressed="strategy === 'double-del'" @click="strategy = 'double-del'">延迟双删</button>
 		</div>
-		<label class="cache-toggle"><input type="checkbox" v-model="concurrentRead"> 存在并发缓存未命中读（延迟双删默认叠加）</label>
+		<label class="cs-toggle"><input type="checkbox" v-model="concurrentRead"> 存在并发缓存未命中读（延迟双删默认叠加）</label>
 		<ol class="race-track" aria-label="操作时序">
 			<li v-for="(s, i) in result.steps" :key="i" :class="`tone-${s.tone ?? 'neutral'}`">
 				<span :class="`actor actor-${s.actor}`">{{ s.actor }}</span><strong>{{ s.text }}</strong>
@@ -97,15 +97,10 @@ const resetLab = useLabReset(strategy, concurrentRead)
 </template>
 
 <style scoped>
-.cache-toggle { display: flex; align-items: center; gap: .5rem; margin: .6rem 0; font-size: .85rem; color: var(--vp-c-text-2); }
-.race-track { list-style: none; padding: 0; margin: 1rem 0; display: flex; flex-direction: column; gap: .4rem; }
-.race-track li { display: flex; align-items: center; gap: .6rem; padding: .5rem .6rem; border: 1px solid var(--vp-c-divider); border-left-width: 3px; border-radius: 6px; background: var(--vp-c-bg); }
-.race-track li strong { font-size: .85rem; font-weight: 500; }
-.actor { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 50%; font-size: .72rem; font-weight: 700; }
-.actor-W { background: var(--vp-c-brand-soft); color: var(--vp-c-brand-1); }
-.actor-R { background: var(--vp-c-default-soft); color: var(--vp-c-text-2); }
-.tone-warning { border-left-color: var(--vp-c-warning-1); }
-.tone-danger { border-left-color: var(--vp-c-danger-1); }
-.tone-success { border-left-color: var(--vp-c-green-1); }
-.tone-active { border-left-color: var(--vp-c-brand-1); }
+.race-track { list-style: none; padding: 0; margin: 1rem 0; display: flex; flex-direction: column; gap: var(--cs-space-2); }
+.race-track li { display: flex; align-items: center; gap: var(--cs-space-4); padding: .5rem .6rem; border: 1px solid var(--cs-color-border); border-left-width: 3px; border-radius: var(--cs-radius-sm); background: var(--cs-color-bg); }
+.race-track li strong { font-size: var(--cs-text-sm); font-weight: 500; }
+.actor { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: var(--cs-radius-circle); font-size: var(--cs-text-2xs); font-weight: 700; }
+.actor-W { background: var(--cs-color-brand-soft); color: var(--cs-color-brand); }
+.actor-R { background: var(--cs-color-neutral-soft); color: var(--cs-color-text-muted); }
 </style>

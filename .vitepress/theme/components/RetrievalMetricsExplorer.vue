@@ -55,11 +55,11 @@ const resetLab = useLabReset(grades, cutoff)
 </template>
 
 <style scoped>
-.ranking-strip { display: flex; gap: .4rem; margin: .9rem 0; overflow-x: auto; padding-bottom: .25rem; }
-.ranking-strip button { min-width: 54px; min-height: 52px; border: 1px solid var(--vp-c-divider); border-radius: 8px; background: var(--vp-c-bg); color: var(--vp-c-text-1); cursor: pointer; }
+.ranking-strip { display: flex; gap: var(--cs-space-2); margin: .9rem 0; overflow-x: auto; padding-bottom: .25rem; }
+.ranking-strip button { min-width: 54px; min-height: 52px; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-md); background: var(--cs-color-bg); color: var(--cs-color-text); cursor: pointer; }
 .ranking-strip button span, .ranking-strip button strong { display: block; }
-.ranking-strip button span { font-size: .68rem; color: var(--vp-c-text-2); }
-.ranking-strip button.grade-1 { border-color: var(--vp-c-brand-1); background: var(--vp-c-brand-soft); }
-.ranking-strip button.grade-2 { border-color: var(--vp-c-green-1); background: var(--vp-c-green-soft); }
+.ranking-strip button span { font-size: var(--cs-text-3xs); color: var(--cs-color-text-muted); }
+.ranking-strip button.grade-1 { border-color: var(--cs-color-brand); background: var(--cs-color-brand-soft); }
+.ranking-strip button.grade-2 { border-color: var(--cs-color-success); background: var(--cs-color-success-soft); }
 .ranking-strip button.is-outside { opacity: .42; }
 </style>

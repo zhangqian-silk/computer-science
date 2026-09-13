@@ -63,8 +63,8 @@ const resetLab = useLabReset(pattern, length, query, windowSize)
 
 <style scoped>
 .attention-matrix { display: grid; grid-template-columns: repeat(var(--matrix-size), minmax(18px, 28px)); gap: 4px; width: fit-content; max-width: 100%; margin: .9rem auto; overflow-x: auto; }
-.attention-cell { aspect-ratio: 1; border: 1px solid var(--vp-c-divider); border-radius: 4px; background: var(--vp-c-bg); }
-.attention-cell.is-visible { background: var(--vp-c-brand-soft); border-color: var(--vp-c-brand-1); }
-.attention-cell.is-query { box-shadow: inset 0 0 0 2px var(--vp-c-warning-1); }
+.attention-cell { aspect-ratio: 1; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-xs); background: var(--cs-color-bg); }
+.attention-cell.is-visible { background: var(--cs-color-brand-soft); border-color: var(--cs-color-brand); }
+.attention-cell.is-query { box-shadow: inset 0 0 0 2px var(--cs-color-warning); }
 @media (max-width: 640px) { .attention-matrix { grid-template-columns: repeat(var(--matrix-size), minmax(18px, 20px)); margin-block: .65rem; } }
 </style>

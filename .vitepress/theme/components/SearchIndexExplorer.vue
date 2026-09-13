@@ -80,16 +80,16 @@ const resetLab = useLabReset(mode, selected)
 </template>
 
 <style scoped>
-.si-terms { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
-.si-terms button { padding: .35rem .8rem; border: 1px solid var(--vp-c-divider); border-radius: 999px; background: var(--vp-c-bg); font-size: .82rem; }
-.si-terms button.on { background: var(--vp-c-brand-1); color: #fff; border-color: var(--vp-c-brand-1); }
-.si-index { margin: .6rem 0; font-size: .8rem; font-family: var(--vp-font-family-mono); color: var(--vp-c-text-2); display: flex; flex-direction: column; gap: .2rem; }
-.si-index em { color: var(--vp-c-text-3); }
-.si-results { list-style: none; padding: 0; margin: .6rem 0 0; display: flex; flex-direction: column; gap: .35rem; }
-.si-results li { display: flex; align-items: center; gap: .6rem; font-size: .82rem; }
+.si-terms { display: flex; flex-wrap: wrap; gap: var(--cs-space-2); margin: .6rem 0; }
+.si-terms button { padding: .35rem .8rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-pill); background: var(--cs-color-bg); font-size: var(--cs-text-sm); }
+.si-terms button.on { background: var(--cs-color-brand); color: var(--cs-color-on-brand); border-color: var(--cs-color-brand); }
+.si-index { margin: .6rem 0; font-size: var(--cs-text-sm); font-family: var(--cs-font-mono); color: var(--cs-color-text-muted); display: flex; flex-direction: column; gap: var(--cs-space-1); }
+.si-index em { color: var(--cs-color-text-subtle); }
+.si-results { list-style: none; padding: 0; margin: .6rem 0 0; display: flex; flex-direction: column; gap: var(--cs-space-2); }
+.si-results li { display: flex; align-items: center; gap: var(--cs-space-4); font-size: var(--cs-text-sm); }
 .si-doc { width: 32px; font-weight: 600; }
-.si-bar { flex: 1; height: 12px; background: var(--vp-c-bg-soft); border-radius: 6px; overflow: hidden; }
-.si-bar > i { display: block; height: 100%; background: var(--vp-c-brand-1); }
+.si-bar { flex: 1; height: 12px; background: var(--cs-color-bg-soft); border-radius: var(--cs-radius-sm); overflow: hidden; }
+.si-bar > i { display: block; height: 100%; background: var(--cs-color-brand); }
 .si-results strong { width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
-.si-empty { color: var(--vp-c-text-3); }
+.si-empty { color: var(--cs-color-text-subtle); }
 </style>

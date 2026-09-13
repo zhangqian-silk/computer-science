@@ -52,10 +52,10 @@ const resetLab = useLabReset(state, log)
 </template>
 
 <style scoped>
-.pm-states { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
-.pm-node { padding: .35rem .7rem; border: 1px solid var(--vp-c-divider); border-radius: 999px; font-size: .8rem; background: var(--vp-c-bg); }
-.pm-node.pm-cur { background: var(--vp-c-brand-1); color: #fff; border-color: var(--vp-c-brand-1); }
-.pm-log { list-style: none; padding: 0; margin: .6rem 0 0; font-size: .78rem; display: flex; flex-direction: column; gap: .2rem; }
-.pm-log li.ok { color: var(--vp-c-green-1); }
-.pm-log li.no { color: var(--vp-c-warning-1); }
+.pm-states { display: flex; flex-wrap: wrap; gap: var(--cs-space-2); margin: .6rem 0; }
+.pm-node { padding: .35rem .7rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-pill); font-size: var(--cs-text-sm); background: var(--cs-color-bg); }
+.pm-node.pm-cur { background: var(--cs-color-brand); color: var(--cs-color-on-brand); border-color: var(--cs-color-brand); }
+.pm-log { list-style: none; padding: 0; margin: .6rem 0 0; font-size: var(--cs-text-xs); display: flex; flex-direction: column; gap: var(--cs-space-1); }
+.pm-log li.ok { color: var(--cs-color-success); }
+.pm-log li.no { color: var(--cs-color-warning); }
 </style>

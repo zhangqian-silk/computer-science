@@ -52,7 +52,7 @@ const resetLab = useLabReset(precision)
 
 <style scoped>
 .gh-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; max-width: 260px; margin: .8rem 0; }
-.gh-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: var(--vp-c-bg-soft); font-size: 1rem; }
-.gh-neighbor { background: var(--vp-c-brand-soft); }
-.gh-center { background: var(--vp-c-brand-1); color: #fff; }
+.gh-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: var(--cs-radius-xs); background: var(--cs-color-bg-soft); font-size: var(--cs-text-lg); }
+.gh-neighbor { background: var(--cs-color-brand-soft); }
+.gh-center { background: var(--cs-color-brand); color: var(--cs-color-on-brand); }
 </style>
