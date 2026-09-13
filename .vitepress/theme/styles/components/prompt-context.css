@@ -1,0 +1,28 @@
+/* 组件样式：Prompt & Context 文章专用的少量共享类
+ *
+ * 仅承载该文章多个组件复用的排版类（衬线标题、mono 眉标、脚注）。
+ * 颜色一律取语义 token，字号 / 间距取设计系统台阶，不出现字面量色值。
+ */
+
+.pc-serif {
+	font-family: "Noto Serif SC", "Songti SC", ui-serif, Georgia, "Times New Roman", serif;
+}
+
+.pc-eyebrow {
+	margin: 0 0 var(--cs-space-3);
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-2xs);
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--cs-color-text-subtle);
+}
+
+.pc-note {
+	margin: var(--cs-space-5) 0 0;
+	padding-top: var(--cs-space-3);
+	border-top: var(--cs-border-width) dashed var(--cs-color-border);
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-2xs);
+	line-height: var(--cs-leading-normal);
+	color: var(--cs-color-text-subtle);
+}
