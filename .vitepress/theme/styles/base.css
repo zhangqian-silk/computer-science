@@ -1,0 +1,83 @@
+/* 第 4 层：基础排版
+ *
+ * 只处理站点级的元素级样式：数学公式、Mermaid、表格、结构图。
+ * 不含任何组件类，也不含布局网格。
+ */
+
+/* KaTeX 块级公式在窄屏可横向滚动，避免撑破正文列宽 */
+.VPDoc .katex-display {
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: var(--cs-space-5) 0;
+}
+
+.VPDoc .mermaid {
+	display: flex;
+	justify-content: center;
+	margin: var(--cs-space-8) 0;
+}
+
+.VPDoc table {
+	display: table;
+	width: 100%;
+}
+
+/* ---------- Agent 笔记结构图的响应式排版 ----------
+   竖版流程图在桌面端限制宽度并居中，避免铺满整幅被迫上下滚动；
+   宽版图在桌面端用横向布局，窄屏切换为移动端竖排重排图，保证文字可读。 */
+.notes-figure {
+	margin: var(--cs-space-8) 0;
+}
+
+.notes-figure p {
+	margin: 0;
+	text-align: center;
+}
+
+.notes-figure img {
+	display: inline-block;
+	height: auto;
+	max-width: 100%;
+}
+
+.notes-figure--portrait img {
+	width: 100%;
+	max-width: 480px;
+}
+
+.notes-figure--wide img {
+	width: 100%;
+	max-width: 820px;
+}
+
+/* 宽版图默认显示桌面版（第一张），隐藏移动版（第二张） */
+.notes-figure--wide p:nth-of-type(2) {
+	display: none;
+}
+
+@media (max-width: 640px) {
+	.notes-figure--wide p:nth-of-type(1) {
+		display: none;
+	}
+
+	.notes-figure--wide p:nth-of-type(2) {
+		display: block;
+	}
+
+	.notes-figure--wide img {
+		max-width: 420px;
+	}
+}
+
+/* 尊重系统的「减少动态效果」设置 */
+@media (prefers-reduced-motion: reduce) {
+	.infra-lab *,
+	.infra-lab *::before,
+	.infra-lab *::after,
+	.cs-theme-switch * {
+		scroll-behavior: auto !important;
+		transition-duration: 0.001ms !important;
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}

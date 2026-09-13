@@ -156,20 +156,20 @@ function reset() {
 <style scoped>
 .model-conversation__controls {
 	display: grid;
-	gap: 0.75rem;
+	gap: var(--cs-space-5);
 	margin-bottom: 1rem;
 }
 .model-conversation__turns {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.5rem;
+	gap: var(--cs-space-3);
 }
 .model-conversation__turns button {
 	min-height: 44px;
 	padding: 0.5rem 0.8rem;
-	border: 1px solid var(--vp-c-divider);
-	border-radius: 5px;
-	background: var(--vp-c-bg);
+	border: 1px solid var(--cs-color-border);
+	border-radius: var(--cs-radius-sm);
+	background: var(--cs-color-bg);
 	cursor: pointer;
 }
 .model-conversation__turns button:hover {
@@ -178,15 +178,15 @@ function reset() {
 .model-conversation__turns button[aria-pressed="true"] {
 	border-color: var(--lab-accent);
 	color: var(--lab-accent);
-	background: var(--vp-c-brand-soft);
+	background: var(--cs-color-brand-soft);
 	font-weight: 600;
 }
 .model-conversation__controls label {
 	display: flex;
 	align-items: center;
-	gap: 0.5rem;
+	gap: var(--cs-space-3);
 	min-height: 44px;
-	font-size: 0.85rem;
+	font-size: var(--cs-text-sm);
 	line-height: 1.5;
 	cursor: pointer;
 }
@@ -198,7 +198,7 @@ function reset() {
 }
 .model-conversation__messages {
 	display: grid;
-	gap: 0.65rem;
+	gap: var(--cs-space-4);
 	margin: 0;
 	padding: 0;
 	list-style: none;
@@ -207,9 +207,9 @@ function reset() {
 	min-width: 0;
 	margin: 0;
 	padding: 0.75rem;
-	border: 1px solid var(--vp-c-divider);
-	border-radius: 5px;
-	background: var(--vp-c-bg-soft);
+	border: 1px solid var(--cs-color-border);
+	border-radius: var(--cs-radius-sm);
+	background: var(--cs-color-bg-soft);
 }
 .model-conversation__messages li.is-current {
 	border-color: var(--lab-accent);
@@ -219,26 +219,26 @@ function reset() {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 0.5rem;
-	font-size: 0.75rem;
-	color: var(--vp-c-text-2);
+	gap: var(--cs-space-3);
+	font-size: var(--cs-text-xs);
+	color: var(--cs-color-text-muted);
 }
 .model-conversation__messages p {
 	margin: 0.5rem 0 0;
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
-	font-size: 0.9rem;
+	font-size: var(--cs-text-md);
 	line-height: 1.65;
 }
 .model-conversation__observation {
 	margin: 1rem 0;
-	font-size: 0.9rem;
+	font-size: var(--cs-text-md);
 	line-height: 1.7;
 }
 .model-conversation__json summary {
 	padding: 0.5rem 0;
 	cursor: pointer;
-	font-size: 0.85rem;
+	font-size: var(--cs-text-sm);
 }
 .model-conversation__json summary:focus-visible {
 	outline: 2px solid var(--lab-accent);
@@ -248,8 +248,8 @@ function reset() {
 	overflow-x: auto;
 	max-width: 100%;
 	padding: 0.75rem;
-	background: var(--vp-c-bg-soft);
-	font-size: 0.75rem;
+	background: var(--cs-color-bg-soft);
+	font-size: var(--cs-text-xs);
 	line-height: 1.6;
 }
 </style>

@@ -1,0 +1,416 @@
+/* 第 3 层：主题配色集
+ *
+ * 每个主题是一整套语义 token 取值，通过 <html data-cs-theme="..."> 选中。
+ * 主题与 VitePress 自带的 light / dark 正交：任一主题都提供浅色（默认）与
+ * 深色（.dark）两套取值，因此「主题 × 明暗」共 4 × 2 = 8 种组合都成立。
+ *
+ * 新增主题的完整步骤：
+ *   1. 在本文件按下方模板追加一组 [data-cs-theme='<id>'] 与 .dark[data-cs-theme='<id>']；
+ *   2. 在 theme/theme-registry.ts 的 csThemes 数组登记 id / 名称 / 预览色；
+ *   3. 无需改动任何组件——组件只消费语义 token。
+ *
+ * 每套主题必须提供以下语义 token，缺一项都会回退到 :root 默认值：
+ *   品牌：--cs-color-brand / -hover / -active / -soft / -on-brand
+ *   表面：--cs-color-bg / -bg-soft / -bg-elevated
+ *   文字：--cs-color-text / -text-muted / -text-subtle
+ *   描边：--cs-color-border / -border-strong
+ *   状态：--cs-color-success|warning|danger|info（各含 -soft）
+ *   数据：--cs-series-1..8
+ */
+
+/* ============================================================
+ * 主题 A：blueprint（默认）——蓝色主品牌，工程蓝图气质
+ * ============================================================ */
+:root,
+[data-cs-theme='blueprint'] {
+	--cs-color-brand: var(--cs-blue-600);
+	--cs-color-brand-hover: var(--cs-blue-700);
+	--cs-color-brand-active: var(--cs-blue-800);
+	--cs-color-brand-soft: rgb(37 99 235 / 10%);
+	--cs-color-on-brand: var(--cs-white);
+
+	--cs-color-bg: var(--cs-white);
+	--cs-color-bg-soft: var(--cs-slate-50);
+	--cs-color-bg-elevated: var(--cs-white);
+
+	--cs-color-text: var(--cs-slate-900);
+	--cs-color-text-muted: var(--cs-slate-600);
+	/* slate-400 对白底仅 2.56:1，不满足 WCAG 图形/大字 3:1；降一档到 slate-500 */
+	--cs-color-text-subtle: var(--cs-slate-500);
+
+	--cs-color-border: var(--cs-slate-200);
+	--cs-color-border-strong: var(--cs-slate-300);
+
+	--cs-color-success: var(--cs-green-600);
+	--cs-color-success-soft: rgb(5 150 105 / 12%);
+	--cs-color-warning: var(--cs-amber-600);
+	--cs-color-warning-soft: rgb(217 119 6 / 12%);
+	--cs-color-danger: var(--cs-red-600);
+	--cs-color-danger-soft: rgb(220 38 38 / 12%);
+	--cs-color-info: var(--cs-blue-600);
+	--cs-color-info-soft: rgb(37 99 235 / 12%);
+	--cs-color-neutral-soft: rgb(100 116 139 / 12%);
+	--cs-color-shadow: rgb(15 23 42 / 6%);
+
+	--cs-series-1: var(--cs-blue-500);
+	--cs-series-2: var(--cs-green-500);
+	--cs-series-3: var(--cs-amber-500);
+	--cs-series-4: var(--cs-red-500);
+	--cs-series-5: var(--cs-violet-500);
+	--cs-series-6: var(--cs-teal-500);
+	--cs-series-7: var(--cs-pink-500);
+	--cs-series-8: var(--cs-slate-500);
+}
+
+.dark,
+.dark[data-cs-theme='blueprint'] {
+	--cs-color-brand: var(--cs-blue-400);
+	--cs-color-brand-hover: var(--cs-blue-300);
+	--cs-color-brand-active: var(--cs-blue-500);
+	--cs-color-brand-soft: rgb(96 165 250 / 16%);
+	--cs-color-on-brand: var(--cs-slate-900);
+
+	--cs-color-bg: #1b1b1f;
+	--cs-color-bg-soft: #202127;
+	--cs-color-bg-elevated: #252529;
+
+	--cs-color-text: rgb(255 255 245 / 86%);
+	--cs-color-text-muted: rgb(235 235 245 / 60%);
+	--cs-color-text-subtle: rgb(235 235 245 / 38%);
+
+	--cs-color-border: #2e2e32;
+	--cs-color-border-strong: #3c3f44;
+
+	--cs-color-success: var(--cs-green-400);
+	--cs-color-success-soft: rgb(52 211 153 / 16%);
+	--cs-color-warning: var(--cs-amber-400);
+	--cs-color-warning-soft: rgb(251 191 36 / 16%);
+	--cs-color-danger: var(--cs-red-400);
+	--cs-color-danger-soft: rgb(248 113 113 / 16%);
+	--cs-color-info: var(--cs-blue-400);
+	--cs-color-info-soft: rgb(96 165 250 / 16%);
+	--cs-color-neutral-soft: rgb(148 163 184 / 16%);
+	--cs-color-shadow: rgb(0 0 0 / 32%);
+
+	--cs-series-1: var(--cs-blue-400);
+	--cs-series-2: var(--cs-green-400);
+	--cs-series-3: var(--cs-amber-400);
+	--cs-series-4: var(--cs-red-400);
+	--cs-series-5: var(--cs-violet-400);
+	--cs-series-6: var(--cs-teal-400);
+	--cs-series-7: var(--cs-pink-400);
+	--cs-series-8: var(--cs-slate-400);
+}
+
+/* ============================================================
+ * 主题 B：ocean——青色主品牌，长阅读下更低刺激
+ * ============================================================ */
+[data-cs-theme='ocean'] {
+	/* teal-600 上白字仅 3.74:1；加深到 teal-700 使反色文字达到 AA */
+	--cs-color-brand: var(--cs-teal-700);
+	--cs-color-brand-hover: var(--cs-teal-800);
+	--cs-color-brand-active: var(--cs-teal-800);
+	--cs-color-brand-soft: rgb(13 148 136 / 10%);
+	--cs-color-on-brand: var(--cs-white);
+
+	--cs-color-bg: var(--cs-white);
+	--cs-color-bg-soft: #f2f8f8;
+	--cs-color-bg-elevated: var(--cs-white);
+
+	--cs-color-text: #10222b;
+	--cs-color-text-muted: #46626c;
+	/* 兼顾 --cs-color-bg 与 --cs-color-bg-soft 两种底色，均达到 3:1 */
+	--cs-color-text-subtle: #6d8c97;
+
+	--cs-color-border: #d7e6e6;
+	--cs-color-border-strong: #b6d0d1;
+
+	--cs-color-success: var(--cs-green-600);
+	--cs-color-success-soft: rgb(5 150 105 / 12%);
+	--cs-color-warning: var(--cs-amber-600);
+	--cs-color-warning-soft: rgb(217 119 6 / 12%);
+	--cs-color-danger: var(--cs-red-600);
+	--cs-color-danger-soft: rgb(220 38 38 / 12%);
+	--cs-color-info: var(--cs-teal-600);
+	--cs-color-info-soft: rgb(13 148 136 / 12%);
+	--cs-color-neutral-soft: rgb(70 98 108 / 12%);
+	--cs-color-shadow: rgb(15 23 42 / 6%);
+
+	/* 青与绿色相相近，因此把绿排到后位，保证前几个系列色两两易辨 */
+	--cs-series-1: var(--cs-teal-500);
+	--cs-series-2: var(--cs-amber-500);
+	--cs-series-3: var(--cs-blue-500);
+	--cs-series-4: var(--cs-red-500);
+	--cs-series-5: var(--cs-violet-500);
+	--cs-series-6: var(--cs-green-500);
+	--cs-series-7: var(--cs-pink-500);
+	--cs-series-8: var(--cs-slate-500);
+}
+
+.dark[data-cs-theme='ocean'] {
+	/* 品牌青与成功绿色相相近，故提亮品牌、压深成功色以拉开差异 */
+	--cs-color-brand: var(--cs-teal-300);
+	--cs-color-brand-hover: var(--cs-teal-200);
+	--cs-color-brand-active: var(--cs-teal-400);
+	--cs-color-brand-soft: rgb(94 234 212 / 16%);
+	--cs-color-on-brand: #062b28;
+
+	--cs-color-bg: #101a1e;
+	--cs-color-bg-soft: #16242a;
+	--cs-color-bg-elevated: #1b2b32;
+
+	--cs-color-text: rgb(233 246 246 / 88%);
+	--cs-color-text-muted: rgb(199 224 226 / 62%);
+	--cs-color-text-subtle: rgb(199 224 226 / 40%);
+
+	--cs-color-border: #22343b;
+	--cs-color-border-strong: #2f4952;
+
+	--cs-color-success: var(--cs-green-500);
+	--cs-color-success-soft: rgb(16 185 129 / 18%);
+	--cs-color-warning: var(--cs-amber-400);
+	--cs-color-warning-soft: rgb(251 191 36 / 16%);
+	--cs-color-danger: var(--cs-red-400);
+	--cs-color-danger-soft: rgb(248 113 113 / 16%);
+	--cs-color-info: var(--cs-teal-400);
+	--cs-color-info-soft: rgb(45 212 191 / 16%);
+	--cs-color-neutral-soft: rgb(148 163 184 / 16%);
+	--cs-color-shadow: rgb(0 0 0 / 32%);
+
+	--cs-series-1: var(--cs-teal-300);
+	--cs-series-2: var(--cs-amber-400);
+	--cs-series-3: var(--cs-blue-400);
+	--cs-series-4: var(--cs-red-400);
+	--cs-series-5: var(--cs-violet-400);
+	--cs-series-6: var(--cs-green-400);
+	--cs-series-7: var(--cs-pink-400);
+	--cs-series-8: var(--cs-slate-400);
+}
+
+/* ============================================================
+ * 主题 C：graphite——中性灰底 + 绿色强调，适合长时间读代码
+ * ============================================================ */
+[data-cs-theme='graphite'] {
+	/* 品牌色须与 --cs-color-success 明显区分，否则「激活」与「通过」两种
+	   语义在同一组件里会被误读；这里用中性深灰承担强调色，也更贴合石墨定位。 */
+	--cs-color-brand: var(--cs-slate-700);
+	--cs-color-brand-hover: var(--cs-slate-800);
+	--cs-color-brand-active: var(--cs-slate-900);
+	--cs-color-brand-soft: rgb(51 65 85 / 10%);
+	--cs-color-on-brand: var(--cs-white);
+
+	--cs-color-bg: var(--cs-white);
+	--cs-color-bg-soft: var(--cs-slate-100);
+	--cs-color-bg-elevated: var(--cs-white);
+
+	--cs-color-text: var(--cs-slate-800);
+	--cs-color-text-muted: var(--cs-slate-600);
+	--cs-color-text-subtle: var(--cs-slate-500);
+
+	--cs-color-border: var(--cs-slate-200);
+	--cs-color-border-strong: var(--cs-slate-400);
+
+	--cs-color-success: var(--cs-green-700);
+	--cs-color-success-soft: rgb(4 120 87 / 12%);
+	--cs-color-warning: var(--cs-amber-700);
+	--cs-color-warning-soft: rgb(180 83 9 / 12%);
+	--cs-color-danger: var(--cs-red-700);
+	--cs-color-danger-soft: rgb(185 28 28 / 12%);
+	--cs-color-info: var(--cs-slate-600);
+	--cs-color-info-soft: rgb(71 85 105 / 12%);
+	--cs-color-neutral-soft: rgb(100 116 139 / 14%);
+	--cs-color-shadow: rgb(15 23 42 / 6%);
+
+	--cs-series-1: var(--cs-slate-600);
+	--cs-series-2: var(--cs-green-600);
+	--cs-series-3: var(--cs-amber-600);
+	--cs-series-4: var(--cs-red-600);
+	--cs-series-5: var(--cs-blue-600);
+	--cs-series-6: var(--cs-teal-600);
+	--cs-series-7: var(--cs-violet-600);
+	--cs-series-8: var(--cs-slate-400);
+}
+
+.dark[data-cs-theme='graphite'] {
+	/* 与浅色同理：品牌色保持中性，让位给绿色的「成功」语义 */
+	--cs-color-brand: var(--cs-slate-300);
+	--cs-color-brand-hover: var(--cs-slate-200);
+	--cs-color-brand-active: var(--cs-slate-400);
+	--cs-color-brand-soft: rgb(203 213 225 / 16%);
+	--cs-color-on-brand: #17181c;
+
+	--cs-color-bg: #17181c;
+	--cs-color-bg-soft: #1e2024;
+	--cs-color-bg-elevated: #24262b;
+
+	--cs-color-text: rgb(240 242 245 / 88%);
+	--cs-color-text-muted: rgb(226 232 240 / 60%);
+	--cs-color-text-subtle: rgb(226 232 240 / 38%);
+
+	--cs-color-border: #2a2c31;
+	--cs-color-border-strong: #3b3e45;
+
+	--cs-color-success: var(--cs-green-400);
+	--cs-color-success-soft: rgb(52 211 153 / 16%);
+	--cs-color-warning: var(--cs-amber-400);
+	--cs-color-warning-soft: rgb(251 191 36 / 16%);
+	--cs-color-danger: var(--cs-red-400);
+	--cs-color-danger-soft: rgb(248 113 113 / 16%);
+	--cs-color-info: var(--cs-slate-300);
+	--cs-color-info-soft: rgb(203 213 225 / 14%);
+	--cs-color-neutral-soft: rgb(148 163 184 / 16%);
+	--cs-color-shadow: rgb(0 0 0 / 32%);
+
+	--cs-series-1: var(--cs-slate-300);
+	--cs-series-2: var(--cs-green-400);
+	--cs-series-3: var(--cs-amber-400);
+	--cs-series-4: var(--cs-red-400);
+	--cs-series-5: var(--cs-blue-400);
+	--cs-series-6: var(--cs-teal-400);
+	--cs-series-7: var(--cs-violet-400);
+	--cs-series-8: var(--cs-slate-500);
+}
+
+/* ============================================================
+ * 主题 D：sunset——紫色主品牌，暖色状态色
+ * ============================================================ */
+[data-cs-theme='sunset'] {
+	--cs-color-brand: var(--cs-violet-600);
+	--cs-color-brand-hover: var(--cs-violet-700);
+	--cs-color-brand-active: var(--cs-violet-800);
+	--cs-color-brand-soft: rgb(124 58 237 / 10%);
+	--cs-color-on-brand: var(--cs-white);
+
+	--cs-color-bg: var(--cs-white);
+	--cs-color-bg-soft: #faf7fd;
+	--cs-color-bg-elevated: var(--cs-white);
+
+	--cs-color-text: #241b33;
+	--cs-color-text-muted: #5b5170;
+	/* 兼顾 --cs-color-bg 与 --cs-color-bg-soft 两种底色，均达到 3:1 */
+	--cs-color-text-subtle: #8b81a1;
+
+	--cs-color-border: #e7e0f2;
+	--cs-color-border-strong: #cfc4e4;
+
+	--cs-color-success: var(--cs-green-600);
+	--cs-color-success-soft: rgb(5 150 105 / 12%);
+	--cs-color-warning: var(--cs-amber-600);
+	--cs-color-warning-soft: rgb(217 119 6 / 12%);
+	--cs-color-danger: var(--cs-red-600);
+	--cs-color-danger-soft: rgb(220 38 38 / 12%);
+	--cs-color-info: var(--cs-violet-600);
+	--cs-color-info-soft: rgb(124 58 237 / 12%);
+	--cs-color-neutral-soft: rgb(91 81 112 / 12%);
+	--cs-color-shadow: rgb(15 23 42 / 6%);
+
+	--cs-series-1: var(--cs-violet-500);
+	--cs-series-2: var(--cs-pink-500);
+	--cs-series-3: var(--cs-amber-500);
+	--cs-series-4: var(--cs-red-500);
+	--cs-series-5: var(--cs-blue-500);
+	--cs-series-6: var(--cs-teal-500);
+	--cs-series-7: var(--cs-green-500);
+	--cs-series-8: var(--cs-slate-500);
+}
+
+.dark[data-cs-theme='sunset'] {
+	--cs-color-brand: var(--cs-violet-400);
+	--cs-color-brand-hover: var(--cs-violet-300);
+	--cs-color-brand-active: var(--cs-violet-500);
+	--cs-color-brand-soft: rgb(167 139 250 / 16%);
+	--cs-color-on-brand: #1d1030;
+
+	--cs-color-bg: #17141f;
+	--cs-color-bg-soft: #1e1a29;
+	--cs-color-bg-elevated: #241f31;
+
+	--cs-color-text: rgb(243 240 250 / 88%);
+	--cs-color-text-muted: rgb(226 220 245 / 60%);
+	/* 38% 透明度在暗底上仅 2.99:1，提到 42% 以越过 3:1 */
+	--cs-color-text-subtle: rgb(226 220 245 / 42%);
+
+	--cs-color-border: #2b2537;
+	--cs-color-border-strong: #3d3550;
+
+	--cs-color-success: var(--cs-green-400);
+	--cs-color-success-soft: rgb(52 211 153 / 16%);
+	--cs-color-warning: var(--cs-amber-400);
+	--cs-color-warning-soft: rgb(251 191 36 / 16%);
+	--cs-color-danger: var(--cs-red-400);
+	--cs-color-danger-soft: rgb(248 113 113 / 16%);
+	--cs-color-info: var(--cs-violet-400);
+	--cs-color-info-soft: rgb(167 139 250 / 16%);
+	--cs-color-neutral-soft: rgb(148 163 184 / 16%);
+	--cs-color-shadow: rgb(0 0 0 / 32%);
+
+	--cs-series-1: var(--cs-violet-400);
+	--cs-series-2: var(--cs-pink-400);
+	--cs-series-3: var(--cs-amber-400);
+	--cs-series-4: var(--cs-red-400);
+	--cs-series-5: var(--cs-blue-400);
+	--cs-series-6: var(--cs-teal-400);
+	--cs-series-7: var(--cs-green-400);
+	--cs-series-8: var(--cs-slate-400);
+}
+
+/* ============================================================
+ * 桥接层：语义 token → VitePress 内置变量
+ *
+ * VitePress 默认主题的导航、侧栏、正文、代码块都读 --vp-* 变量。
+ * 在此把 --cs-* 单向映射到 --vp-*，站点外壳即随主题切换，
+ * 无需覆盖 VitePress 的任何组件样式。
+ * ============================================================ */
+:root {
+	--vp-c-brand-1: var(--cs-color-brand);
+	--vp-c-brand-2: var(--cs-color-brand-hover);
+	--vp-c-brand-3: var(--cs-color-brand-active);
+	--vp-c-brand-soft: var(--cs-color-brand-soft);
+
+	--vp-c-green-1: var(--cs-color-success);
+	--vp-c-green-soft: var(--cs-color-success-soft);
+	--vp-c-warning-1: var(--cs-color-warning);
+	--vp-c-warning-soft: var(--cs-color-warning-soft);
+	--vp-c-danger-1: var(--cs-color-danger);
+	--vp-c-danger-soft: var(--cs-color-danger-soft);
+	--vp-c-default-soft: var(--cs-color-neutral-soft);
+}
+
+/* 非默认主题额外接管背景与文字，让整站外壳（而不仅是组件）跟随主题。
+   blueprint 沿用 VitePress 原生取值，避免与官方浅/深色配色产生细微偏差。 */
+[data-cs-theme='ocean'],
+[data-cs-theme='graphite'],
+[data-cs-theme='sunset'] {
+	--vp-c-bg: var(--cs-color-bg);
+	--vp-c-bg-alt: var(--cs-color-bg-soft);
+	--vp-c-bg-soft: var(--cs-color-bg-soft);
+	--vp-c-bg-elv: var(--cs-color-bg-elevated);
+	--vp-c-text-1: var(--cs-color-text);
+	--vp-c-text-2: var(--cs-color-text-muted);
+	--vp-c-text-3: var(--cs-color-text-subtle);
+	--vp-c-divider: var(--cs-color-border);
+	--vp-c-border: var(--cs-color-border-strong);
+	--vp-c-gutter: var(--cs-color-border);
+}
+
+/* ============================================================
+ * 结构图（SVG 图示）token
+ *
+ * Agent 笔记里的 SVG 用 --diagram-* 着色。此处从语义 token 派生，
+ * 使导入图示自动跟随任意主题，无需为每个主题另写一套调色板。
+ * ============================================================ */
+:root {
+	--diagram-bg: var(--cs-color-bg);
+	--diagram-host: var(--cs-color-bg-soft);
+	--diagram-model: var(--cs-color-info-soft);
+	--diagram-model-stroke: var(--cs-color-info);
+	--diagram-tool: var(--cs-color-warning-soft);
+	--diagram-tool-stroke: var(--cs-color-warning);
+	--diagram-ink: var(--cs-color-text);
+	--diagram-muted: var(--cs-color-text-muted);
+	--diagram-edge: var(--cs-color-text-subtle);
+	--diagram-stroke: var(--cs-color-border-strong);
+	--diagram-line: var(--cs-color-border);
+	--diagram-active: var(--cs-color-success);
+	--diagram-active-fill: var(--cs-color-success-soft);
+}

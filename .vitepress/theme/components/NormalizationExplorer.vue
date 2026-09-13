@@ -46,7 +46,7 @@ const resetLab = useLabReset(offset, scale)
 
 <style scoped>
 .normalization-grid { display: grid; grid-template-columns: minmax(90px, auto) minmax(0, 1fr); gap: .55rem .75rem; align-items: center; margin-top: .9rem; }
-.normalization-grid span { color: var(--vp-c-text-2); font-size: .82rem; font-weight: 600; }
-.normalization-grid code { overflow-x: auto; padding: .5rem .65rem; border: 1px solid var(--vp-c-divider); border-radius: 7px; background: var(--vp-c-bg); white-space: nowrap; }
+.normalization-grid span { color: var(--cs-color-text-muted); font-size: var(--cs-text-sm); font-weight: 600; }
+.normalization-grid code { overflow-x: auto; padding: .5rem .65rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-sm); background: var(--cs-color-bg); white-space: nowrap; }
 @media (max-width: 520px) { .normalization-grid { grid-template-columns: 1fr; } }
 </style>

@@ -53,5 +53,5 @@ const resetLab = useLabReset(stock, concurrent, strategy)
 </template>
 
 <style scoped>
-.inv-bad strong { color: var(--vp-c-danger-1); }
+.inv-bad strong { color: var(--cs-color-danger); }
 </style>

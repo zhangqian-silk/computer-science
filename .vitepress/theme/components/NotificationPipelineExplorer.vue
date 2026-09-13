@@ -43,7 +43,7 @@ const resetLab = useLabReset(requested, freqLimited, dedup, channelFail, retrySu
 			<div class="infra-control"><label :for="fieldId('fc')">频控拦截：{{ freqLimited }}</label><input :id="fieldId('fc')" v-model.number="freqLimited" type="range" min="0" max="80"></div>
 			<div class="infra-control"><label :for="fieldId('cf')">渠道失败：{{ channelFail }}</label><input :id="fieldId('cf')" v-model.number="channelFail" type="range" min="0" max="40"></div>
 		</div>
-		<label class="np-toggle"><input type="checkbox" v-model="retrySuccess"> 失败重试（可恢复）</label>
+		<label class="cs-toggle"><input type="checkbox" v-model="retrySuccess"> 失败重试（可恢复）</label>
 		<div class="np-funnel">
 			<div v-for="s in pipeline.stages" :key="s.name" class="np-stage" :class="`tone-${s.tone}`">
 				<span class="np-n">{{ s.n }}</span><span class="np-name">{{ s.name }}</span>
@@ -59,11 +59,8 @@ const resetLab = useLabReset(requested, freqLimited, dedup, channelFail, retrySu
 </template>
 
 <style scoped>
-.np-toggle { display: flex; align-items: center; gap: .5rem; margin: .6rem 0; font-size: .85rem; color: var(--vp-c-text-2); }
-.np-funnel { display: flex; flex-direction: column; gap: .3rem; margin: .6rem 0; }
-.np-stage { display: flex; align-items: center; gap: .8rem; padding: .5rem .8rem; border-radius: 6px; border-left: 3px solid var(--vp-c-divider); background: var(--vp-c-bg-soft); }
+.np-funnel { display: flex; flex-direction: column; gap: var(--cs-space-2); margin: .6rem 0; }
+.np-stage { display: flex; align-items: center; gap: var(--cs-space-5); padding: .5rem .8rem; border-radius: var(--cs-radius-sm); border-left: 3px solid var(--cs-color-border); background: var(--cs-color-bg-soft); }
 .np-n { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 42px; }
-.np-name { color: var(--vp-c-text-2); font-size: .84rem; }
-.tone-warning { border-left-color: var(--vp-c-warning-1); }
-.tone-success { border-left-color: var(--vp-c-green-1); }
+.np-name { color: var(--cs-color-text-muted); font-size: var(--cs-text-sm); }
 </style>

@@ -42,8 +42,8 @@ const surviving = computed(() => {
 const cellStyle = (value: number, max: number) => {
 	const ratio = value <= 0 ? 0 : Math.min(value / max, 1)
 	return {
-		backgroundColor: `color-mix(in srgb, var(--vp-c-brand-1) ${(ratio * 24).toFixed(1)}%, var(--vp-c-bg))`,
-		color: "var(--vp-c-text-1)"
+		backgroundColor: `color-mix(in srgb, var(--cs-color-brand) ${(ratio * 24).toFixed(1)}%, var(--cs-color-bg))`,
+		color: "var(--cs-color-text)"
 	}
 }
 
@@ -93,12 +93,12 @@ const resetLab = useLabReset(k)
 </template>
 
 <style scoped>
-.sppmi-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 0.9rem; }
-.sppmi-panel { min-width: 0; padding: 0.75rem; border: 1px solid var(--vp-c-divider); border-radius: 8px; background: var(--vp-c-bg); }
-.sppmi-panel__title { margin: 0 0 0.6rem; font-weight: 600; font-size: 0.88rem; color: var(--vp-c-text-1); }
+.sppmi-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--cs-space-6); }
+.sppmi-panel { min-width: 0; padding: 0.75rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-md); background: var(--cs-color-bg); }
+.sppmi-panel__title { margin: 0 0 0.6rem; font-weight: 600; font-size: var(--cs-text-base); color: var(--cs-color-text); }
 .sppmi-matrix { display: grid; grid-template-columns: 56px repeat(5, minmax(44px, 1fr)); gap: 4px; overflow-x: auto; }
-.sppmi-cell { display: flex; align-items: center; justify-content: center; min-height: 34px; border: 1px solid var(--vp-c-divider); border-radius: 5px; font-family: var(--vp-font-family-mono); font-size: 0.72rem; }
-.sppmi-cell.is-header { border: none; background: transparent; font-family: inherit; font-size: 0.75rem; color: var(--vp-c-text-2); }
+.sppmi-cell { display: flex; align-items: center; justify-content: center; min-height: 34px; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-sm); font-family: var(--cs-font-mono); font-size: var(--cs-text-2xs); }
+.sppmi-cell.is-header { border: none; background: transparent; font-family: inherit; font-size: var(--cs-text-xs); color: var(--cs-color-text-muted); }
 @media (max-width: 640px) {
 	.sppmi-matrix { grid-template-columns: 48px repeat(5, minmax(40px, 1fr)); }
 	.sppmi-cell { min-height: 30px; font-size: 0.66rem; }

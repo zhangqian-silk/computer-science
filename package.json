@@ -6,7 +6,10 @@
   "scripts": {
     "docs:dev": "vitepress dev .",
     "docs:build": "vitepress build .",
-    "docs:preview": "vitepress preview ."
+    "docs:preview": "vitepress preview .",
+    "check:tokens": "node scripts/check-design-tokens.mjs",
+    "check:contrast": "node scripts/check-theme-contrast.mjs",
+    "check": "npm run check:tokens && npm run check:contrast"
   },
   "devDependencies": {
     "katex": "^0.16.22",

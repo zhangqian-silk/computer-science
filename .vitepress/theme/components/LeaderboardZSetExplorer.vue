@@ -54,13 +54,13 @@ const resetLab = useLabReset(players, topN, focus)
 </template>
 
 <style scoped>
-.lb-players { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: .4rem; margin: .6rem 0; }
-.lb-edit { display: flex; flex-direction: column; font-size: .78rem; }
-.lb-board { list-style: none; padding: 0; margin: .6rem 0; display: flex; flex-direction: column; gap: .25rem; }
-.lb-board li { display: flex; align-items: center; gap: .6rem; padding: .35rem .6rem; border-radius: 5px; background: var(--vp-c-bg-soft); font-size: .84rem; }
-.lb-board li.lb-top { background: var(--vp-c-brand-soft); }
-.lb-board li.lb-focus { outline: 2px solid var(--vp-c-warning-1); }
-.lb-rank { width: 32px; color: var(--vp-c-text-3); font-variant-numeric: tabular-nums; }
+.lb-players { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: var(--cs-space-2); margin: .6rem 0; }
+.lb-edit { display: flex; flex-direction: column; font-size: var(--cs-text-xs); }
+.lb-board { list-style: none; padding: 0; margin: .6rem 0; display: flex; flex-direction: column; gap: var(--cs-space-1); }
+.lb-board li { display: flex; align-items: center; gap: var(--cs-space-4); padding: .35rem .6rem; border-radius: var(--cs-radius-sm); background: var(--cs-color-bg-soft); font-size: var(--cs-text-sm); }
+.lb-board li.lb-top { background: var(--cs-color-brand-soft); }
+.lb-board li.lb-focus { outline: 2px solid var(--cs-color-warning); }
+.lb-rank { width: 32px; color: var(--cs-color-text-subtle); font-variant-numeric: tabular-nums; }
 .lb-board strong { flex: 1; }
 .lb-score { font-variant-numeric: tabular-nums; }
 </style>

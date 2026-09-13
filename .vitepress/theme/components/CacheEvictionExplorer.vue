@@ -85,11 +85,11 @@ const resetLab = useLabReset(policy, capacity)
 </template>
 
 <style scoped>
-.ce-steps { display: flex; flex-direction: column; gap: .25rem; margin: .8rem 0; font-size: .8rem; }
-.ce-step { display: flex; align-items: center; gap: .6rem; padding: .3rem .5rem; border-radius: 5px; border-left: 3px solid var(--vp-c-divider); background: var(--vp-c-bg); }
-.ce-hit { border-left-color: var(--vp-c-green-1); }
-.ce-miss { border-left-color: var(--vp-c-warning-1); }
+.ce-steps { display: flex; flex-direction: column; gap: var(--cs-space-1); margin: .8rem 0; font-size: var(--cs-text-sm); }
+.ce-step { display: flex; align-items: center; gap: var(--cs-space-4); padding: .3rem .5rem; border-radius: var(--cs-radius-sm); border-left: 3px solid var(--cs-color-border); background: var(--cs-color-bg); }
+.ce-hit { border-left-color: var(--cs-color-success); }
+.ce-miss { border-left-color: var(--cs-color-warning); }
 .ce-key { font-weight: 700; width: 18px; }
-.ce-tag { width: 48px; color: var(--vp-c-text-3); font-size: .72rem; }
-.ce-state { font-family: var(--vp-font-family-mono); color: var(--vp-c-text-2); }
+.ce-tag { width: 48px; color: var(--cs-color-text-subtle); font-size: var(--cs-text-2xs); }
+.ce-state { font-family: var(--cs-font-mono); color: var(--cs-color-text-muted); }
 </style>

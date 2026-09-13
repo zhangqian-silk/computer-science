@@ -1,0 +1,88 @@
+/* 第 2 层：语义 token
+ *
+ * 本层是组件唯一允许消费的颜色与尺度来源。token 名描述「用途」而非「颜色」，
+ * 因此同一个 token 在不同主题下可以取不同色相，组件代码无需改动。
+ *
+ * 分区：
+ *   1. 尺度 token（排版、间距、圆角、层级、动效）——不随主题切换而变化；
+ *   2. 语义颜色 token 的默认取值——由 themes.css 按主题覆盖；
+ *   3. 语义颜色 token 到 VitePress 内置变量的桥接。
+ *
+ * 约束：
+ * - 组件里出现字面量色值即视为违规，由 scripts/check-design-tokens.mjs 拦截；
+ * - 字号、间距、圆角优先取本层台阶，避免继续散落 .82rem / .55rem 这类魔法数。
+ */
+
+:root {
+	/* ---------- 排版台阶 ---------- */
+	/* 组件内文字只在这 7 级里取值，避免出现 .68/.72/.74/.78 这类近似值 */
+	--cs-text-3xs: 0.68rem; /* 位域标签、极窄徽标 */
+	--cs-text-2xs: 0.72rem; /* 表头、弱化元信息 */
+	--cs-text-xs: 0.78rem; /* 次要说明、单元格 */
+	--cs-text-sm: 0.82rem; /* 控件标签、卡片正文 */
+	--cs-text-base: 0.88rem; /* 组件正文 */
+	--cs-text-md: 0.95rem; /* 强调正文 */
+	--cs-text-lg: 1.05rem; /* 指标数值 */
+	--cs-text-xl: 1.15rem; /* 组件标题 */
+
+	--cs-leading-tight: 1.35;
+	--cs-leading-normal: 1.6;
+	--cs-leading-relaxed: 1.75;
+
+	--cs-font-weight-medium: 500;
+	--cs-font-weight-semibold: 600;
+	--cs-font-weight-bold: 700;
+
+	--cs-font-mono: var(--vp-font-family-mono);
+
+	/* ---------- 间距台阶（4px 基准） ---------- */
+	--cs-space-1: 0.25rem;
+	--cs-space-2: 0.375rem;
+	--cs-space-3: 0.5rem;
+	--cs-space-4: 0.625rem;
+	--cs-space-5: 0.75rem;
+	--cs-space-6: 1rem;
+	--cs-space-7: 1.25rem;
+	--cs-space-8: 1.5rem;
+
+	/* ---------- 圆角台阶 ---------- */
+	--cs-radius-xs: 4px;
+	--cs-radius-sm: 6px;
+	--cs-radius-md: 8px;
+	--cs-radius-lg: 12px;
+	--cs-radius-pill: 999px;
+	--cs-radius-circle: 50%;
+
+	/* ---------- 边框与描边 ---------- */
+	--cs-border-width: 1px;
+	--cs-border-width-emphasis: 3px;
+	--cs-border: var(--cs-border-width) solid var(--cs-color-border);
+	--cs-border-strong: var(--cs-border-width) solid var(--cs-color-border-strong);
+
+	/* ---------- 触控与可访问性 ---------- */
+	--cs-tap-target: 44px; /* WCAG 2.5.5 最小可点击尺寸 */
+	--cs-tap-target-lg: 48px;
+	--cs-focus-ring-width: 3px;
+	--cs-focus-ring-offset: 2px;
+
+	/* ---------- 阴影与层级 ---------- */
+	/* 阴影颜色是主题语义 token（见 themes.css），此处只定义投影几何 */
+	--cs-shadow-sm: 0 1px 2px var(--cs-color-shadow);
+	--cs-shadow-md: 0 8px 24px var(--cs-color-shadow);
+	--cs-z-sticky: 10;
+	--cs-z-popover: 20;
+
+	/* ---------- 动效 ---------- */
+	--cs-duration-fast: 120ms;
+	--cs-duration-base: 200ms;
+	--cs-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+	--cs-transition-colors: color var(--cs-duration-fast) var(--cs-ease-standard),
+		background-color var(--cs-duration-fast) var(--cs-ease-standard),
+		border-color var(--cs-duration-fast) var(--cs-ease-standard);
+
+	/* ---------- 布局尺度 ---------- */
+	--cs-lab-diagram-size: 200px; /* 环形 / 方形示意图的标准边长 */
+	--cs-lab-bar-height: 12px; /* 进度条与负载条统一高度 */
+	--cs-lab-min-column: 170px; /* 控件网格的最小列宽 */
+	--cs-breakpoint-mobile: 640px; /* 与既有断点保持一致 */
+}

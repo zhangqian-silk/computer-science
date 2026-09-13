@@ -56,8 +56,8 @@ const resetLab = useLabReset(followers, postsPerDay, readsPerDay)
 </template>
 
 <style scoped>
-.fo-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: .8rem 0; }
-.fo-col h4 { margin: 0 0 .4rem; font-size: .85rem; }
+.fo-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cs-space-5); margin: .8rem 0; }
+.fo-col h4 { margin: 0 0 .4rem; font-size: var(--cs-text-sm); }
 .fo-col .infra-result { margin-bottom: .35rem; }
 @media (max-width: 560px) { .fo-cmp { grid-template-columns: 1fr; } }
 </style>

@@ -1,0 +1,273 @@
+/* 组件：Lab 容器（learning-lab / infra-lab）
+ *
+ * 交互推演组件的外壳：卡片、标题区、设问区、正文区、答案折叠区。
+ * 所有颜色取自语义 token，因此四套主题都无需改动本文件。
+ */
+
+.infra-lab {
+	margin: var(--cs-space-8) 0;
+	padding: var(--cs-space-6);
+	border: var(--cs-border);
+	border-top: var(--cs-border-width-emphasis) solid var(--cs-color-brand);
+	border-radius: var(--cs-radius-lg);
+	background: var(--cs-color-bg-soft);
+	box-shadow: var(--cs-shadow-md);
+}
+
+/* 学习组件共用一套视觉语法；站点其余部分不受影响 */
+.learning-lab {
+	--lab-accent: var(--cs-color-brand);
+	border-radius: var(--cs-radius-md);
+	border-top: var(--cs-border);
+	padding: 0;
+	background: var(--cs-color-bg);
+	box-shadow: none;
+	overflow: hidden;
+}
+
+.learning-lab__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--cs-space-6);
+	padding: var(--cs-space-7) var(--cs-space-7);
+	border-bottom: var(--cs-border);
+}
+
+.learning-lab__eyebrow {
+	display: block;
+	color: var(--cs-color-text-muted);
+	font-size: var(--cs-text-2xs);
+	letter-spacing: 0.06em;
+}
+
+.VPDoc .learning-lab__header h3 {
+	margin: var(--cs-space-1) 0 0;
+	font-size: var(--cs-text-xl);
+	line-height: var(--cs-leading-normal);
+	border: 0;
+	padding: 0;
+}
+
+.learning-lab button:focus-visible,
+.learning-lab input:focus-visible,
+.learning-lab select:focus-visible {
+	outline: 2px solid var(--lab-accent);
+	outline-offset: var(--cs-border-width-emphasis);
+}
+
+.learning-lab__reset {
+	flex-shrink: 0;
+	padding: var(--cs-space-2) var(--cs-space-4);
+	min-height: var(--cs-tap-target);
+	border: var(--cs-border);
+	border-radius: var(--cs-radius-sm);
+	font-size: var(--cs-text-2xs);
+	color: var(--cs-color-text-muted);
+	cursor: pointer;
+	transition: var(--cs-transition-colors);
+}
+
+.learning-lab__reset:hover {
+	border-color: var(--lab-accent);
+	color: var(--lab-accent);
+}
+
+.VPDoc .learning-lab__question {
+	margin: 0;
+	padding: var(--cs-space-5) var(--cs-space-7);
+	background: var(--cs-color-bg-soft);
+	font-size: var(--cs-text-md);
+	line-height: var(--cs-leading-relaxed);
+	border-left: var(--cs-border-width-emphasis) solid var(--lab-accent);
+}
+
+.learning-lab__question span {
+	display: block;
+	color: var(--lab-accent);
+	font-size: var(--cs-text-2xs);
+	font-weight: var(--cs-font-weight-semibold);
+}
+
+.learning-lab__body {
+	padding: var(--cs-space-7) var(--cs-space-7);
+	min-width: 0;
+}
+
+.learning-lab .infra-lab__hint {
+	margin-top: 0;
+	line-height: var(--cs-leading-relaxed);
+}
+
+.learning-lab .infra-controls {
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--cs-lab-min-column)), 1fr));
+}
+
+.learning-lab .infra-control {
+	border: 0;
+	padding: var(--cs-space-2) 0;
+	background: transparent;
+}
+
+.learning-lab .infra-control label {
+	color: var(--cs-color-text);
+}
+
+.learning-lab .infra-control input:not([type='range']),
+.learning-lab .infra-control select {
+	min-height: var(--cs-tap-target);
+	border: var(--cs-border);
+	padding: var(--cs-space-2);
+	border-radius: var(--cs-radius-sm);
+}
+
+.learning-lab .infra-result {
+	border-radius: var(--cs-radius-xs);
+	background: var(--cs-color-bg-soft);
+	border: 0;
+	border-left: 2px solid var(--cs-color-border);
+}
+
+.learning-lab .infra-result strong {
+	font-variant-numeric: tabular-nums;
+	font-size: var(--cs-text-lg);
+	line-height: var(--cs-leading-normal);
+}
+
+.learning-lab .infra-bar > i {
+	background: var(--lab-accent);
+}
+
+.learning-lab__footer {
+	border-top: var(--cs-border);
+}
+
+.learning-lab__footer > button {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	min-height: var(--cs-tap-target-lg);
+	padding: var(--cs-space-4) var(--cs-space-7);
+	font-size: var(--cs-text-sm);
+	font-weight: var(--cs-font-weight-semibold);
+	text-align: left;
+	cursor: pointer;
+	transition: var(--cs-transition-colors);
+}
+
+.learning-lab__footer > button:hover {
+	background: var(--cs-color-bg-soft);
+}
+
+.learning-lab__answer {
+	padding: 0 var(--cs-space-7) var(--cs-space-6);
+	font-size: var(--cs-text-base);
+	line-height: var(--cs-leading-relaxed);
+}
+
+.learning-lab__boundary {
+	color: var(--cs-color-text-muted);
+}
+
+.learning-lab table {
+	display: block;
+	overflow-x: auto;
+	font-variant-numeric: tabular-nums;
+}
+
+.learning-lab .infra-tabs {
+	flex-wrap: wrap;
+}
+
+.learning-lab .infra-tabs button {
+	min-height: var(--cs-tap-target);
+}
+
+.learning-lab .lab-equation {
+	overflow-x: auto;
+	padding: var(--cs-space-4);
+	background: var(--cs-color-bg-soft);
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-sm);
+}
+
+/* ---------- 标题与说明文字 ---------- */
+.infra-lab__title {
+	margin: 0 0 var(--cs-space-1);
+	font-weight: var(--cs-font-weight-bold);
+	color: var(--cs-color-text);
+}
+
+.infra-lab__hint {
+	margin: 0 0 var(--cs-space-6);
+	color: var(--cs-color-text-muted);
+	font-size: var(--cs-text-md);
+}
+
+.infra-note {
+	margin: var(--cs-space-6) 0 0;
+	color: var(--cs-color-text-muted);
+	font-size: var(--cs-text-base);
+}
+
+.infra-note.is-warn {
+	color: var(--cs-color-danger);
+}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 640px) {
+	.infra-lab {
+		padding: var(--cs-space-5);
+	}
+
+	.infra-lab__hint {
+		margin-bottom: var(--cs-space-5);
+	}
+
+	.infra-lab__hint,
+	.infra-note {
+		font-size: var(--cs-text-sm);
+		line-height: var(--cs-leading-normal);
+	}
+
+	.infra-note {
+		margin-top: var(--cs-space-5);
+	}
+
+	.infra-lab.learning-lab {
+		padding: 0;
+	}
+
+	.learning-lab__header {
+		align-items: start;
+	}
+
+	.learning-lab__header,
+	.learning-lab__body {
+		padding: var(--cs-space-5);
+	}
+
+	.VPDoc .learning-lab__question {
+		padding: var(--cs-space-4) var(--cs-space-5);
+	}
+
+	.learning-lab__answer {
+		padding-inline: var(--cs-space-5);
+	}
+
+	.learning-lab .infra-controls:has(> .infra-control:nth-child(3)) {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		overflow: visible;
+	}
+
+	.learning-lab .infra-tabs {
+		flex-wrap: wrap;
+		overflow: visible;
+	}
+
+	.learning-lab .infra-results {
+		grid-template-columns: 1fr;
+	}
+}

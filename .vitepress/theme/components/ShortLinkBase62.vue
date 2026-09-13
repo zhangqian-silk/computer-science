@@ -67,10 +67,10 @@ const resetLab = useLabReset(id)
 </template>
 
 <style scoped>
-.sl-code { margin: .8rem 0; padding: .7rem; background: var(--vp-c-bg-soft); border-radius: 6px; font-family: var(--vp-font-family-mono); font-size: 1.1rem; }
-.sl-domain { color: var(--vp-c-text-3); }
-.sl-code strong { color: var(--vp-c-brand-1); }
-.sl-cap { width: auto; margin: .6rem 0 0; font-size: .82rem; }
+.sl-code { margin: .8rem 0; padding: .7rem; background: var(--cs-color-bg-soft); border-radius: var(--cs-radius-sm); font-family: var(--cs-font-mono); font-size: 1.1rem; }
+.sl-domain { color: var(--cs-color-text-subtle); }
+.sl-code strong { color: var(--cs-color-brand); }
+.sl-cap { width: auto; margin: .6rem 0 0; font-size: var(--cs-text-sm); }
 .sl-cap th, .sl-cap td { padding: .25rem .8rem .25rem 0; text-align: left; }
-.sl-cap th { color: var(--vp-c-text-3); font-weight: 500; }
+.sl-cap th { color: var(--cs-color-text-subtle); font-weight: 500; }
 </style>

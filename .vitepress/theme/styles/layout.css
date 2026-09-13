@@ -1,0 +1,189 @@
+/* 第 5 层：布局原语
+ *
+ * 只负责「元素怎样排布」——网格、轨道、堆叠、响应式重排，
+ * 不负责颜色（颜色一律由 components/*.css 中的组件类承担）。
+ * 组件模板优先复用这里的类，避免每个组件重复写 flex / grid 声明。
+ */
+
+/* ---------- 控件与结果网格 ---------- */
+.infra-controls,
+.infra-results,
+.infra-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: var(--cs-space-5);
+}
+
+.infra-results {
+	margin-top: var(--cs-space-6);
+}
+
+/* ---------- 横向按钮组 ---------- */
+.infra-tabs,
+.infra-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--cs-space-3);
+	margin: var(--cs-space-5) 0;
+}
+
+.infra-actions {
+	justify-content: flex-end;
+}
+
+/* ---------- 芯片带 ---------- */
+.token-strip,
+.head-map {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--cs-space-2);
+	margin: var(--cs-space-6) 0;
+}
+
+/* ---------- 可横向滚动的序列轨道 ---------- */
+.sequence-track {
+	display: flex;
+	gap: var(--cs-space-2);
+	margin: var(--cs-space-6) 0;
+	overflow-x: auto;
+	padding-bottom: var(--cs-space-1);
+}
+
+/* ---------- 指标行列表 ---------- */
+.metric-list {
+	display: grid;
+	gap: var(--cs-space-4);
+	margin-top: var(--cs-space-6);
+}
+
+.metric-row {
+	display: grid;
+	grid-template-columns: minmax(70px, 0.8fr) minmax(72px, 0.8fr) minmax(120px, 2fr) minmax(92px, 1fr);
+	gap: var(--cs-space-3);
+	align-items: center;
+}
+
+/* ---------- 通用布局原语：供各组件复用，替代重复的 flex 声明 ---------- */
+
+/* 纵向堆叠，间距三档 */
+.cs-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--cs-space-3);
+}
+
+.cs-stack--tight {
+	gap: var(--cs-space-1);
+}
+
+.cs-stack--loose {
+	gap: var(--cs-space-5);
+}
+
+/* 横向排列并垂直居中 */
+.cs-row {
+	display: flex;
+	align-items: center;
+	gap: var(--cs-space-3);
+}
+
+.cs-row--wrap {
+	flex-wrap: wrap;
+}
+
+.cs-row--between {
+	justify-content: space-between;
+}
+
+/* 图示 + 数据并排；窄屏自动堆叠 */
+.cs-split {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--cs-space-6);
+	align-items: center;
+	margin-top: var(--cs-space-4);
+}
+
+.cs-split__figure {
+	flex: 0 0 auto;
+	width: var(--cs-lab-diagram-size);
+	height: var(--cs-lab-diagram-size);
+}
+
+.cs-split__data {
+	flex: 1 1 220px;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--cs-space-2);
+}
+
+/* ---------- 窄屏重排 ---------- */
+@media (max-width: 640px) {
+	.infra-controls,
+	.infra-results,
+	.infra-cards {
+		grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+		gap: var(--cs-space-3);
+	}
+
+	/* 三个及以上控件时改为可横滑，保证每个控件仍有可用宽度 */
+	.infra-controls:has(> .infra-control:nth-child(3)) {
+		display: flex;
+		overflow-x: auto;
+		overscroll-behavior-inline: contain;
+		scroll-snap-type: inline proximity;
+		scrollbar-width: thin;
+		padding-bottom: var(--cs-space-2);
+	}
+
+	.infra-controls:has(> .infra-control:nth-child(3)) > .infra-control {
+		flex: 0 0 46%;
+		min-width: 0;
+		scroll-snap-align: start;
+	}
+
+	.infra-tabs,
+	.token-strip {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overscroll-behavior-inline: contain;
+		scroll-snap-type: inline proximity;
+		scrollbar-width: thin;
+		padding-bottom: var(--cs-space-1);
+	}
+
+	.infra-tabs {
+		margin-block: var(--cs-space-3);
+	}
+
+	.infra-tabs button,
+	.token-strip > * {
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+	}
+
+	.infra-results {
+		margin-top: var(--cs-space-4);
+	}
+
+	.metric-list {
+		gap: var(--cs-space-3);
+		margin-top: var(--cs-space-5);
+	}
+
+	/* 指标行改为两行：文字一行，条形图与数值一行 */
+	.metric-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.metric-row .infra-bar {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.metric-row > :last-child {
+		grid-column: 2;
+		grid-row: 2;
+	}
+}

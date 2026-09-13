@@ -52,10 +52,10 @@ const resetLab = useLabReset(model, heartbeatInterval, ttl, lastHeartbeatAgo)
 </template>
 
 <style scoped>
-.sr-status { display: inline-flex; align-items: center; gap: .5rem; margin: .8rem 0; padding: .4rem .8rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
-.sr-dot { width: 10px; height: 10px; border-radius: 50%; }
-.sr-up { background: var(--vp-c-green-soft); color: var(--vp-c-green-1); }
-.sr-up .sr-dot { background: var(--vp-c-green-1); }
-.sr-down { background: var(--vp-c-danger-soft); color: var(--vp-c-danger-1); }
-.sr-down .sr-dot { background: var(--vp-c-danger-1); }
+.sr-status { display: inline-flex; align-items: center; gap: var(--cs-space-3); margin: .8rem 0; padding: .4rem .8rem; border-radius: var(--cs-radius-pill); font-size: var(--cs-text-sm); font-weight: 600; }
+.sr-dot { width: 10px; height: 10px; border-radius: var(--cs-radius-circle); }
+.sr-up { background: var(--cs-color-success-soft); color: var(--cs-color-success); }
+.sr-up .sr-dot { background: var(--cs-color-success); }
+.sr-down { background: var(--cs-color-danger-soft); color: var(--cs-color-danger); }
+.sr-down .sr-dot { background: var(--cs-color-danger); }
 </style>

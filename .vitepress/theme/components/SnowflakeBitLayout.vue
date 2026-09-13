@@ -2,6 +2,7 @@
 import { computed, ref, useId } from "vue"
 import LearningLab from "./LearningLab.vue"
 import { useLabReset } from "../use-lab-reset"
+import { seriesColor } from "../series-palette"
 
 const labId = useId()
 const fieldId = (name: string) => `${labId}-${name}`
@@ -27,11 +28,11 @@ const metrics = computed(() => {
 })
 
 const segments = computed(() => [
-	{ name: "符号位", bits: 1, color: "#94a3b8" },
-	{ name: "时间戳", bits: tsBits.value, color: "#3b82f6" },
-	{ name: "机房", bits: dcBits.value, color: "#10b981" },
-	{ name: "机器", bits: workerBits.value, color: "#f59e0b" },
-	{ name: "序列号", bits: seqBits.value, color: "#8b5cf6" }
+	{ name: "符号位", bits: 1, color: seriesColor(7) },
+	{ name: "时间戳", bits: tsBits.value, color: seriesColor(0) },
+	{ name: "机房", bits: dcBits.value, color: seriesColor(1) },
+	{ name: "机器", bits: workerBits.value, color: seriesColor(2) },
+	{ name: "序列号", bits: seqBits.value, color: seriesColor(4) }
 ])
 
 const valid = computed(() => tsBits.value >= 28)
@@ -59,7 +60,7 @@ const resetLab = useLabReset(dcBits, workerBits, seqBits)
 			<div class="infra-control"><label :for="fieldId('sq')">序列位：{{ seqBits }}</label><input :id="fieldId('sq')" v-model.number="seqBits" type="range" min="4" max="22"></div>
 		</div>
 		<div class="infra-results">
-			<div class="infra-result"><span>时间戳位</span><strong :style="{ color: valid ? undefined : 'var(--vp-c-danger-1)' }">{{ tsBits }} 位（约 {{ metrics.years.toFixed(0) }} 年）</strong></div>
+			<div class="infra-result"><span>时间戳位</span><strong :style="{ color: valid ? undefined : 'var(--cs-color-danger)' }">{{ tsBits }} 位（约 {{ metrics.years.toFixed(0) }} 年）</strong></div>
 			<div class="infra-result"><span>可部署机器数</span><strong>{{ fmt(metrics.machines) }}</strong></div>
 			<div class="infra-result"><span>单机每毫秒上限</span><strong>{{ fmt(metrics.perMsPerMachine) }}</strong></div>
 			<div class="infra-result"><span>单机理论 QPS</span><strong>{{ fmt(metrics.qpsPerMachine) }}</strong></div>
@@ -73,7 +74,6 @@ const resetLab = useLabReset(dcBits, workerBits, seqBits)
 </template>
 
 <style scoped>
-.bit-bar { display: flex; width: 100%; height: 54px; border-radius: 6px; overflow: hidden; margin: .6rem 0; }
-.bit-seg { display: flex; align-items: center; justify-content: center; min-width: 2px; color: #fff; font-size: .68rem; line-height: 1.15; text-align: center; }
-.infra-note.is-warn { color: var(--vp-c-danger-1); }
+.bit-bar { display: flex; width: 100%; height: 54px; border-radius: var(--cs-radius-sm); overflow: hidden; margin: var(--cs-space-4) 0; }
+.bit-seg { display: flex; align-items: center; justify-content: center; min-width: 2px; color: var(--cs-color-on-brand); font-size: var(--cs-text-3xs); line-height: var(--cs-leading-tight); text-align: center; }
 </style>

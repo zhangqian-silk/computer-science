@@ -54,11 +54,11 @@ const resetLab = useLabReset(slo, consumed)
 </template>
 
 <style scoped>
-.seb-bar { height: 16px; background: var(--vp-c-bg-soft); border-radius: 8px; overflow: hidden; margin: .8rem 0; }
+.seb-bar { height: 16px; background: var(--cs-color-bg-soft); border-radius: var(--cs-radius-md); overflow: hidden; margin: .8rem 0; }
 .seb-bar > i { display: block; height: 100%; }
-.t-success { background: var(--vp-c-green-1); }
-.t-neutral { background: var(--vp-c-brand-1); }
-.t-warning { background: var(--vp-c-warning-1); }
-.t-danger { background: var(--vp-c-danger-1); }
+.t-success { background: var(--cs-color-success); }
+.t-neutral { background: var(--cs-color-brand); }
+.t-warning { background: var(--cs-color-warning); }
+.t-danger { background: var(--cs-color-danger); }
 .seb-action { margin-top: .5rem; }
 </style>

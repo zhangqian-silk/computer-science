@@ -2,6 +2,7 @@
 import { computed, ref, useId } from "vue"
 import LearningLab from "./LearningLab.vue"
 import { useLabReset } from "../use-lab-reset"
+import { seriesColor } from "../series-palette"
 
 const labId = useId()
 const fieldId = (name: string) => `${labId}-${name}`
@@ -12,7 +13,6 @@ const keys = ref(120)
 const removeOne = ref(false)
 
 const RING = 65536
-const palette = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6", "#ec4899", "#64748b"]
 
 function hash(s: string): number {
 	let h = 0x811c9dc5
@@ -76,7 +76,7 @@ const ticks = computed(() =>
 		return {
 			x1: 100 + 78 * Math.cos(a), y1: 100 + 78 * Math.sin(a),
 			x2: 100 + 94 * Math.cos(a), y2: 100 + 94 * Math.sin(a),
-			color: palette[vn.node % palette.length]
+			color: seriesColor(vn.node)
 		}
 	})
 )
@@ -92,17 +92,17 @@ const resetLab = useLabReset(nodes, vnodes, keys, removeOne)
 			<div class="infra-control"><label :for="fieldId('v')">每节点虚拟节点：{{ vnodes }}</label><input :id="fieldId('v')" v-model.number="vnodes" type="range" min="1" max="80"></div>
 			<div class="infra-control"><label :for="fieldId('k')">key 数量：{{ keys }}</label><input :id="fieldId('k')" v-model.number="keys" type="range" min="30" max="400" step="10"></div>
 		</div>
-		<label class="ch-toggle"><input type="checkbox" v-model="removeOne"> 移除最后一个节点，统计迁移比例</label>
-		<div class="ch-body">
-			<svg viewBox="0 0 200 200" class="ch-ring" role="img" aria-label="一致性哈希环">
-				<circle cx="100" cy="100" r="86" fill="none" stroke="var(--vp-c-divider)" stroke-width="1.5" />
+		<label class="cs-toggle"><input type="checkbox" v-model="removeOne"> 移除最后一个节点，统计迁移比例</label>
+		<div class="cs-split">
+			<svg viewBox="0 0 200 200" class="cs-split__figure" role="img" aria-label="一致性哈希环">
+				<circle cx="100" cy="100" r="86" fill="none" stroke="var(--cs-color-border)" stroke-width="1.5" />
 				<line v-for="(t, i) in ticks" :key="i" :x1="t.x1" :y1="t.y1" :x2="t.x2" :y2="t.y2" :stroke="t.color" stroke-width="2" />
 			</svg>
-			<div class="ch-bars">
-				<div v-for="(c, i) in analysis.counts" :key="i" class="ch-bar-row">
-					<span class="ch-dot" :style="{ background: palette[i % palette.length] }"></span>
-					<span class="ch-name">N{{ i }}</span>
-					<span class="ch-bar"><i :style="{ width: Math.min(100, (c / keys) * 100 * 2) + '%', background: palette[i % palette.length] }"></i></span>
+			<div class="cs-split__data">
+				<div v-for="(c, i) in analysis.counts" :key="i" class="cs-legend-row">
+					<span class="cs-legend-dot" :style="{ background: seriesColor(i) }"></span>
+					<span class="cs-legend-name">N{{ i }}</span>
+					<span class="cs-legend-bar"><i :style="{ width: Math.min(100, (c / keys) * 100 * 2) + '%', background: seriesColor(i) }"></i></span>
 					<strong>{{ c }}</strong>
 				</div>
 			</div>
@@ -115,16 +115,3 @@ const resetLab = useLabReset(nodes, vnodes, keys, removeOne)
 		<p class="infra-note">虚拟节点越多，负载越接近均匀；移除节点时只有该节点的 key 迁移到后继，迁移比例趋近 1/N，这正是一致性哈希相对「取模」的核心优势。</p>
 	</LearningLab>
 </template>
-
-<style scoped>
-.ch-toggle { display: flex; align-items: center; gap: .5rem; margin: .6rem 0; font-size: .85rem; color: var(--vp-c-text-2); }
-.ch-body { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-top: .6rem; }
-.ch-ring { width: 200px; height: 200px; flex: 0 0 auto; }
-.ch-bars { flex: 1 1 220px; display: flex; flex-direction: column; gap: .35rem; }
-.ch-bar-row { display: flex; align-items: center; gap: .5rem; font-size: .8rem; }
-.ch-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
-.ch-name { width: 28px; color: var(--vp-c-text-2); }
-.ch-bar { flex: 1; height: 12px; background: var(--vp-c-bg-soft); border-radius: 6px; overflow: hidden; }
-.ch-bar > i { display: block; height: 100%; }
-.ch-bar-row strong { width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
-</style>

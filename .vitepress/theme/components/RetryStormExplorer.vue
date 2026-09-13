@@ -32,7 +32,7 @@ const resetLab = useLabReset(layers, retries, protectedMode)
 			<div class="infra-control"><label :for="fieldId('l')">调用链层数：{{ layers }}</label><input :id="fieldId('l')" v-model.number="layers" type="range" min="1" max="4"></div>
 			<div class="infra-control"><label :for="fieldId('r')">每层重试次数：{{ retries }}</label><input :id="fieldId('r')" v-model.number="retries" type="range" min="0" max="3"></div>
 		</div>
-		<label class="rs-toggle"><input type="checkbox" v-model="protectedMode"> 开启退避 + 熔断 + 重试预算</label>
+		<label class="cs-toggle"><input type="checkbox" v-model="protectedMode"> 开启退避 + 熔断 + 重试预算</label>
 		<div class="infra-results">
 			<div class="infra-result"><span>入口请求</span><strong>{{ BASE }}</strong></div>
 			<div class="infra-result" :class="{ 'rs-bad': amplification > '3' && !protectedMode }"><span>打到底层依赖</span><strong>{{ fmt(bottom) }}</strong></div>
@@ -43,6 +43,5 @@ const resetLab = useLabReset(layers, retries, protectedMode)
 </template>
 
 <style scoped>
-.rs-toggle { display: flex; align-items: center; gap: .5rem; margin: .6rem 0; font-size: .85rem; color: var(--vp-c-text-2); }
-.rs-bad strong { color: var(--vp-c-danger-1); }
+.rs-bad strong { color: var(--cs-color-danger); }
 </style>

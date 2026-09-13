@@ -53,7 +53,7 @@ const resetLab = useLabReset(producerRetry, persistence, ackAfter, idempotent)
 </template>
 
 <style scoped>
-.sem-toggles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: .5rem; margin: .8rem 0; }
-.sem-toggles label { display: flex; align-items: center; gap: .5rem; padding: .5rem .6rem; border: 1px solid var(--vp-c-divider); border-radius: 6px; background: var(--vp-c-bg); font-size: .84rem; }
-.sem-final strong { color: var(--vp-c-brand-1); }
+.sem-toggles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--cs-space-3); margin: .8rem 0; }
+.sem-toggles label { display: flex; align-items: center; gap: var(--cs-space-3); padding: .5rem .6rem; border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-sm); background: var(--cs-color-bg); font-size: var(--cs-text-sm); }
+.sem-final strong { color: var(--cs-color-brand); }
 </style>

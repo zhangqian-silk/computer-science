@@ -56,10 +56,10 @@ const resetLab = useLabReset(operation)
 </template>
 
 <style scoped>
-.collective-description { margin: .55rem 0 .9rem; color: var(--vp-c-text-2); font-size: .88rem; }
+.collective-description { margin: .55rem 0 .9rem; color: var(--cs-color-text-muted); font-size: var(--cs-text-base); }
 .collective-card span { margin-top: .55rem; }
-.collective-card code { display: block; white-space: normal; font-size: .72rem; line-height: 1.35; }
+.collective-card code { display: block; white-space: normal; font-size: var(--cs-text-2xs); line-height: 1.35; }
 @media (max-width: 640px) {
-	.collective-card code { font-size: .68rem; }
+	.collective-card code { font-size: var(--cs-text-3xs); }
 }
 </style>

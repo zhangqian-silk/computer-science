@@ -37,16 +37,16 @@ const resetLab = useLabReset(slots, delay)
 		</div>
 		<div class="tw-body">
 			<svg viewBox="0 0 200 200" class="tw-ring" role="img" aria-label="时间轮">
-				<circle cx="100" cy="100" r="70" fill="none" stroke="var(--vp-c-divider)" stroke-width="1.5" />
+				<circle cx="100" cy="100" r="70" fill="none" stroke="var(--cs-color-border)" stroke-width="1.5" />
 				<g v-for="d in dots" :key="d.i">
 					<circle :cx="d.x" :cy="d.y" r="12"
-						:fill="d.isTarget ? 'var(--vp-c-brand-1)' : 'var(--vp-c-bg-soft)'"
-						:stroke="d.isCursor ? 'var(--vp-c-green-1)' : 'var(--vp-c-divider)'"
+						:fill="d.isTarget ? 'var(--cs-color-brand)' : 'var(--cs-color-bg-soft)'"
+						:stroke="d.isCursor ? 'var(--cs-color-success)' : 'var(--cs-color-border)'"
 						:stroke-width="d.isCursor ? 3 : 1" />
 					<text :x="d.x" :y="d.y + 4" text-anchor="middle" font-size="10"
-						:fill="d.isTarget ? '#fff' : 'var(--vp-c-text-2)'">{{ d.i }}</text>
+						:fill="d.isTarget ? 'var(--cs-color-on-brand)' : 'var(--cs-color-text-muted)'">{{ d.i }}</text>
 				</g>
-				<text x="100" y="104" text-anchor="middle" font-size="11" fill="var(--vp-c-text-3)">指针→槽0</text>
+				<text x="100" y="104" text-anchor="middle" font-size="11" fill="var(--cs-color-text-subtle)">指针→槽0</text>
 			</svg>
 			<div class="tw-info">
 				<div class="infra-result"><span>落入槽位</span><strong>槽 {{ targetSlot }}</strong></div>
@@ -61,7 +61,7 @@ const resetLab = useLabReset(slots, delay)
 </template>
 
 <style scoped>
-.tw-body { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-top: .6rem; }
+.tw-body { display: flex; gap: var(--cs-space-6); flex-wrap: wrap; align-items: center; margin-top: .6rem; }
 .tw-ring { width: 200px; height: 200px; flex: 0 0 auto; }
-.tw-info { flex: 1 1 200px; display: flex; flex-direction: column; gap: .4rem; }
+.tw-info { flex: 1 1 200px; display: flex; flex-direction: column; gap: var(--cs-space-2); }
 </style>
