@@ -1,9 +1,10 @@
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { defineConfig, type DefaultTheme } from 'vitepress'
 import texmath from 'markdown-it-texmath'
 import katex from 'katex'
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import { installAgentArchive } from './agent-archive.mjs'
 
 const repoName = 'computer-science'
 
@@ -335,72 +336,68 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		link: '/ai/agent/',
 		collapsed: false,
 		items: [
-			{ text: 'LLM 应用与 Agent 总览', link: '/ai/agent/notes/' },
+			{ text: '学习总览', link: '/ai/agent/notes/' },
+			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' },
 			{
-				text: '模型交互',
+				text: '上下文管理与优化',
 				collapsed: true,
 				items: [
-					{ text: 'LLM API 与消息接口', link: '/ai/agent/notes/model/llm-api' },
-					{ text: '模型输出与结构化结果', link: '/ai/agent/notes/model/outputs' },
-					{ text: '流式响应与模型适配', link: '/ai/agent/notes/model/streaming' },
-					{ text: 'KV Cache 与请求缓存', link: '/ai/agent/notes/model/kv-cache' }
-				]
-			},
-			{
-				text: '上下文与记忆',
-				collapsed: true,
-				items: [
-					{ text: '提示工程（Prompt Engineering）', link: '/ai/agent/notes/context/prompt-engineering' },
-					{ text: '上下文工程（Context Engineering）', link: '/ai/agent/notes/context/context-engineering' },
+					{ text: '上下文组织、存取与选择', link: '/ai/agent/notes/context/context-engineering' },
 					{ text: 'RAG 与代码检索', link: '/ai/agent/notes/context/rag-retrieval' },
-					{ text: '会话状态与长期记忆', link: '/ai/agent/notes/context/conversation-memory' },
+					{ text: '长期记忆', link: '/ai/agent/notes/context/conversation-memory' },
 					{ text: '上下文压缩', link: '/ai/agent/notes/context/compaction' }
 				]
 			},
 			{
-				text: '工具与能力扩展',
+				text: '工具系统与能力扩展',
 				collapsed: true,
 				items: [
-					{ text: '工具调用与执行网关', link: '/ai/agent/notes/tools/tool-calling' },
-					{ text: '文件、进程与浏览器环境', link: '/ai/agent/notes/tools/execution-environments' },
+					{ text: '工具契约、执行与结果', link: '/ai/agent/notes/tools/tool-calling' },
+					{ text: '文件、进程、浏览器与服务', link: '/ai/agent/notes/tools/execution-environments' },
 					{ text: 'MCP 与外部连接器', link: '/ai/agent/notes/tools/mcp-connectors' },
 					{ text: 'Skills 与操作知识加载', link: '/ai/agent/notes/tools/skills' },
 					{ text: 'Hooks、Plugins 与扩展管理', link: '/ai/agent/notes/tools/hooks-plugins' }
 				]
 			},
 			{
-				text: '控制流程与协作',
+				text: '流程控制与 Agent 方法',
 				collapsed: true,
 				items: [
-					{ text: 'Workflow 与流程控制', link: '/ai/agent/notes/control/workflows' },
-					{ text: 'ReAct 与 Agent Loop', link: '/ai/agent/notes/control/react-loop' },
-					{ text: 'Reasoning、Planning 与计划修订', link: '/ai/agent/notes/control/reasoning-planning' },
+					{ text: 'Workflow 与 Agent Loop', link: '/ai/agent/notes/control/workflows' },
+					{ text: '规划与计划修订', link: '/ai/agent/notes/control/reasoning-planning' },
 					{ text: 'Subagent 与多 Agent 协作', link: '/ai/agent/notes/control/subagents-multi-agent' },
 					{ text: 'Dynamic Workflows 与代码编排', link: '/ai/agent/notes/control/dynamic-workflows' }
 				]
 			},
 			{
-				text: '运行系统与质量',
+				text: 'Agent 运行时与工程化',
 				collapsed: true,
 				items: [
-					{ text: 'Harness 架构与接口', link: '/ai/agent/notes/runtime/harness-architecture' },
+					{ text: '运行时组成与任务生命周期', link: '/ai/agent/notes/runtime/harness-architecture' },
 					{ text: '人工交互与执行控制', link: '/ai/agent/notes/runtime/human-control' },
-					{ text: '持久化与故障恢复', link: '/ai/agent/notes/runtime/persistence-recovery' },
+					{ text: '任务恢复与副作用', link: '/ai/agent/notes/runtime/persistence-recovery' },
 					{ text: '任务调度与 Agent 接入', link: '/ai/agent/notes/runtime/scheduling-protocols' },
-					{ text: '安全与权限边界', link: '/ai/agent/notes/runtime/security' },
-					{ text: '可观测性与故障诊断', link: '/ai/agent/notes/runtime/observability' },
-					{ text: '评测与故障注入', link: '/ai/agent/notes/runtime/evaluation' },
-					{ text: '性能、成本与模型路由', link: '/ai/agent/notes/runtime/performance-cost' },
-					{ text: '版本管理与发布', link: '/ai/agent/notes/runtime/versioning-release' }
+					{ text: '安全与隔离', link: '/ai/agent/notes/runtime/security' }
+				]
+			},
+			{
+				text: '评测、可观测性与优化',
+				collapsed: true,
+				items: [
+					{ text: '评测与实验设计', link: '/ai/agent/notes/quality/evaluation' },
+					{ text: '可观测性与故障诊断', link: '/ai/agent/notes/quality/observability' },
+					{ text: '性能与成本', link: '/ai/agent/notes/quality/performance-cost' },
+					{ text: '版本、回归与发布', link: '/ai/agent/notes/quality/versioning-release' }
 				]
 			},
 			{
 				text: '资料与实验',
 				collapsed: true,
 				items: [
-					{ text: '产品实现索引', link: '/ai/agent/notes/implementation-index' },
-					{ text: '代码示例与实验', link: '/ai/agent/notes/labs' },
-					{ text: '参考资料', link: '/ai/agent/notes/references' }
+					{ text: '实现案例阅读索引', link: '/ai/agent/notes/implementation-index' },
+					{ text: '学习练习与实验', link: '/ai/agent/notes/labs' },
+					{ text: '参考资料', link: '/ai/agent/notes/references' },
+					{ text: '旧版归档', link: '/ai/agent/archive/catalog' }
 				]
 			}
 		]
@@ -414,6 +411,25 @@ const sidebar = Object.fromEntries(
 	])
 )
 
+sidebar['/ai/agent/archive/'] = [
+	{ text: '返回新版学习总览', link: '/ai/agent/notes/' },
+	{ text: '旧版归档目录', link: '/ai/agent/archive/catalog' },
+	{ text: '旧版 Agent 入口', link: '/ai/agent/archive/' },
+	{ text: '旧版学习总览', link: '/ai/agent/archive/notes/' },
+	...['model', 'context', 'tools', 'control', 'runtime'].map((section) => ({
+		text: ({ model: '模型交互', context: '上下文与记忆', tools: '工具与扩展', control: '流程与协作', runtime: '运行系统与质量' })[section]!,
+		collapsed: true,
+		items: buildItems(`ai/agent/archive/notes/${section}`).map((item) => ({
+			...item,
+			text: readFileSync(path.join(process.cwd(), `${item.link!.slice(1)}.md`), 'utf8')
+				.match(/^# (.+)$/m)?.[1] ?? item.text
+		}))
+	})),
+	{ text: '旧版实现索引', link: '/ai/agent/archive/notes/implementation-index' },
+	{ text: '旧版实验说明', link: '/ai/agent/archive/notes/labs' },
+	{ text: '旧版参考资料', link: '/ai/agent/archive/notes/references' }
+]
+
 export default withMermaid(
 	defineConfig({
 		lang: 'zh-CN',
@@ -426,7 +442,9 @@ export default withMermaid(
 			'**/AGENTS.md',
 			// Agent 笔记的参考代码与模板按源码方式保留（可在 GitHub 浏览），不作为站点页面构建
 			'**/ai/agent/notes/examples/**',
-			'**/ai/agent/notes/templates/**'
+			'**/ai/agent/notes/templates/**',
+			'**/ai/agent/archive/notes/examples/**',
+			'**/ai/agent/archive/notes/templates/**'
 		],
 		ignoreDeadLinks: [
 			/^https?:\/\//
@@ -439,6 +457,7 @@ export default withMermaid(
 			lineNumbers: true,
 			config(md) {
 				installBracketMathBlock(md)
+				installAgentArchive(md)
 
 				md.use(texmath, {
 					engine: katex,

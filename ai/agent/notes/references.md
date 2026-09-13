@@ -1,4 +1,17 @@
-# 参考资料
+# 参考资料与来源记录
+
+新版正文按六个知识模块组织。基础阅读优先使用下列来源；后续编号保留此前的核验历史和定位锚点，不把旧产品快照当作当前通用规范。
+
+| 主题 | 主要来源 |
+| --- | --- |
+| 模型交互 | [消息](#source-openai-text)、[工具](#source-openai-functions)、[提示](#source-openai-prompt)、[图片](#source-openai-image-input) |
+| 上下文 | [上下文工程](#source-anthropic-context)、[RAG](#source-rag-paper)、[记忆](#source-langgraph-memory) |
+| 工具与扩展 | [工具设计](#source-anthropic-tools)、[MCP 版本化架构](#source-mcp-architecture-202511)、[Skills](#source-skills-spec) |
+| 流程方法 | [Workflow 与 Agent](#source-anthropic-agents)、[ReAct](#source-react-paper) |
+| 运行时 | [长任务](#source-anthropic-long-harness)、[恢复](#source-langgraph-persistence)、[中断](#source-langgraph-interrupts) |
+| 质量 | [评测方法](#source-openai-eval-design)、[Agent 评测](#source-anthropic-evals)、[观测](#source-otel-genai-repo) |
+
+---
 
 引用在正文中靠近所支持的结论。固定提交提供可复查的实现范围，官方在线页面表示核验时的公开契约；两者都不等于经过实际产品联调。教学建议与计算示例是笔记中的参考分析，不冒充上游实现。
 
@@ -17,6 +30,8 @@
 [OpenAI：Text generation](https://developers.openai.com/api/docs/guides/text)
 
 阅读范围：一次 Responses 调用、消息输入和 output_text 与原始 output 的区别。
+
+补充核验：2026-09-12，读取消息角色与指令跟随部分，确认 `instructions` 的作用及其在 `previous_response_id` 续接时不自动继承。
 
 访问状态：已读取正文或标注的源码范围。
 
@@ -116,6 +131,8 @@
 
 阅读范围：历史续接、previous_response_id 与费用不是状态免费。
 
+补充核验：2026-09-12，读取手动组织多轮消息与上下文窗口部分，确认历史输入、输出和推理 Token 的容量关系。
+
 访问状态：已读取正文或标注的源码范围。
 
 ---
@@ -157,6 +174,8 @@
 [OpenAI：Reasoning models](https://developers.openai.com/api/docs/guides/reasoning)
 
 阅读范围：推理条目、不透明续接和上下文保留；按具体模型核验参数。
+
+补充核验：2026-09-12，读取生成用量与窗口管理说明，确认推理 Token 属于生成统计，生成还可能包含非可见格式 Token；不将生成量直接等同于可见回答长度。
 
 访问状态：已读取正文或标注的源码范围。
 
@@ -255,6 +274,8 @@
 [OpenAI：Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching)
 
 阅读范围：核验日文档包含模型族差异与缓存断点；不使用统一命中保证或固定价格。
+
+补充核验：2026-09-12，读取前缀 KV 复用、追加对话与输出生成的关系；本文引用不涉及具体价格和缓存保留期。
 
 访问状态：已读取正文或标注的源码范围。
 
@@ -985,3 +1006,100 @@
 阅读范围：打开返回无可读正文，作者身份和论点未据此确认；仅保存待核验线索。
 
 访问状态：正文不可读取；不作为事实证据。
+
+---
+
+<a id="source-openai-reproducibility"></a>
+
+## [71] OpenAI：Reproducible outputs
+
+来源类型：官方 Cookbook。核验日期：2026-09-12。原文示例使用 GPT-3.5／GPT-4 的 1106 版本和 Python SDK 1.3.3。
+
+[OpenAI：How to make your completions outputs reproducible](https://developers.openai.com/cookbook/examples/reproducible_outputs_with_the_seed_parameter)
+
+阅读范围：固定输入、采样参数与后端配置的复现条件，以及低温度和固定 seed 不提供绝对确定性保证；不将历史示例作为当前 SDK 或模型支持列表。
+
+访问状态：已读取正文。
+
+---
+
+<a id="source-openai-chat-functions"></a>
+
+## [72] OpenAI：How to call functions with chat models
+
+来源类型：官方 Cookbook。核验日期：2026-09-12。在线文档未固定源码提交。
+
+[OpenAI：How to call functions with chat models](https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models)
+
+阅读范围：Chat Completions 的嵌套 `tools.function` 定义、`tool_choice`、`message.tool_calls`、JSON 参数解析，以及 `role: "tool"`／`tool_call_id` 的结果回传关系。
+
+访问状态：已读取正文；未进行真实 API 调用。
+
+---
+
+<a id="source-openai-chat-stream"></a>
+
+## [73] OpenAI：How to stream completions
+
+来源类型：官方 Cookbook。核验日期：2026-09-12。在线文档未固定源码提交。
+
+[OpenAI：How to stream completions](https://developers.openai.com/cookbook/examples/how_to_stream_completions)
+
+阅读范围：流式 Chat Completions 的 `choices[].delta`、角色与内容增量、空增量及 `finish_reason`；不引用示例中的耗时作为性能保证。
+
+访问状态：已读取流式 Chat Completion 示例部分。
+
+---
+
+<a id="source-openai-gpt41"></a>
+
+## [74] OpenAI：GPT-4.1
+
+来源类型：官方模型文档。核验日期：2026-09-12。页面列出的快照为 `gpt-4.1-2025-04-14`。
+
+[OpenAI：GPT-4.1](https://developers.openai.com/api/docs/models/gpt-4.1)
+
+阅读范围：确认请求示例所用模型支持 Chat Completions、Function Calling、结构化输出与流式返回；不用于模型排名或价格比较。
+
+访问状态：已读取正文。
+
+---
+
+<a id="source-openai-image-input"></a>
+
+## [75] OpenAI：Images and vision
+
+来源类型：官方文档。核验日期：2026-09-12。在线文档未固定源码提交。
+
+[OpenAI：Images and vision](https://developers.openai.com/api/docs/guides/images-vision)
+
+阅读范围：文字与图片内容组合、多图片输入、图片输入计量，以及小字、旋转和视觉判断限制。模型交互正文仅讨论消息和证据关系，不展开图片上传、地址、编码或 SDK 接入。
+
+访问状态：已读取图片分析与限制部分。
+
+---
+
+<a id="source-openai-eval-design"></a>
+
+## [76] OpenAI：Evaluation best practices
+
+来源类型：官方方法指导。核验日期：2026-09-12。
+
+[Evaluation best practices](https://developers.openai.com/api/docs/guides/evaluation-best-practices)
+
+阅读范围：评价目标、样例集、评分方法、成对比较、评分偏差和持续评价。新版仅引用方法，不展开平台接入、产品可用性或模型选择。
+
+访问状态：已读取正文。
+
+---
+
+<a id="source-mcp-architecture-202511"></a>
+
+## [77] MCP：2025-11-25 Architecture 与 Tools
+
+来源类型：版本化官方规范。核验日期：2026-09-12。协议版本：`2025-11-25`，不标为最新版本。
+
+- [Architecture](https://modelcontextprotocol.io/specification/2025-11-25/architecture)
+- [Tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+
+阅读范围：Host、Client、Server 的职责，资源、工具和提示的区分，以及工具能力声明和用户控制。已读取架构主体与工具规范的概述、交互及能力部分；连接会话的说明只适用于该版本。

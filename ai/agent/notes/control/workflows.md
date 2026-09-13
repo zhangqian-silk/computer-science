@@ -1,152 +1,155 @@
-# Workflow 与流程控制
+# 流程控制：Workflow 与 Agent Loop
 
-Workflow 用程序或已确定的图组织模型调用、工具执行和普通计算。它适合路径可描述、步骤需要独立校验的任务，不是“低级 Agent”。本页讨论控制与数据依赖。
-
-## 节点、边与状态
-
-节点是一次职责清楚的工作，可以是确定性函数、模型调用、工具操作或完整 Agent。边决定哪些结果使后续节点可运行。数据流说明输入从哪里来，控制流说明是否执行；两者相关但不能混淆。
-
-例如「抽取信息 → 查询数据库 → 生成摘要」里，抽取错误不应直接继续查询；数据库未找到记录也不一定是系统失败，可能进入明确的缺失分支。把任何非空字符串当作节点成功，会让上游错误在后续被美化为正常答案。
-
-```python
-# 教学代码：步骤依赖显式写在程序中，不需要先引入框架。
-def order_summary(request, extract, query_order, explain):
-    fields = extract(request)
-    if fields["status"] != "valid":
-        return {"status": "needs_input", "missing": fields["missing"]}
-    order = query_order(fields["order_id"])
-    if order is None:
-        return {"status": "not_found"}
-    answer = explain(request, order)
-    return {"status": "answer_proposed", "answer": answer}
-```
-
-这里三次函数执行中可以只有两次模型调用。数据库查询和字段必需性检查不需要模型。整个主路径由代码规定，即使 `extract` 使用 tool selection，也不因此变成自主 Agent。
-
-## 常见组合模式与取舍
-
-| 模式 | 控制特点 | 主要代价 |
-| --- | --- | --- |
-| 顺序 Chain | 后一步依赖前一步 | 延迟累积、误差传播 |
-| Router | 从有限候选选择处理器 | 错路由、兜底和分类边界 |
-| Parallel | 独立工作同时执行 | 并发预算、结果覆盖、共享状态冲突 |
-| Evaluator–Optimizer | 检查后有限修正 | 验证器质量、重复生成和终止 |
-| Map–Reduce | 分项处理再集成 | 分块遗漏、汇总丢失细节 |
-| Human checkpoint | 人工决定是否继续 | 长等待、过期审批、恢复语义 |
-
-Anthropic 对工作流模式的讨论可作为模式入口，但模式名称不是质量保证。需要先说明比较条件：同样任务是否减少遗漏、是否多付了不必要调用、失败路径是否更明确。[[3]](../references.md#source-anthropic-agents)
-
-## 节点间的数据契约
-
-每个节点至少定义输入版本、输出 schema、成功/业务缺失/失败状态和证据。不要让所有节点读写一个任意字典，然后依赖提示保证“不改别人的字段”。并行场景特别需要各节点独立产物及确定性合并。
-
-```python
-step_result = {
-    "step_id": "inspect-config",
-    "input_revision": "workspace-7",
-    "status": "completed",
-    "value": {"port": 8080},
-    "evidence": ["read-19"],
-    "output_revision": "result-3",
-}
-```
-
-后续节点不能将工作区7的检查结果用于工作区9的补丁验收。缓存节点结果也需要把输入、代码、Prompt 和必要权限范围纳入兼容条件，而不是只按节点名称复用。
-
-对于条件分支，`skipped`、`not_required`、`failed` 和 `missing` 应区分。汇总节点要知道没有结果是因为不该执行，还是任务遗漏。否则丢失一项结果后仍可能写出“全部检查完成”。
-
-## DAG 执行器示例
-
-```python
-# 教学代码：串行拓扑执行，不含并发、持久化与副作用重放。
-def run_dag(nodes, initial):
-    outputs = {}
-    pending = dict(nodes)
-    while pending:
-        ready = [
-            key for key, node in pending.items()
-            if all(dep in outputs for dep in node["depends_on"])
-        ]
-        if not ready:
-            raise ValueError("依赖缺失或存在环")
-        for key in sorted(ready):
-            node = pending.pop(key)
-            inputs = {dep: outputs[dep] for dep in node["depends_on"]}
-            outputs[key] = node["run"](initial, inputs)
-    return outputs
-```
-
-这段展示“何时可以执行”和“从何处取数据”，不负责判断业务结果。真正节点失败时，应按任务策略停止依赖项、继续独立分支或等待补充，而不是所有异常统一 `continue`。加入循环需显式预算和循环状态，不能让图结构隐藏无界重试。
-
-图只是表示方式。普通函数流程可能更易读；需要可视化、复杂依赖、持久执行时再选框架，不必为三个步骤先建一套调度平台。
-
-## LangGraph：函数式和图式接口的实现区别
-
-LangGraph 的 Functional API 用普通分支与函数保留控制结构，通过 entrypoint/task 引入持久化与中断。Graph API 则显式描述状态与图；其 checkpoint 边界和函数式任务结果保存方式不同。选择应依据状态共享、可视化和恢复需要，而不是哪种看起来更“Agent”。[[46]](../references.md#source-langgraph-functional)
-
-特别要读取恢复语义：重新进入函数或节点不等于从某一行继续。已持久任务可以复用结果，任务之外的副作用仍可能再次发生。这个机制促使开发者把非确定性步骤和外部动作边界显式化，不能只加一个装饰器就宣称 exactly-once。
-
-本笔记的 Python DAG 示例没有实现上述持久能力，它只是便于理解控制。采用真实框架时，应以其当前 SDK 的具体类型、返回值和测试为准。
-
-## 验证与修正循环
-
-有限修正可以提升结构化结果或代码质量，但验证器应检查实际对象。代码生成后的检查用编译、测试、静态分析和人工评审组合；文本检查用明确 rubric 和证据。让同一个模型读取自己的解释然后给“通过”标签，不是独立验证。
-
-```python
-# 教学伪代码：每次修正都有独立检查，达到上限返回未验证。
-def revise(initial, improve, check, limit=3):
-    candidate = initial
-    for _ in range(limit):
-        verdict = check(candidate)
-        if verdict["passed"]:
-            return {"status": "verified", "value": candidate}
-        candidate = improve(candidate, verdict["feedback"])
-    return {"status": "unverified", "value": candidate}
-```
-
-如果反馈连续不变，应停止或升级，不应把同一修正重复消耗全部额度。错误属于环境缺依赖时，重写业务代码可能使结果更差。保留失败分类，让修正函数知道该改内容、补资料还是等待环境。
-
-## 人工检查点与发布边界
-
-人工批准应绑定具体候选产物和版本。用户批准了补丁A，程序不能在后台修改成B后继续沿用批准。长等待时重新检查资源版本、任务目标和策略。
-
-LangGraph 中断文档指出恢复可能重新执行节点，故中断前动作要幂等或隔离。可把“准备产物”“请求审批”“提交动作”拆成明确步骤，避免恢复时再次发送消息或创建资源。[[47]](../references.md#source-langgraph-interrupts)
-
-## 调优与选型
-
-测量每条路径的调用数、关键路径耗时、失败位置和验证通过率。并行只优化独立部分，不能把有依赖的读写强行并发。更少节点可能减少开销，但也可能消除关键验证；更多节点可能提升可诊断性，但会增加接口和上下文传递成本。
-
-对固定流程，优先把确定性工作留给程序；对无法枚举的探索，允许一个有预算的 Agent 节点，而不是让整个业务的审批与发布都交给自由规划。Workflow 与 Agent 的混合常比二选一更符合工程实际。
+流程控制决定多步任务如何推进：下一步执行什么，使用哪些前序结果，何时分支、重复或结束。Workflow 由预定义结构安排主要路径；Agent Loop 让模型根据当前观察提出后续动作，程序负责执行与边界。二者可以组合，不是必须逐级升级的两代系统。[[3]](../references.md#source-anthropic-agents)
 
 ---
 
-## 分支结果与汇总节点
+## 一、步骤、数据和状态
 
-假设三项检查中A成功、B因条件不适用跳过、C执行失败。汇总器不能只把A的结果传给模型并要求“总结全部检查”，而应显式传入三项状态。B不是缺失，C不是没有发现问题。
+一个步骤接收输入、完成操作并产生输出。依赖说明步骤何时可执行，数据传递说明后续步骤读取什么；状态则记录目前已经发生的事实。
 
-```python
-outcomes = {
-    "A": {"state": "verified", "findings": []},
-    "B": {"state": "not_applicable", "reason": "没有该配置"},
-    "C": {"state": "failed", "reason": "环境依赖缺失"},
-}
-ready = all(
-    item["state"] in {"verified", "not_applicable"}
-    for item in outcomes.values()
-)
-assert ready is False
+| 概念 | 问题 | 例子 |
+| --- | --- | --- |
+| 步骤 | 做什么 | 读取配置、生成解释 |
+| 数据依赖 | 需要谁的结果 | 解释需要读取内容 |
+| 控制条件 | 是否走这条路 | 找到文件后才解释 |
+| 状态 | 已发生什么 | 已读取版本 r2，尚未验证运行值 |
+| 完成条件 | 何时交付 | 回答有对应证据且覆盖用户问题 |
+
+计划「读取配置」是未来安排，状态「已读取」必须由实际结果更新。把计划文本直接当成完成记录，会让后续步骤依赖不存在的输入。
+
+---
+
+## 二、Workflow：预定义路径 {#workflow}
+
+以「根据文档回答一个配置问题」为例，固定流程可以是读取资料、检查是否有答案、生成或澄清、核对并交付。
+
+```mermaid
+flowchart LR
+	I["问题"] --> R["读取指定资料"]
+	R --> C{"证据充分？"}
+	C -->|是| G["模型生成解释"]
+	C -->|否| Q["说明缺失或澄清"]
+	G --> V["核对结论与引用"]
+	V --> O["交付"]
+	Q --> O
 ```
 
-模型可以生成一个说明部分完成的报告，但发布节点仍按程序条件拒绝“全部通过”。这让内容生成与业务状态分开，不会让流畅总结掩盖失败节点。
+这里模型参与生成，主路径仍由程序规定。输入变化可以走不同分支，但分支的类型和条件事先可描述。
 
-## 重试输入与版本绑定
+一次正常过程：
 
-一个检查节点失败后重试，输入文件可能已改变；此时它不是原步骤的完全重复。将输入版本、节点实现、Prompt和必要配置记入任务记录。需要复用结果时核对这些条件，不能以相同step ID直接读取历史缓存。
+| 步骤 | 输入 | 输出 | 后续使用 |
+| --- | --- | --- | --- |
+| 读取 | 指定配置文件 | 端口 8080，来源 r2 | 提供事实 |
+| 检查 | 用户问题与字段 | 所需字段存在 | 进入生成 |
+| 生成 | 事实与解释要求 | 端口说明 | 进入核对 |
+| 核对 | 说明和原始字段 | 数值与来源匹配 | 交付 |
 
-副作用节点重试需要业务operation ID；纯计算节点可以按输入hash缓存；模型节点缓存要考虑上下文和版本。它们都叫“重试”，但正确复用条件不同。
+若字段缺失，流程可以直接说明无法确认，不必强制让模型猜出答案。验证失败时也可以设置有限修正循环；有循环不等于变成 Agent。
 
-## 函数组合与图式执行
+### 常见控制结构
 
-流程短、依赖清楚、几乎无动态分支时，普通函数最容易读和调试。需要可视化依赖、复杂并行、持久状态和人工中断时，图或工作流框架可能值得。应测框架引入的序列化、检查点和版本迁移成本，不把“能画图”当唯一选型理由。
+- 顺序：后一节点依赖前一节点。
+- 分支：按条件选路径，避免执行无关动作。
+- 并行与汇合：独立步骤同时推进，明确等待全部还是部分结果。
+- 有界循环：重复检查或修正，设置次数与停止条件。
 
-无论形式如何，节点契约、错误类别和验收都必须存在。将逻辑搬到图框架不应使实际控制规则更难找到。
+DAG 是无环依赖图；包含回路的 Workflow 不能简单按一次拓扑排序执行。图式表达便于展示复杂依赖，简单固定流程也可以用普通函数组合表达，概念不依赖框架。
+
+---
+
+## 三、Agent Loop：依据观察选择下一步 {#agent-loop}
+
+Agent Loop 在一次模型输出与下一次模型输入之间形成反馈。模型可以提出工具调用，也可以提出回答；工具产生新观察后，模型重新判断，而不必提前列出全部路径。
+
+```mermaid
+flowchart LR
+	C["当前上下文"] --> M["模型决策"]
+	M -->|工具调用| T["校验与执行"]
+	T --> O["观察与状态更新"]
+	O --> C
+	M -->|回答| V["完成检查"]
+	V --> E["交付或说明未完成"]
+```
+
+图中的循环保存外部可验证的动作和观察，不要求输出或存储模型完整内部推理。ReAct 的原始研究讨论推理与行动交错，现代工具循环可借鉴反馈关系，但不必复制论文中的提示格式。[[48]](../references.md#source-react-paper)
+
+### 完整过程推演
+
+用户问「服务为什么采用 60 秒超时」：
+
+1. 模型先选择读取配置，工具返回声明值 30 秒。
+2. 模型看到该结果，提出检查覆盖来源。
+3. 经允许的只读检查返回环境变量值 60 秒。
+4. 模型结合配置与覆盖规则给出解释。
+5. 程序核对回答依据，交付结果并结束。
+
+如果第二步发现没有权限，则可以解释尚未确认的部分或请求必要授权，不能把更换路径绕过权限当作正常探索。
+
+### 最小控制算法
+
+```text
+RUN-LOOP(task, budget)
+	state ← INITIALIZE(task)
+	while HAS-BUDGET(budget) and not CANCELLED(state) do
+		decision ← GENERATE(BUILD-INPUT(state))
+		budget ← ACCOUNT(budget, decision)
+		if decision is incomplete then
+			return REPORT-INCOMPLETE(state)
+		end if
+		if decision contains tool calls then
+			results ← VALIDATE-AND-EXECUTE(decision.calls, budget)
+			state ← APPEND-OBSERVATIONS(state, decision, results)
+			budget ← ACCOUNT(budget, results)
+		else
+			return CHECK-AND-REPORT(state, decision)
+		end if
+	end while
+	return REPORT-LIMIT(state)
+```
+
+执行步骤应遵守剩余时间和动作预算；被拒绝的调用不进入实际执行。若一次输出同时包含说明文字和工具调用，应先处理待执行调用，不能仅因出现文字就宣布任务结束。
+
+---
+
+## 四、结束条件不是一句「完成了」
+
+| 结束原因 | 应交付什么 |
+| --- | --- |
+| 已满足目标 | 结果与必要依据 |
+| 缺少资料 | 已知内容和缺失项 |
+| 权限不足 | 未执行范围与所需用户决定 |
+| 预算耗尽 | 已完成部分、未完成部分 |
+| 用户取消 | 已停止的工作及已发生效果 |
+| 执行失败 | 失败事实与可确定的状态 |
+
+模型不再调用工具，只说明本次没有新的动作提议。是否完成仍由任务条件决定。反过来，缺资料时明确说明也可能是正确结果，不应为了循环次数而继续探索。
+
+---
+
+## 五、比较与组合
+
+| 维度 | Workflow | Agent Loop |
+| --- | --- | --- |
+| 主要路径 | 预定义 | 依据观察动态提出 |
+| 模型职责 | 完成指定节点 | 同时参与动作选择 |
+| 可预测性 | 路径更易枚举 | 需要检查更多可能轨迹 |
+| 适用任务 | 步骤稳定、规则明确 | 后续动作依赖未知观察 |
+| 边界 | 节点契约与分支规则 | 工具范围、预算、终止条件 |
+
+固定审核流程可以在「调查原因」节点内运行 Agent；Agent 也可以把稳定的查询流程当作一个工具。比较时应考虑任务表现和控制成本，不以自主性多少作为质量排名。
+
+规划、多 Agent 和动态代码编排改变的是任务分解、执行者组织或控制表达，见对应专题；理解最小循环不要求先掌握它们。
+
+---
+
+## 学习检查与参考资料
+
+判断以下推论为何不成立：「有三个模型调用，所以是 Agent」「存在循环，所以不是 Workflow」「模型回答结束，所以任务成功」。关键分别是控制权、预定义结构和独立完成条件。
+
+- [[3] Building effective agents](../references.md#source-anthropic-agents)
+- [[48] ReAct 原始论文](../references.md#source-react-paper)
+- [规划与计划修订](reasoning-planning.md)
+- [多 Agent 协作](subagents-multi-agent.md)
+- [动态代码编排](dynamic-workflows.md)
