@@ -1,14 +1,18 @@
 # 参考资料与来源记录
 
-新版正文按六个知识模块组织。基础阅读优先使用下列来源；后续编号保留此前的核验历史和定位锚点，不把旧产品快照当作当前通用规范。
+正文目前保留学习总览、模型交互与 Prompt and Context 三篇，题目化材料收在[面试题库](./interview.md)，其余主题的历史内容见[旧版归档](../archive/catalog.md)。本页保留全部来源编号与定位锚点，供各篇共同引用；编号沿用此前的核验历史，不把旧产品快照当作当前通用规范。
+
+[上下文压缩](./context/compaction.md)、[Agent 记忆](./context/memory.md)、[memory、context、knowledge 的边界](./context/memory-boundaries.md)、[工具调用机制](./tools/tool-calling-mechanics.md)、[Agent 工具族](./tools/agent-tool-families.md)、[Agent Skills](./tools/skills.md)、[Agent 扩展机制](./tools/extensibility.md)、[知识如何进入一次请求](./knowledge-supply.md)、[Agent 运行时接入](./runtime/integration.md)与[Agent 运行时的工程问题](./runtime/engineering-problems.md)十篇按可独立发布维护，其来源清单随文自带、不进入本页编号，以便这几篇脱离本仓库单独分发。
 
 | 主题 | 主要来源 |
 | --- | --- |
 | 模型交互 | [消息](#source-openai-text)、[工具](#source-openai-functions)、[提示](#source-openai-prompt)、[图片](#source-openai-image-input) |
-| 上下文 | [上下文工程](#source-anthropic-context)、[RAG](#source-rag-paper)、[记忆](#source-langgraph-memory)、[长上下文失效](#source-breunig-longctx) |
-| 工具与扩展 | [工具设计](#source-anthropic-tools)、[MCP 版本化架构](#source-mcp-architecture-202511)、[Skills](#source-skills-spec) |
+| 上下文 | [上下文工程](#source-anthropic-context)、[四大操作](#source-langchain-context)、[生产实践](#source-manus-context)、[RAG](#source-rag-paper)、[记忆](#source-langgraph-memory)、[长上下文失效](#source-breunig-longctx) |
+| 记忆与边界 | 见[记忆篇](./context/memory.md#参考文献)与[边界篇](./context/memory-boundaries.md#参考文献)文末自带的来源清单 |
+| 知识供给 | 见[知识如何进入一次请求](./knowledge-supply.md#参考文献)文末自带的来源清单 |
+| 工具与扩展 | [工具设计](#source-anthropic-tools)、[MCP 版本化架构](#source-mcp-architecture-202511)；调用机制见[机制篇](./tools/tool-calling-mechanics.md#参考文献)、各族工具见[工具族篇](./tools/agent-tool-families.md#参考文献)、Skills 见[Skills 篇](./tools/skills.md#参考文献)、扩展机制见[扩展机制篇](./tools/extensibility.md#参考文献)文末自带的来源清单，本页保留的[格式规范](#source-skills-spec)条目仅供归档内容引用 |
 | 流程方法 | [Workflow 与 Agent](#source-anthropic-agents)、[ReAct](#source-react-paper) |
-| 运行时 | [长任务](#source-anthropic-long-harness)、[恢复](#source-langgraph-persistence)、[中断](#source-langgraph-interrupts) |
+| 运行时 | [长任务](#source-anthropic-long-harness)、[恢复](#source-langgraph-persistence)、[中断](#source-langgraph-interrupts)；接入形态见[运行时接入篇](./runtime/integration.md#参考文献)、工程问题见[运行时工程问题篇](./runtime/engineering-problems.md#参考文献)文末自带的来源清单 |
 | 质量 | [评测方法](#source-openai-eval-design)、[Agent 评测](#source-anthropic-evals)、[观测](#source-otel-genai-repo) |
 
 ---
@@ -1117,3 +1121,35 @@
 阅读范围：长上下文的四种失效模式——上下文中毒、干扰、混淆、冲突——的命名与定义，以及裁剪、摘要、工具收敛等应对方向。文中以 Gemini 玩 Pokémon 的目标中毒、工具过多导致选择困难等公开案例说明各模式。
 
 访问状态：经检索片段核验 URL 与四类定义，用于组织教学判断；这是诊断分类而非完备性证明，不作为上游实现契约。
+
+---
+
+<a id="source-manus-context"></a>
+
+## [79] Manus：Context Engineering for AI Agents
+
+来源类型：作者工程实践。核验日期：2026-09-13。在线文章未固定源码提交。
+
+[Manus：Context Engineering for AI Agents — Lessons from Building Manus](https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus)
+
+阅读范围：围绕 KV-cache 的三条设计规则（前缀稳定、只追加与确定性序列化、显式缓存断点）；工具集变更采用解码期遮蔽 logits 而非增删定义，并配合统一工具名前缀分组；把文件系统当作可还原的外部记忆；通过复述 `todo.md` 把目标推入近期注意力；保留失败动作与报错作为纠错证据；以受控变化打破 few-shot 造成的机械重复。
+
+文中数据：平均输入输出比约 100:1，平均约 50 次工具调用，Claude Sonnet 命中与未命中缓存的输入单价为 0.30 与 3 USD/MTok（约 10 倍）。这些是该文写作时点的产品实测与公开报价，只用于说明量级，不作为当前报价或通用结论。
+
+访问状态：已读取正文全文。作者单方工程经验，不等于经过独立复现的通用规范。
+
+---
+
+<a id="source-langchain-context"></a>
+
+## [80] LangChain：Context Engineering for Agents
+
+来源类型：作者工程实践/框架文档。核验日期：2026-09-13。在线文章未固定源码提交。
+
+[LangChain：Context Engineering](https://blog.langchain.com/context-engineering-for-agents/)
+
+阅读范围：Write / Select / Compress / Isolate 四类操作的归纳与各自手段——草稿本与长期记忆的写入，状态字段、记忆、工具描述检索与知识 RAG 的选择，整轨迹与交接边界的摘要及裁剪，子 Agent、沙箱与 state schema 的隔离；并引用 Karpathy 的「上下文窗口即 RAM」类比与 Breunig 的四种失效模式。
+
+文中数据：引用 Anthropic 报告的多 Agent 相比对话最多约 15 倍 token 用量；引用相关论文称对工具描述做检索可将工具选择准确率提升约 3 倍。均为转引，按其原始条件解释。
+
+访问状态：已读取正文全文。四类划分是教学归纳，不构成互斥完备的分类标准。

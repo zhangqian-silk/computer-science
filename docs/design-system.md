@@ -108,7 +108,7 @@ const segments = computed(() => [
 
 **行高**：`--cs-leading-tight`(1.35) `-normal`(1.6) `-relaxed`(1.75)
 
-**间距**（4px 基准）：`--cs-space-1`(0.25rem) 至 `--cs-space-8`(1.5rem)
+**间距**（4px 基准）：`--cs-space-1`(0.25rem) 至 `--cs-space-10`(2.5rem)。`-9`(2rem) 与 `-10`(2.5rem) 为正文级留白，供段间距、章节标题上方与分隔线使用——正文段间距须**大于**行高，否则段落边界会被行内行距抹平。
 
 **圆角**：`--cs-radius-xs`(4px) `sm`(6px) `md`(8px) `lg`(12px) `pill`(999px) `circle`(50%)
 
