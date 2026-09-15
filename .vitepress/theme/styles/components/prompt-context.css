@@ -17,12 +17,15 @@
 	color: var(--cs-color-text-subtle);
 }
 
+/* 图下说明：常承载上百字的整段中文，因此不用 mono、不取最小台阶。
+ * 等宽字在长段中文下字间过密、易读性明显低于正文字体；行高取 relaxed，
+ * 并限制行宽，避免一行铺满宽屏后难以回扫。 */
 .pc-note {
 	margin: var(--cs-space-5) 0 0;
-	padding-top: var(--cs-space-3);
+	padding-top: var(--cs-space-4);
 	border-top: var(--cs-border-width) dashed var(--cs-color-border);
-	font-family: var(--cs-font-mono);
-	font-size: var(--cs-text-2xs);
-	line-height: var(--cs-leading-normal);
-	color: var(--cs-color-text-subtle);
+	font-size: var(--cs-text-sm);
+	line-height: var(--cs-leading-relaxed);
+	max-width: 62ch;
+	color: var(--cs-color-text-muted);
 }

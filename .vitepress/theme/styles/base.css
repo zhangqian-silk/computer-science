@@ -1,8 +1,67 @@
 /* 第 4 层：基础排版
  *
- * 只处理站点级的元素级样式：数学公式、Mermaid、表格、结构图。
+ * 只处理站点级的元素级样式：正文节奏、数学公式、Mermaid、表格、结构图。
  * 不含任何组件类，也不含布局网格。
  */
+
+/* ---------- 正文阅读节奏 ----------
+ * 中文正文没有词间空格，字面密度高于西文。框架默认的
+ * 「段间距 16px / 行高 28px」使段间距小于行内行距，段落
+ * 边界被抹平、长段落连成一片。这里把两者的关系倒过来：
+ * 段间距（32px）大于行高（28px），段落才成为可辨认的单元。
+ */
+.VPDoc .vp-doc p {
+	margin: var(--cs-space-9) 0;
+	line-height: var(--cs-leading-relaxed);
+}
+
+/* 列表：项间留白明显小于段间距，保持「同一组」的归属感 */
+.VPDoc .vp-doc li + li {
+	margin-top: var(--cs-space-4);
+}
+
+/* 列表项自身的行距与正文取齐；框架默认 1.5 是按西文调的，中文偏挤 */
+.VPDoc .vp-doc li {
+	line-height: var(--cs-leading-relaxed);
+}
+
+.VPDoc .vp-doc li > p {
+	margin: var(--cs-space-3) 0;
+}
+
+/* 标题上方留白加大、下方收紧，使标题在视觉上贴住它所领起的内容 */
+.VPDoc .vp-doc h2 {
+	margin-top: var(--cs-space-10);
+	padding-top: var(--cs-space-8);
+}
+
+.VPDoc .vp-doc h3 {
+	margin-top: var(--cs-space-9);
+	margin-bottom: var(--cs-space-5);
+	line-height: var(--cs-leading-tight);
+}
+
+/* 分隔线承担章节切换，前后给足呼吸区 */
+.VPDoc .vp-doc hr {
+	margin: var(--cs-space-10) 0;
+}
+
+/* ---------- 来源清单的「阅读范围」摘要 ----------
+ * 这类段落是对来源的说明，属于次级信息，却与条目标题、
+ * 链接同权渲染，连排十余条时条目边界消失。用弱化配色
+ * 加一道左侧引线把它降到背景层，条目之间自然分组。
+ */
+.VPDoc .vp-doc .source-scope {
+	margin: var(--cs-space-5) 0 var(--cs-space-8);
+	padding-left: var(--cs-space-6);
+	border-left: var(--cs-border);
+}
+
+.VPDoc .vp-doc .source-scope > p {
+	margin: 0;
+	color: var(--cs-color-text-muted);
+	font-size: var(--cs-text-md);
+}
 
 /* KaTeX 块级公式在窄屏可横向滚动，避免撑破正文列宽 */
 .VPDoc .katex-display {
@@ -20,6 +79,34 @@
 .VPDoc table {
 	display: table;
 	width: 100%;
+}
+
+/* ---------- 表格的阅读密度 ----------
+ * 表格是本站信息密度最高的元素：框架默认「行高 1.5 + 纵向 padding 8px」
+ * 在多列中文表里会让各行几乎贴死。放宽行距与纵向内边距，并让单元格顶对齐，
+ * 使长短不一的单元格从同一基线开始读；表头不换行，保证列义始终完整可读。
+ */
+.VPDoc .vp-doc th,
+.VPDoc .vp-doc td {
+	line-height: var(--cs-leading-normal);
+	padding: var(--cs-space-5) var(--cs-space-6);
+	vertical-align: top;
+}
+
+.VPDoc .vp-doc th {
+	white-space: nowrap;
+}
+
+/* 表格与上下文之间给足分隔。列宽沿用浏览器按内容自动分配的结果：
+ * 表格撑满正文宽时，多列中文表的短列会被拉宽、长列被压窄而折行，
+ * 因此纵向内边距要足够，让折行后的单元格仍有清晰的行边界。 */
+.VPDoc .vp-doc table {
+	margin: var(--cs-space-8) 0;
+}
+
+/* 行内代码紧贴汉字时缺少间隙，补出左右留白 */
+.VPDoc .vp-doc :not(pre) > code {
+	margin: 0 0.15em;
 }
 
 /* ---------- Agent 笔记结构图的响应式排版 ----------

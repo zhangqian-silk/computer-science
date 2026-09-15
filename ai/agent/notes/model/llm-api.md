@@ -535,37 +535,6 @@ $$
 
 ---
 
-## 学习与面试自检
-
-<details>
-<summary>单次调用：端口 JSON 与 read_file 调用参数，分别应该从哪里取出？</summary>
-
-先检查请求是否成功、响应是否完整及是否拒绝。业务结果从 `message.content` 取出 JSON 文本后解析；工具调用则逐项读取 `message.tool_calls`，再解析 `function.arguments`，同时保留调用 ID。前者是回答结果，后者是交给函数的参数。
-
-能解释这两条解析路径，也应能指出 `response_format` 和 `tools` 分别约束哪一种内容。
-
-进一步区分输入中的三类信息：few-shot 示例说明期望的规律，当前资料提供本次事实，图片提供可见证据。不要把示例里的 8080 或截图之外的运行状态当成当前答案。
-
-</details>
-
-<details>
-<summary>多轮交互：用户只问了一次，为什么读取配置的例子会调用模型两次？</summary>
-
-第一次模型调用提出读取请求，程序执行后，第二次调用才看到文件内容。下一次输入应包含原始用户问题、完整 assistant 调用消息和匹配 `tool_call_id` 的 tool 结果；如果原请求还有需要生效的 system prompt，也应继续包含。
-
-换成用户追问「超时呢？」时，新增的是 user 消息，但同样需要前文提供配置依据。用户轮次和模型调用次数应分别计数。
-
-</details>
-
-<details>
-<summary>底层机制：窗口为 8,000 Token，输入为 6,000，其中 4,000 命中缓存，还能生成 4,000 吗？</summary>
-
-不能。输入仍占 6,000 Token，窗口最多还剩 2,000 给生成，且还需满足模型和请求的输出上限。缓存节省重复的前缀计算，不会增加窗口容量；是否降低总耗时，还要看输入处理与后续生成各占多少。
-
-</details>
-
----
-
 ## 参考资料
 
 - 工具声明、响应解析与结果回传：[Chat Completions Function Calling](../references.md#source-openai-chat-functions)、[Function calling](../references.md#source-openai-functions)。
