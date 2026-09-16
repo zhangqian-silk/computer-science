@@ -10,7 +10,8 @@ Agent 系统以模型交互为基础，把外部资料、工具操作和多步�
 | --- | --- |
 | [学习总览](notes/index.md) | 从单次生成到多 Agent 的各种执行范式及其判别标准 |
 | [模型交互](notes/model/llm-api.md) | 单次调用、Prompt、图片、输出解析、多轮与工具回填、生成机制 |
-| [Prompt and Context](notes/context/context-engineering.md) | 注意力预算、失效模式、上下文操作与长程策略 |
+| [Prompt Engineering](notes/context/prompt-engineering.md) | 任务契约、静态提示组织、示例与输出约束、迭代和版本维护 |
+| [Context Engineering](notes/context/context-engineering.md) | 信息来源、注意力预算、失效模式、上下文操作与长程策略 |
 | [上下文压缩](notes/context/compaction.md) | 三层数据模型、处置阶梯、触发时机、摘要与续跑、缓存代价 |
 | [Agent 记忆](notes/context/memory.md) | 三层分层与固化路径、类型学、召回打分、维护与有效性、风险与实现对照 |
 | [memory / context / knowledge 边界](notes/context/memory-boundaries.md) | 从无状态推出三套机制、两条判据、易混对象辨析、归属判断与排障 |
