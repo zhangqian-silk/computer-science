@@ -196,3 +196,27 @@
 		animation-iteration-count: 1 !important;
 	}
 }
+
+/* ---------- 窄屏 Markdown 表格 ----------
+ * 无 class 的是正文 Markdown 表格（组件自带 class 的表格自行适配）。
+ * 三列以上的中文表在 390px 屏宽下每列不足百字，允许横向滑动并保
+ * 留合理最小宽度，比强行压缩成多字一行更可读。
+ * VitePress 会把表格包进无 class 的 div，滚动容器必须是包裹层；
+ * 直接给 table 设 min-width + overflow 只会让表格自身撑破正文列。 */
+@media (max-width: 640px) {
+	.VPDoc .vp-doc div:not([class]):has(> table:not([class])) {
+		max-width: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.VPDoc .vp-doc table:not([class]) {
+		min-width: 32rem;
+	}
+
+	/* 列数越多，等宽最小宽度下每列越窄；按列数放宽，宁可多滑一点也不折成三字一行 */
+	.VPDoc .vp-doc div:not([class]):has(> table:not([class]) td:nth-child(4)) > table:not([class]) {
+		min-width: 36rem;
+	}
+}

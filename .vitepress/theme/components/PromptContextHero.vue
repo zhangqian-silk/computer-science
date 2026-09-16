@@ -13,22 +13,6 @@ const rows = [
 
 <template>
 	<section class="pc-hero">
-		<p class="pc-eyebrow">工程笔记 · LLM 应用构建</p>
-		<p class="pc-hero__title pc-serif">从「怎么问」到「让模型看见什么」</p>
-		<p class="pc-hero__sub">Prompt 与 Context 不是新旧替代关系，而是包含关系：提示词工程解决单次指令的表达，上下文工程决定模型在每一步推理时处于什么信息环境。当应用从「一问一答」走向「自主循环的 Agent」，后者成为决定成败的主要变量。</p>
-
-		<div class="pc-eq">
-			<div class="pc-eq__cell pe">
-				<span class="pc-eq__lab">Prompt Engineering</span>
-				<span class="pc-eq__txt pc-serif">为一次调用，写出并组织出最有效的指令。</span>
-			</div>
-			<div class="pc-eq__mid" aria-label="子集"><span>⊂</span></div>
-			<div class="pc-eq__cell ce">
-				<span class="pc-eq__lab">Context Engineering</span>
-				<span class="pc-eq__txt pc-serif">在推理过程中，持续策展并维护那组最优的 token。</span>
-			</div>
-		</div>
-
 		<table class="pc-compare">
 			<thead>
 				<tr><th>对照维度</th><th class="pe">Prompt</th><th class="ce">Context</th></tr>
@@ -45,7 +29,7 @@ const rows = [
 </template>
 
 <style scoped>
-.pc-hero { border: 1px solid var(--cs-color-border); border-radius: 14px; padding: 1.5rem 1.6rem; background: var(--cs-color-bg-soft); margin: 1.2rem 0 0; }
+.pc-hero { margin: 1.2rem 0 0; }
 .pc-eyebrow { color: var(--cs-color-warning); }
 .pc-hero__title { font-size: clamp(1.5rem, 3.4vw, 2.1rem); font-weight: 800; line-height: 1.25; letter-spacing: -.01em; margin: 0; }
 .pc-hero__sub { color: var(--cs-color-text-muted); font-size: 1rem; line-height: 1.85; margin: 1rem 0 0; max-width: 62ch; }
@@ -67,7 +51,7 @@ const rows = [
 .pc-compare td.dim { font-weight: 700; color: var(--cs-color-text); width: 22%; }
 .pc-compare td.pe { background: color-mix(in srgb, var(--cs-color-warning) 7%, transparent); }
 .pc-compare td.ce { background: color-mix(in srgb, var(--cs-color-success) 7%, transparent); }
-.pc-compare tbody tr:last-child td { border-bottom: 0; }
+.pc-compare tbody tr:last-child td { border-bottom: 1px solid var(--cs-color-border); }
 .pc-compare tbody tr { background: transparent; }
 @media (max-width: 720px) {
 	.pc-eq { grid-template-columns: 1fr; }

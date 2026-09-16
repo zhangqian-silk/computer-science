@@ -1,6 +1,6 @@
 # 参考资料与来源记录
 
-正文目前保留学习总览、模型交互与 Prompt and Context 三篇，题目化材料收在[面试题库](./interview.md)，其余主题的历史内容见[旧版归档](../archive/catalog.md)。本页保留全部来源编号与定位锚点，供各篇共同引用；编号沿用此前的核验历史，不把旧产品快照当作当前通用规范。
+正文目前保留学习总览、模型交互与 Context Engineering 三篇，题目化材料收在[面试题库](./interview.md)，其余主题的历史内容见[旧版归档](../archive/catalog.md)。本页保留全部来源编号与定位锚点，供各篇共同引用；编号沿用此前的核验历史，不把旧产品快照当作当前通用规范。
 
 [上下文压缩](./context/compaction.md)、[Agent 记忆](./context/memory.md)、[memory、context、knowledge 的边界](./context/memory-boundaries.md)、[工具调用机制](./tools/tool-calling-mechanics.md)、[Agent 工具族](./tools/agent-tool-families.md)、[Agent Skills](./tools/skills.md)、[Agent 扩展机制](./tools/extensibility.md)、[知识如何进入一次请求](./knowledge-supply.md)、[Agent 运行时接入](./runtime/integration.md)与[Agent 运行时的工程问题](./runtime/engineering-problems.md)十篇按可独立发布维护，其来源清单随文自带、不进入本页编号，以便这几篇脱离本仓库单独分发。
 

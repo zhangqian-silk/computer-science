@@ -339,7 +339,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		items: [
 			{ text: '学习总览', link: '/ai/agent/notes/' },
 			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' },
-			{ text: 'Prompt and Context', link: '/ai/agent/notes/context/context-engineering' },
+			{ text: 'Context Engineering', link: '/ai/agent/notes/context/context-engineering' },
 			{ text: '上下文压缩', link: '/ai/agent/notes/context/compaction' },
 			{ text: 'Agent 记忆', link: '/ai/agent/notes/context/memory' },
 			{ text: 'memory / context / knowledge 边界', link: '/ai/agent/notes/context/memory-boundaries' },
