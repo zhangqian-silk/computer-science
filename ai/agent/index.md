@@ -14,7 +14,7 @@ Agent 系统以模型交互为基础，把外部资料、工具操作和多步�
 | [上下文压缩](notes/context/compaction.md) | 三层数据模型、处置阶梯、触发时机、摘要与续跑、缓存代价 |
 | [Agent 记忆](notes/context/memory.md) | 三层分层与固化路径、类型学、召回打分、维护与有效性、风险与实现对照 |
 | [memory / context / knowledge 边界](notes/context/memory-boundaries.md) | 从无状态推出三套机制、两条判据、易混对象辨析、归属判断与排障 |
-| [知识如何进入一次请求](notes/knowledge-supply.md) | 五条供给路径、检索增强全链路、免索引路线与两者之争、四层副本一致性 |
+| [知识如何进入一次请求](notes/knowledge-supply.md) | 五条供给路径、检索知识库链路、规则与结构地图、索引取舍、副本一致性 |
 | [工具调用机制](notes/tools/tool-calling-mechanics.md) | 七道执行关卡与失败去向、契约与标注边界、结果整形、三种通知形态、超时预算与重试、工具规模治理、协议的无状态化主线、权限与人在环 |
 | [Agent 工具族](notes/tools/agent-tool-families.md) | 文件、命令、进程、网络、浏览器五族的核心约束与接口取舍，以及代码语义、编辑格式、任务状态与时间、子 Agent、对人的动作 |
 | [Agent Skills](notes/tools/skills.md) | 渐进披露的三级加载、描述预算与发现链、与相邻机制的分工判据、打包分发与信任边界 |
