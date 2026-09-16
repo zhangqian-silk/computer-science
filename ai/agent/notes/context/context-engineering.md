@@ -1,246 +1,299 @@
-# Prompt and Context
+# Context Engineering
 
-<PromptContextHero />
+上下文工程解决「本轮推理让模型看见什么」：从可用信息中选择、组织并维护真正进入请求的 token。它覆盖 Prompt、工具、知识、记忆、历史与工具结果，并在任务推进时持续更新。Prompt 负责表达任务，是上下文中的静态部分；上下文工程还要治理随每轮调用变化和累积的信息。
 
-提示词工程始终是基本功；但当应用从「一问一答」走向在循环里自主调用工具的 Agent，决定成败的主要变量就转移到后者：怎样持续策展那组进入模型的信息。前者是后者的一个组件。
+上下文工程的目标不是填满窗口，而是在不遗漏必要信息的前提下，构造尽可能小的高信号 token 集合。[[22]](../references.md#source-anthropic-context)
+
+## Prompt 是 Context 的一部分
+
+<div class="pc-compare-wrap" role="region" aria-label="Prompt 与 Context 对照表" tabindex="0">
+	<table class="pc-compare">
+		<thead>
+			<tr>
+				<th scope="col">对照维度</th>
+				<th scope="col" class="pe">Prompt</th>
+				<th scope="col" class="ce">Context</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<th scope="row" class="dim">核心问题</th>
+				<td class="pe">这项任务怎样说清楚</td>
+				<td class="ce">此刻哪些信息应该进入请求</td>
+			</tr>
+			<tr>
+				<th scope="row" class="dim">操作对象</th>
+				<td class="pe">指令、示例、输出契约</td>
+				<td class="ce">Prompt、工具、知识、记忆、历史、工具结果</td>
+			</tr>
+			<tr>
+				<th scope="row" class="dim">时间维度</th>
+				<td class="pe">通常随任务定义固定</td>
+				<td class="ce">每轮推理前重新选择和整理</td>
+			</tr>
+			<tr>
+				<th scope="row" class="dim">主要约束</th>
+				<td class="pe">表达清晰，输出格式可解析</td>
+				<td class="ce">注意力与容量有限，状态会持续累积</td>
+			</tr>
+			<tr>
+				<th scope="row" class="dim">典型场景</th>
+				<td class="pe">单轮分类、抽取、改写与生成</td>
+				<td class="ce">多轮 Agent、长任务、知识检索与代码库操作</td>
+			</tr>
+			<tr>
+				<th scope="row" class="dim">典型失败</th>
+				<td class="pe">指令歧义、格式偏离</td>
+				<td class="ce">目标漂移、错误累积、工具混淆、信息冲突</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+表中的差异不是把两者拆成平行模块，而是区分局部问题和整体问题：Prompt 决定静态任务契约怎样表达，Context 决定这份契约与哪些动态、累积信息共同进入本轮请求。排障时仍需区分成因；资料没有进入请求、历史膨胀或证据冲突时，继续扩写 Prompt 只会让固定前缀更重。
 
 ---
 
-## 一、提示词工程：单次指令的表达
+## 一、上下文由什么构成
 
-提示词工程负责把「已经决定要放进来的信息」表达清楚。它没有过时，只是退居为上下文工程的一个子集。以下技法按收益与成本之比排序，前三条几乎在所有任务上都成立。
+对话、知识库和长期记忆只是信息来源；只有真正进入本次模型请求的 token 才是上下文。上下文也不是启动时组装一次便固定：模型调用工具后，新的观察会回到信息池，下一轮推理前必须重新选择、整理和排序。
 
-| 技法 | 用法 | 代价与边界 |
-| --- | --- | --- |
-| 结构化分节 | 把背景、指令、工具说明、输出描述拆成独立区块，用 XML 标签或 Markdown 标题分隔。 | 边界清晰，便于维护；不要用标签制造无意义的层级。 |
-| 少样本示例 | 用典型且多样的少量示例展示主干形态。 | 示例在精不在多；堆砌边界情况会挤压上下文并放大模式模仿。 |
-| 思维链 | 让模型先写推理再给结论，适合数学、逻辑和多步判断。 | 增加 token 与延迟；可用标签分隔「思考」与「答案」。 |
-| 输出契约 | 明确字段、类型、枚举值与「不知道时怎么填」。 | 能用结构化输出约束时，不靠自然语言描述格式。 |
-| 校准「高度」 | 指令要足够具体以指导行为，又足够灵活以留出启发式。 | 避免一端退化为脆弱 if-else，另一端停留在空泛原则。 |
-| 最小起步 | 先用最小 prompt 在最强模型上跑基线，再按实测失败迭代。 | 不为假设中的边界情况预先写三千字提示。 |
-
-```text
-<instructions>判断评论情感，仅输出 POSITIVE 或 NEGATIVE。</instructions>
-
-输入：这家店服务很快，菜也好吃。
-输出：POSITIVE
-
-输入：等了四十分钟，还上错菜。
-输出：NEGATIVE
-```
-
----
-
-## 二、上下文的构成与约束
-
-上下文是一次生成中模型实际可用的信息。对话记录、知识库与长期记忆只是来源，只有经过选择、进入本次请求的部分，才构成本次上下文——保存了资料，不等于模型已经看到资料。
-
-工程目标可以概括为一句：找到能最大化目标达成概率的、尽可能小的高信号 token 集合。[[22]](../references.md#source-anthropic-context)「最小」不等于「最短」——必要的背景不可缺省，冗余的内容也不应保留。
-
-### 七个来源，三种性质
-
-上下文不是「用户输入的那段话」，而是采样时被送进模型的全部 token。把它拆成七个来源、按「静态 / 动态 / 累积」归为三类，才谈得上治理哪一部分：静态部分靠一次性写好，动态部分靠召回策略，累积部分靠持续治理，而线上问题绝大多数出在最后一类。
-
-| 性质 | 来源 | token 形态 | 治理方式 |
-| --- | --- | --- | --- |
-| 静态 | 系统提示 | 固定，位于最前部 | 校准「高度」、分节、删冗余 |
-| 静态 | 工具定义 / MCP | 固定但常被低估；几十个工具可形成数千 token 的固定前缀 | 裁剪最小工具集，按前缀分组遮蔽或按需检索工具描述 |
-| 静态 | 示例 | 固定 | 使用典型且多样的少量范例 |
-| 动态 | 检索到的知识 | 每轮随召回策略变化 | 预取、即时加载或混合；控制召回条数与重排 |
-| 动态 | 记忆 | 按需注入，规模可控 | 区分会话内草稿与跨会话长期记忆，选择性召回 |
-| 累积 | 消息历史 | 随步数线性增长 | 压缩、裁剪、复述目标 |
-| 累积 | 工具返回值 | 最易失控；单个网页、PDF 或日志可能超过窗口容量 | 结果清理、可还原压缩、外置到文件或沙箱 |
-
-| 任务阶段 | 静态 | 动态 | 累积 |
-| --- | ---: | ---: | ---: |
-| 第 1 步 | 62% | 20% | 18% |
-| 第 30 步 | 12% | 20% | 68% |
-
-比例为定性示意，不是系统实测分布。它说明的是结构性事实：静态部分绝对值不变、占比被稀释，累积部分逐渐成为容量和错误的主要来源。
-
-组织时还要显式区分意图、观察与推断：用户「希望改成 60 秒」不等于配置「已经是 60 秒」，当前转述的旧结论也可能已经过期。应优先使用与问题匹配的当前证据，而不是依据时间新旧或多数一致性下结论。
-
-### 四个约束：为什么必须治理
-
-窗口容量从 8K 增长到 1M，并不意味着可以不加选择地填充。治理的必要性有四层理由，其中第四层最容易被忽略：
-
-- **注意力预算有限**：$n$ 个 token 要建立约 $n^2$ 对关系，输入越长，注意力越被摊薄，训练数据里的长序列也更少。[[22]](../references.md#source-anthropic-context)
-- **召回随长度衰减**：「大海捞针」类评测显示召回随长度递减（Context Rot），表现为性能梯度，而非到某一长度才出现断崖。[[22]](../references.md#source-anthropic-context)
-- **成本与延迟**：输入输出约 100:1，开销几乎全在预填；长输入即使命中缓存，也仍要为传输与预填付费。[[79]](../references.md#source-manus-context)
-- **状态会腐坏**：循环会把错误、冗余、过期与互相矛盾的信息一并沉积下来——窗口容量只决定「能装多少」，这一层扩大窗口完全无法解决。[[78]](../references.md#source-breunig-longctx)
-
-<figure class="pc-static-figures" aria-label="注意力开销随上下文增长的两张示意图">
-	<figure>
-		<figcaption>注意力开销随长度二次增长</figcaption>
-		<svg viewBox="0 0 260 172" role="img" aria-label="n 从 1 到 8 时，两两关系数按 n 平方增长">
-			<line x1="30" y1="142" x2="248" y2="142" class="pc-axis" />
-			<rect x="35.7" y="140" width="15.8" height="2" rx="1.5" class="pc-bar" />
-			<rect x="63.0" y="134" width="15.8" height="8" rx="1.5" class="pc-bar" />
-			<rect x="90.2" y="124" width="15.8" height="18" rx="1.5" class="pc-bar" />
-			<rect x="117.5" y="110" width="15.8" height="32" rx="1.5" class="pc-bar" />
-			<rect x="144.7" y="92" width="15.8" height="50" rx="1.5" class="pc-bar" />
-			<rect x="172.0" y="70" width="15.8" height="72" rx="1.5" class="pc-bar" />
-			<rect x="199.2" y="44" width="15.8" height="98" rx="1.5" class="pc-bar" />
-			<rect x="226.5" y="14" width="15.8" height="128" rx="1.5" class="pc-bar" />
-			<text x="43.6" y="156" class="pc-tick" text-anchor="middle">1</text>
-			<text x="70.9" y="156" class="pc-tick" text-anchor="middle">2</text>
-			<text x="98.1" y="156" class="pc-tick" text-anchor="middle">3</text>
-			<text x="125.4" y="156" class="pc-tick" text-anchor="middle">4</text>
-			<text x="152.6" y="156" class="pc-tick" text-anchor="middle">5</text>
-			<text x="179.9" y="156" class="pc-tick" text-anchor="middle">6</text>
-			<text x="207.1" y="156" class="pc-tick" text-anchor="middle">7</text>
-			<text x="234.4" y="156" class="pc-tick" text-anchor="middle">8</text>
+<figure class="pc-concept-figure">
+	<figcaption>上下文在每轮推理前重新策展</figcaption>
+	<div class="pc-figure-scroll">
+		<svg class="pc-flow-svg" viewBox="0 0 900 280" role="img" aria-labelledby="pc-curation-title pc-curation-desc">
+			<title id="pc-curation-title">上下文策展闭环</title>
+			<desc id="pc-curation-desc">静态、动态和累积信息经过选择进入上下文窗口，模型推理后可能调用工具，工具结果回到累积信息，下一轮重新策展。</desc>
+			<defs>
+				<marker id="pc-curation-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+					<path d="M0 0 L10 5 L0 10 z" class="pc-svg-arrowhead" />
+				</marker>
+				<marker id="pc-curation-loop-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+					<path d="M0 0 L10 5 L0 10 z" class="pc-svg-loop-arrowhead" />
+				</marker>
+			</defs>
+			<text x="20" y="22" class="pc-svg-kicker">可用信息池</text>
+			<g class="pc-svg-copy">
+				<rect x="20" y="38" width="210" height="50" rx="6" class="pc-svg-box" />
+				<text x="34" y="59" class="pc-svg-label">静态</text>
+				<text x="34" y="78" class="pc-svg-muted">系统提示 · 工具定义 · 示例</text>
+				<rect x="20" y="98" width="210" height="50" rx="6" class="pc-svg-box" />
+				<text x="34" y="119" class="pc-svg-label">动态</text>
+				<text x="34" y="138" class="pc-svg-muted">检索知识 · 召回的记忆</text>
+				<rect x="20" y="158" width="210" height="50" rx="6" class="pc-svg-box" />
+				<text x="34" y="179" class="pc-svg-label">累积</text>
+				<text x="34" y="198" class="pc-svg-muted">消息历史 · 工具返回值</text>
+			</g>
+			<path d="M242 123 H314" class="pc-svg-arrow" marker-end="url(#pc-curation-arrow)" />
+			<text x="278" y="112" text-anchor="middle" class="pc-svg-accent">Select</text>
+			<rect x="326" y="30" width="210" height="188" rx="8" class="pc-svg-window" />
+			<text x="431" y="20" text-anchor="middle" class="pc-svg-kicker">CONTEXT WINDOW</text>
+			<rect x="344" y="48" width="174" height="28" rx="4" class="pc-svg-static" />
+			<rect x="344" y="84" width="174" height="28" rx="4" class="pc-svg-dynamic" />
+			<rect x="344" y="120" width="174" height="28" rx="4" class="pc-svg-cumulative" />
+			<rect x="344" y="156" width="174" height="44" rx="4" class="pc-svg-summary" />
+			<g class="pc-svg-on-fill">
+				<text x="356" y="67">指令与可用工具</text>
+				<text x="356" y="103">当前证据与记忆</text>
+				<text x="356" y="139">近期轨迹</text>
+				<text x="356" y="175">旧历史摘要</text>
+				<text x="356" y="192">+ 可恢复的外部句柄</text>
+			</g>
+			<path d="M548 123 H610" class="pc-svg-arrow" marker-end="url(#pc-curation-arrow)" />
+			<circle cx="660" cy="123" r="38" class="pc-svg-model" />
+			<text x="660" y="119" text-anchor="middle" class="pc-svg-label">模型</text>
+			<text x="660" y="138" text-anchor="middle" class="pc-svg-muted">推理</text>
+			<path d="M700 108 H764" class="pc-svg-arrow" marker-end="url(#pc-curation-arrow)" />
+			<path d="M700 140 H764" class="pc-svg-arrow" marker-end="url(#pc-curation-arrow)" />
+			<rect x="776" y="87" width="104" height="32" rx="5" class="pc-svg-box" />
+			<rect x="776" y="130" width="104" height="32" rx="5" class="pc-svg-box-accent" />
+			<text x="828" y="108" text-anchor="middle" class="pc-svg-label">回复</text>
+			<text x="828" y="151" text-anchor="middle" class="pc-svg-accent">调用工具</text>
+			<path d="M828 168 V244 H126 V216" class="pc-svg-loop" marker-end="url(#pc-curation-loop-arrow)" />
+			<text x="480" y="237" text-anchor="middle" class="pc-svg-loop-label">工具结果回流，信息池膨胀，下一轮重新策展</text>
 		</svg>
-		<p>按 $n^2$ 关系绘制，用于说明规模关系，不代表模型实测耗时。</p>
-	</figure>
-	<figure>
-		<figcaption>Context Rot：召回随长度递减</figcaption>
-		<svg viewBox="0 0 260 172" role="img" aria-label="召回率随输入长度增加而平滑下降">
-			<line x1="30" y1="14" x2="30" y2="142" class="pc-axis" />
-			<line x1="30" y1="142" x2="248" y2="142" class="pc-axis" />
-			<polygon points="30,142 30,14.0 40.9,27.0 51.8,50.0 62.7,74.0 73.6,93.2 84.5,106.6 95.4,115.5 106.3,121.4 117.2,125.3 128.1,128.0 139.0,129.8 149.9,131.1 160.8,132.0 171.7,132.7 182.6,133.2 193.5,133.6 204.4,133.8 215.3,134.0 226.2,134.2 237.1,134.3 248,134.3" class="pc-area" />
-			<polyline points="30,14.0 40.9,27.0 51.8,50.0 62.7,74.0 73.6,93.2 84.5,106.6 95.4,115.5 106.3,121.4 117.2,125.3 128.1,128.0 139.0,129.8 149.9,131.1 160.8,132.0 171.7,132.7 182.6,133.2 193.5,133.6 204.4,133.8 215.3,134.0 226.2,134.2 237.1,134.3 248,134.3" class="pc-line" />
-			<text x="24" y="20" class="pc-tick" text-anchor="end">高</text>
-			<text x="24" y="142" class="pc-tick" text-anchor="end">低</text>
-			<text x="248" y="156" class="pc-tick" text-anchor="end">输入变长 →</text>
-		</svg>
-		<p>定性趋势示意，不是任何模型的实测数据。</p>
-	</figure>
+	</div>
+	<p>模型只会使用进入窗口的信息；保存、索引或记住某份资料，不等于本轮已经把它交给模型。</p>
 </figure>
 
-前两层约束意味着：加入低信号材料会同时消耗长度与注意力，使有效信号在中途见顶。下面的推演可以通过调参观察这一现象。
+按变化方式把七个来源归为三类，可以直接推出各自的治理方式：
 
-<ContextBudgetExplorer />
+| 性质 | 来源 | token 行为 | 主要治理手段 |
+| --- | --- | --- | --- |
+| 静态 | 系统提示 | 固定，通常位于前缀 | 校准高度、分节、删除冗余 |
+| 静态 | 工具定义 | 固定且容易被低估 | 裁最小可用集，明确职责与参数边界 |
+| 静态 | 少样本示例 | 固定 | 保留少量典型且多样的范例 |
+| 动态 | 检索知识 | 每轮随问题与召回策略变化 | 控制候选范围、重排与证据时效 |
+| 动态 | 记忆 | 按需注入 | 区分会话草稿与长期记忆，选择性召回 |
+| 累积 | 消息历史 | 随任务步数增长 | 裁剪重复内容，复述目标，必要时压缩 |
+| 累积 | 工具返回值 | 增长最快，单次结果也可能很大 | 清理原文、外置大对象、保留恢复句柄 |
+
+静态部分包括系统提示、工具定义和少样本示例，它们共同构成相对稳定的任务与动作契约。本页只说明这部分在整体上下文中的位置，重点讨论每轮都会变化或持续累积的信息。
+
+累积部分通常最先失控：网页、日志或 PDF 的一次返回就可能超过真正有用的信息量，早期错误也会随历史反复进入后续推理。工具因此同时影响上下文的两端：
+
+- **工具定义决定动作空间**：名称、参数和职责有重叠时，模型容易选错；如果人类也无法说清两个工具的边界，模型同样难以稳定区分。
+- **工具返回决定增长速度**：返回值应优先给结论、结构化字段与可继续读取的句柄，大段原文应留在文件或沙箱中按需读取。
+
+组织信息时还要区分三种状态：用户「希望改成 60 秒」是**意图**，配置文件显示「当前为 30 秒」是**观察**，「问题可能由超时导致」是**推断**。三者不能互相替代；当前、直接且与问题匹配的证据应优先于转述和猜测。
+
+---
+
+## 二、为什么更大的窗口仍不够
+
+窗口容量只回答「能放多少」，不回答「该放什么」。上下文仍需治理，原因有四层；前两层都表现为长输入下的信息利用变差，但机制与排障方向不同。
+
+<div class="pc-constraint-grid">
+	<section>
+		<span>01</span>
+		<h3>注意力预算</h3>
+		<p>输入越长，需要处理的 token 关系越多，低信号材料会与关键证据争夺有限的计算与注意力。工程上应问「它是否改变当前决策」，而不只是「它是否相关」。</p>
+	</section>
+	<section>
+		<span>02</span>
+		<h3>召回衰减</h3>
+		<p>长上下文评测通常呈现渐进的性能下降，而不是到窗口上限才突然失效；位置、信息密度与模型都会影响衰减程度。[[22]](../references.md#source-anthropic-context)</p>
+	</section>
+	<section>
+		<span>03</span>
+		<h3>成本与延迟</h3>
+		<p>Agent 每一步都会再次携带既有前缀，累积部分不仅占用窗口，还会放大传输、预填和输入计费。应先治理 token 占比最大的来源。</p>
+	</section>
+	<section>
+		<span>04</span>
+		<h3>状态腐坏</h3>
+		<p>错误、过期、重复和互相矛盾的信息会随循环沉积。扩大窗口不会让这些内容自动一致，这是容量无法解决的问题。[[78]](../references.md#source-breunig-longctx)</p>
+	</section>
+</div>
+
+因此，「最小」不是越短越好，而是所有保留内容都对当前决策有作用，且必要信息没有缺失。
 
 ### 四种失效模式
 
-即便仍在窗口容量以内，选择不当也会使 Agent 逐步偏离目标。按类型定位失效，比笼统归因于模型能力更具可操作性（分类源自 Drew Breunig）。[[78]](../references.md#source-breunig-longctx)
-
-| 失效模式 | 成因 | 应对 |
+| 失效模式 | 可观察症状 | 主要处理 |
 | --- | --- | --- |
-| 上下文中毒 | 幻觉或错误进入上下文后被反复当作事实引用，误差在迭代中放大。 | 校验工具输出，区分「已验证事实」与「模型猜测」；裁剪被证伪的信息，但保留失败记录本身。 |
-| 上下文干扰 | 历史过长时模型过度复述既有轨迹，忽略训练所得的通用判断。 | 未满窗口也主动总结与修剪，把目标与约束周期性重述到最近位置。 |
-| 上下文混淆 | 冗余内容被当作依据，常见于工具过多、功能重叠导致选错。 | 裁剪为最小且不重叠的工具集；难以说明使用边界的工具应合并或删除。 |
-| 上下文冲突 | 新信息或工具与既有内容矛盾，早期错误尝试持续拖累推理。 | 口径变更时显式声明「以下取代此前的 X」；污染严重时另开会话。 |
+| 中毒 | 已被证伪的结论仍被当作事实反复引用 | 校验工具结果；区分事实与推断；移除错误结论 |
+| 干扰 | 历史过长，模型重复旧轨迹或遗忘当前目标 | 裁剪重复内容；把目标、约束和待办复述到近期位置 |
+| 混淆 | 从冗余材料中取错依据，或在相似工具间误选 | 收紧召回；裁剪到职责不重叠的最小工具集 |
+| 冲突 | 新旧口径同时存在，行为前后不一致 | 显式标明替代关系；保留当前权威来源；污染严重时重建上下文 |
+
+失败证据与错误结论要区别处理：真实发生的失败动作和报错应保留，它们能阻止重复尝试；由失败产生、随后被证伪的解释应删除，否则会形成中毒。
 
 ---
 
-## 三、可施加的操作
+## 三、四种治理操作
 
-### 四大操作：Select / Isolate / Compress / Write
+上下文治理可以归纳为 Select、Isolate、Write 和 Compress。[[80]](../references.md#source-langchain-context)它们不是必须依次执行的流水线，而是针对不同问题的操作：
 
-把上下文治理落成四个可执行动词，每个都对应具体实现，也都对应特定失效模式。[[80]](../references.md#source-langchain-context)点选任一操作，可查看它的手段、主要应对的失效类型与代价。
+<figure class="pc-concept-figure">
+	<figcaption>四种操作改变窗口的不同边界</figcaption>
+	<div class="pc-figure-scroll">
+		<svg class="pc-flow-svg pc-ops-svg" viewBox="0 0 900 300" role="img" aria-labelledby="pc-ops-title pc-ops-desc">
+			<title id="pc-ops-title">上下文治理的四种操作</title>
+			<desc id="pc-ops-desc">Select 控制哪些信息进入窗口，Isolate 把信息分到独立窗口，Write 把信息存到窗口之外，Compress 缩短仍需留在窗口内的信息。</desc>
+			<defs>
+				<marker id="pc-ops-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+					<path d="M0 0 L10 5 L0 10 z" class="pc-svg-arrowhead" />
+				</marker>
+			</defs>
+			<rect x="342" y="48" width="216" height="204" rx="9" class="pc-svg-window" />
+			<text x="450" y="36" text-anchor="middle" class="pc-svg-kicker">CONTEXT WINDOW</text>
+			<rect x="362" y="68" width="176" height="30" rx="4" class="pc-svg-static" />
+			<rect x="362" y="108" width="176" height="30" rx="4" class="pc-svg-dynamic" />
+			<rect x="362" y="148" width="176" height="30" rx="4" class="pc-svg-cumulative" />
+			<rect x="362" y="188" width="176" height="44" rx="4" class="pc-svg-summary" />
+			<g class="pc-svg-on-fill">
+				<text x="374" y="88">稳定前缀</text>
+				<text x="374" y="128">当前证据</text>
+				<text x="374" y="168">近期轨迹</text>
+				<text x="374" y="207">压缩表示</text>
+				<text x="374" y="224">+ 外部句柄</text>
+			</g>
+			<rect x="28" y="60" width="190" height="64" rx="7" class="pc-svg-operation" />
+			<text x="123" y="86" text-anchor="middle" class="pc-svg-operation-name">SELECT</text>
+			<text x="123" y="108" text-anchor="middle" class="pc-svg-muted">控制哪些信息进入</text>
+			<path d="M224 92 H332" class="pc-svg-arrow" marker-end="url(#pc-ops-arrow)" />
+			<rect x="28" y="178" width="190" height="64" rx="7" class="pc-svg-operation" />
+			<text x="123" y="204" text-anchor="middle" class="pc-svg-operation-name">WRITE</text>
+			<text x="123" y="226" text-anchor="middle" class="pc-svg-muted">存到窗口之外，按需读回</text>
+			<path d="M332 210 H224" class="pc-svg-arrow" marker-end="url(#pc-ops-arrow)" />
+			<rect x="682" y="60" width="190" height="64" rx="7" class="pc-svg-operation" />
+			<text x="777" y="86" text-anchor="middle" class="pc-svg-operation-name">COMPRESS</text>
+			<text x="777" y="108" text-anchor="middle" class="pc-svg-muted">缩短仍需保留的信息</text>
+			<path d="M672 92 H568" class="pc-svg-arrow-reverse" marker-end="url(#pc-ops-arrow)" />
+			<rect x="682" y="178" width="190" height="64" rx="7" class="pc-svg-operation" />
+			<text x="777" y="204" text-anchor="middle" class="pc-svg-operation-name">ISOLATE</text>
+			<text x="777" y="226" text-anchor="middle" class="pc-svg-muted">拆到独立窗口或状态域</text>
+			<path d="M568 210 H672" class="pc-svg-arrow" marker-end="url(#pc-ops-arrow)" />
+			<text x="450" y="282" text-anchor="middle" class="pc-svg-muted">先判断问题来自进入、混放、常驻还是体积，再选择操作；优先可逆、可恢复的变化。</text>
+		</svg>
+	</div>
+</figure>
 
-| 次序 | 操作 | 含义 | 典型手段 | 主要应对 | 代价 |
-| ---: | --- | --- | --- | --- | --- |
-| 1 | Select（挑进来） | 每一步只纳入当下需要的信息，而不是把能拿到的都塞进窗口。 | 选择性记忆召回、工具描述检索、RAG 重排、按需暴露 state 字段 | 混淆 | 基本无损，但召回可能出错 |
-| 2 | Isolate（隔开来） | 拆分上下文，避免不同材料在同一窗口互相干扰。 | 子 Agent、沙箱大对象、state schema 分字段隔离 | 冲突、混淆 | token 与协调复杂度上升 |
-| 3 | Compress（压下去） | 只保留完成任务所必需的 token，把历史压成更短表示。 | 摘要、裁剪、工具结果清理 | 干扰、成本 | 有损，可能丢掉后来才重要的细节 |
-| 4 | Write（写出去） | 把信息存到窗口之外，需要时再读回。 | 草稿本、长期记忆、文件系统 | 干扰、容量 | 额外读写往返，需要设计时机 |
+| 操作 | 要解决的问题 | 典型做法 | 主要代价 |
+| --- | --- | --- | --- |
+| Select（选择） | 不需要的信息进入了当前请求 | 检索与重排、选择性记忆召回、按需暴露工具和状态字段 | 召回可能漏掉关键信息 |
+| Isolate（隔离） | 不同任务或证据在同一窗口互相干扰 | 子任务独立窗口、沙箱保存大对象、按 schema 分隔状态 | 增加协调与合并成本 |
+| Write（外置） | 信息稍后仍需使用，但不必常驻窗口 | 计划文件、结构化笔记、长期记忆、文件与 URL 句柄 | 需要设计写入、更新与读回时机 |
+| Compress（压缩） | 必要历史仍超过预算 | 清理工具原文、裁剪重复消息、生成交接摘要 | 有损，可能丢掉后来才重要的细节 |
 
-四者不是并列备选，而应按无损优先的顺序使用：Select → Isolate → Compress → Write。
+选择操作时遵循两个原则：
 
-由此得到一条判断工具集质量的经验规则：如果人类工程师也无法说清某情境该用哪个工具，模型同样无法做出正确选择。[[22]](../references.md#source-anthropic-context)这把「工具过多」从模型能力问题，转回设计质量问题。
+1. **先移除不需要的信息，再缩写需要的信息。** Select 通常比摘要安全；压缩不是缺少选择策略的补丁。
+2. **优先可还原表示。** 网页正文可以移出窗口，但保留 URL；文档内容可以省略，但保留文件路径。只有无法按需恢复时，压缩才意味着永久丢失。
 
-### 动态取用：预取、即时与记忆
+### 动态取用与记忆
 
-静态部分确定之后，主要变量就是「这一步应把哪些外部信息纳入上下文」。两种检索范式各有取舍：
+| 机制 | 适合的内容 | 优点 | 风险与边界 |
+| --- | --- | --- | --- |
+| 预取 | 变动慢、几乎每次都需要的项目约束 | 延迟稳定，推理开始时材料已就绪 | 索引和切分可能过期；召回过多会制造混淆 |
+| 即时取用 | 规模大、变化快、相关性稀疏的代码与资料 | 只保留路径、查询或链接，支持渐进式披露 | 增加工具往返，依赖搜索原语与启发式质量 |
+| 会话草稿 | 当前任务的计划、进度、中间结论 | 更新直接，适合恢复长任务 | 状态不及时更新会产生新的陈旧信息 |
+| 长期记忆 | 跨会话稳定的偏好、事实、案例与规则 | 避免反复收集相同信息 | 写入容易、准确召回困难，不应默认全部注入 |
 
-- **预取式**（推理前嵌入检索）：延迟稳定、实现成熟；但索引会过期，切分边界决定信息完整度，代码库规模增大后纯嵌入检索不再可靠，需要配合关键词、图谱与重排。[[80]](../references.md#source-langchain-context)
-- **即时式**（运行时按需加载）：只在上下文里保留轻量标识符（路径、查询、链接），用工具按需获取真正需要的数据；接近人的认知方式，支持渐进式披露，代价是延迟更高且依赖工具设计与启发式规则的质量。[[22]](../references.md#source-anthropic-context)
-
-实践中通常采用混合方案：变动缓慢、几乎每次都要使用的内容（如项目说明类文件）预先载入以保证延迟稳定，其余交给 `glob` / `grep` 这类原语即时获取；法律、金融等语料稳定的领域更偏向预取一侧。元数据本身即信号——`tests/` 下的 `test_utils.py` 与 `src/core_logic/` 下的同名文件含义完全不同，目录、命名与时间戳都在提示是否该读、何时读、以及相关程度。[[22]](../references.md#source-anthropic-context)
-
-记忆分两层：会话内的**草稿本**（计划、进度、中间结论）与跨会话的**长期记忆**（偏好、案例、需长期遵守的规则）。[[80]](../references.md#source-langchain-context)其中值得强调的风险是：记忆的**召回**远比**写入**困难，能用固定文件承载的内容不必急于引入向量检索——召回本身就构成一个新的错误来源。
-
----
-
-## 四、长程任务
-
-当任务的总 token 量必然超出窗口容量——大型代码库迁移、跨小时的研究——逐步操作已不足够，需要专门策略绕开窗口限制。
-
-### 四种策略的选择
-
-按任务的时间跨度与可并行度选择，四者也常组合使用。[[22]](../references.md#source-anthropic-context)
-
-| 策略 | 时间跨度 | 并行度 | 适用任务 | 核心代价 |
-| --- | ---: | ---: | --- | --- |
-| 即时检索 | 短到中 | 低 | 语料庞大、内容多变、依赖路径和元数据线索 | 运行时延迟更高，依赖工具设计 |
-| 结构化笔记 | 中 | 低到中 | 有清晰里程碑的迭代开发 | 需要持续维护笔记，否则会产生陈旧状态 |
-| 子代理 | 中到长 | 高 | 可并行拆分的探索、研究和审阅 | token 总量上升，需要明确回传契约 |
-| 压缩 | 长 | 低 | 大量往返、难以并行拆分的长对话流 | 有损，必须保留决策、未解 bug 和恢复句柄 |
-
-### 四条注意力与信息保全技巧
-
-策略之外，还有四条几乎不需要架构改动、但在生产环境收益明显的做法。它们都来自同一个观察：模型只按当前上下文所呈现的样子行动，因此「呈现什么、以什么形式呈现」本身就构成控制手段。[[79]](../references.md#source-manus-context)
-
-**复述目标（Recitation）。** 把全局计划反复重写到上下文**末尾**（如持续更新 `todo.md` 并勾掉完成项），使目标进入模型的近期注意力范围，缓解「lost-in-the-middle」与目标漂移。在平均约 50 次工具调用的任务中，早期目标距当前位置已经很远，复述相当于用自然语言重新加权。
-
-**保留失败证据。** 让模型看到失败的动作与随之产生的报错，它会隐式更新先验、降低重复犯错的概率。清理轨迹、静默重试、重置状态看起来更整洁，代价是抹去了唯一能让模型适应的证据。与中毒的区别在于：保留的是真实发生的失败证据，清除的是已被证伪的结论。错误恢复能力恰是 Agent 行为的重要体现，却在多数只考察理想路径的评测中被忽略。
-
-**文件系统即外部记忆。** 窗口再大也有两个绕不过的问题：单次观测（网页正文、PDF、大日志）本身就可能超出窗口容量；而任何不可还原的压缩都有风险——Agent 必须基于此前全部状态预测下一步，但无法预知第 10 步丢弃的观测是否会在第 30 步变得关键。可行的解法是把文件系统当成容量无限、天然持久、且 Agent 自己可读写的外部记忆，并让压缩尽量**可还原**：网页正文可以丢弃，只要保留 URL；文档内容可以省略，只要沙箱中仍有路径。这样上下文长度下降，信息却没有永久丢失。调优次序是先最大化召回、再提升精度，并从代价最低的「清理工具原始返回」做起。
-
-**破除模式化（不要把自己 few-shot 进套路）。** 模型是极强的模仿者，会照抄上下文里已有的行为模式。当上下文塞满高度相似的「动作—观测」对，它就倾向于延续这个节奏，即使该模式已经不再最优——批量处理二十份同类材料时最容易出现：Agent 陷入机械重复，进而漂移、过度泛化甚至产生幻觉。对策是主动引入**受控**的多样性：变换序列化模板、替换等价措辞、在顺序与格式上加入少量扰动，用这点噪声打破节奏并重新分配注意力。这里的分寸是「受控」——目的是破除惯性，而非让格式失去可解析性。它同时给第一章的 few-shot 划定了边界：示例应典型且多样，堆砌同质样例只会让 Agent 更脆弱。
-
----
-
-## 五、缓存、成本与度量
-
-### 缓存与成本
-
-每轮只在尾部追加、前缀高度重复，因此 KV-cache 命中率是生产阶段最重要的单一指标之一——它同时决定延迟与成本。[[79]](../references.md#source-manus-context)缓存与窗口的基础机制见[模型交互](../model/llm-api.md#cache)，这里只讨论上下文侧的治理动作。
-
-| 输入类型 | 示例单价（美元 / 百万 token） | 说明 |
-| --- | ---: | --- |
-| 未命中缓存 | 3.00 | 重新预填整段前缀，首字延迟和成本都高。 |
-| 命中缓存 | 0.30 | 复用已有 KV 状态，成本约低一个数量级。 |
-
-缓存治理有三条要点：
-
-- **前缀必须稳定**：时间戳、动态工具列表或随机键序放在前缀开头，会使后续缓存整体失效。
-- **上下文只追加**：不回改此前动作与观测，并保证 JSON 序列化键序稳定。
-- **必要时显式标断点**：不支持自动增量缓存时，至少把系统提示和稳定工具定义覆盖为缓存前缀。
-
-工具定义通常位于上下文最前部。中途增删会让其后所有动作与观测的缓存失效，还会让历史引用已消失的工具；更稳妥的做法是保持定义稳定，在解码时按状态遮蔽不可用工具，并使用统一前缀按组启停。
-
-单价的量级差异会随步数放大：累积部分单调增长，每一步都要为此前全部前缀付费，因此差距并非恒定的十倍，而是随轨迹延长持续扩大。下面按可复现口径推演一条 50 步轨迹的累计输入成本。
-
-<ContextCostProjection />
-
-### 度量与排障
-
-上下文工程是实验科学，可观测性与固定评测集必须先于优化建设，否则无法判断某次改动是改善还是损害。[[80]](../references.md#source-langchain-context)需要关注的指标分五层：
-
-| 类别 | 指标 | 观测目的 |
-|------|------|-----------|
-| 上下文规模 | 每步 token 数、峰值占用、各类内容占比 | 定位膨胀主因：通常某一类（多为工具返回值）异常突出，优先治理它收益最大 |
-| 缓存效率 | KV-cache 命中率、首字延迟 | Agent 特有的关键指标；命中率骤降通常意味着前缀被改动 |
-| 压缩质量 | 触发次数、关键信息保留率、压缩后失败率 | 压缩是有损操作，必须验证压缩后任务仍能完成 |
-| 召回质量 | 命中率、无用召回占比、错召导致的错误数 | 反映 Select 的质量；无用召回既增加成本又制造混淆 |
-| 任务层 | 完成率、平均步数、错误恢复率 | 最终依据：完成率不变而步数与 token 显著下降，才是真正的优化 |
-
-排障的推进顺序：
-
-1. 先检查轨迹，而非直接修改 prompt——缺少 trace 时，一切优化都只是猜测。
-2. 按 token 占比排序，找出异常膨胀的类别，它通常也是失效根源。
-3. 用四种失效模式归类症状：反复引用错误结论对应中毒，遗忘早期目标对应干扰，工具选错对应混淆，前后矛盾对应冲突。
-4. 按无损优先施加操作：先 Select 与 Isolate，再考虑 Compress 与 Write。
-5. 采用单变量实验与固定评测集，并把修复的样例沉淀进评测集作为回归守门。
+实践中通常混合使用：固定项目说明预先载入，其余材料按需搜索；能由少量固定文件承载的规则，不必急于引入向量检索。目录、文件名、类型和时间等元数据本身也能提供选择信号。[[22]](../references.md#source-anthropic-context)
 
 ---
 
-## 六、小结
+## 四、长任务怎样维持连续性
 
-**上下文按性质分三类，治理手段各不相同。** 静态部分（系统提示、工具定义、示例）靠一次性写好，动态部分（检索、记忆）靠召回策略，累积部分（历史、工具返回值）靠持续治理。三者的成本曲线也不同：静态部分是固定项，累积部分随步数单调增长，因此线上问题绝大多数出在累积部分。
+当任务总信息量必然超过单个窗口时，重点不是保存完整对话，而是保存恢复工作所需的状态：
 
-**治理的必要性来自四个约束，其中只有三个能靠扩窗口缓解。** 注意力预算、召回衰减、成本与延迟都随窗口增大而改善，而状态腐坏不会——错误、冗余、过期与矛盾信息的沉积是循环本身的产物，与窗口大小无关。
+- **目标与进度**：维护结构化计划、已完成项和下一步，并周期性放回上下文末尾。
+- **决策与未决问题**：记录已经采用的方案、放弃原因、仍未解决的错误和验证条件。
+- **证据句柄**：大对象写入文件或沙箱，只在上下文中保留路径、查询、版本和必要摘要。
+- **交接摘要**：触发压缩时优先保留目标、约束、决策、未决问题、最近状态和恢复入口；从清理工具原始返回开始，再逐步采用更有损的摘要。
+- **隔离探索**：只有子任务可独立调查、工具或信息边界确实不同，且结果能用明确协议合并时，才使用子 Agent；它是 Isolate 的实现，不是默认架构。
 
-**操作有明确的优先顺序，依据是信息损失风险而非实现难度。** Select 与 Isolate 基本无损，Compress 有损，Write 引入额外读写；因此先归类失效，再自无损一侧向下选择。长程任务在此之上还需要复述维持目标、保留失败证据、以文件系统承载可还原的外部状态，并以受控变化避免行为模式化。
+压缩的触发条件、摘要保留项与恢复协议见[上下文压缩](./compaction.md)；跨会话状态的写入与召回见[Agent 记忆](./memory.md)。长期记忆只保存跨会话仍稳定且值得复用的信息，记忆的难点通常不在写入，而在以后能否准确召回。
 
-**工程约束集中在缓存，度量决定优化能否被验证。** 前缀稳定、只追加、确定性序列化共同决定 KV-cache 命中率，而它同时支配成本与首字延迟；压缩虽能降低后续基数，但改写前缀本身要付一次重建代价。改动是否有效，只能由固定评测集判定。
+---
+
+## 五、缓存、度量与排障
+
+如果模型服务支持前缀缓存，稳定前缀可以减少重复预填带来的延迟与成本。具体命中条件、缓存期限和计费方式取决于提供方，不能把某一产品的单价或实现当作通用规律。上下文侧只需守住三点：稳定内容放在前部；动态内容尽量后置并只追加；序列化保持确定性。中途修改前部的工具定义，不仅会使后续缓存失效，还可能与历史里的旧工具调用产生冲突；动态工具集应结合提供方能力选择描述检索、分组启用或受限解码，而不是假设存在通用的「遮蔽」机制。缓存本身的计算语义见[模型交互](../model/llm-api.md#cache)。[[79]](../references.md#source-manus-context)
+
+优化前必须先有完整轨迹和固定评测集，否则无法判断减少 token 是否损害了任务完成率。核心指标不需要很多：
+
+| 层面 | 指标 | 用途 |
+| --- | --- | --- |
+| 任务 | 完成率、平均步数、错误恢复率 | 判断系统是否真的更可靠 |
+| 上下文 | 每步与峰值 token、各类内容占比 | 找到膨胀来源 |
+| 召回与压缩 | 无用召回占比、关键信息保留率、压缩后失败率 | 发现 Select 或 Compress 的副作用 |
+| 服务 | 前缀缓存命中率、首字延迟、输入成本 | 验证稳定前缀与缩减输入的收益 |
+
+排障按同一条主线推进：
+
+1. 查看完整轨迹，确认每一步模型实际看到了什么。
+2. 按 token 占比找到异常膨胀的来源。
+3. 用中毒、干扰、混淆、冲突归类症状。
+4. 先做可逆改动：收紧 Select、隔离无关材料、外置大对象；预算仍不足时再压缩。
+5. 在固定评测集上做单变量实验，并把修复案例加入回归集。
+
+上下文优化的最终判据不是 token 越少越好，而是在完成率不下降的前提下，以更少的步骤、输入和延迟完成任务。
 
 ---
 
 ## 参考文献
 
-本文依赖的来源见[参考资料](../references.md)，主要为[上下文工程](../references.md#source-anthropic-context)、[四大操作归纳](../references.md#source-langchain-context)、[生产实践](../references.md#source-manus-context)与[长上下文失效分类](../references.md#source-breunig-longctx)。
+本文依赖的来源见[参考资料](../references.md)，主要为[上下文工程](../references.md#source-anthropic-context)、[四种治理操作](../references.md#source-langchain-context)、[生产实践](../references.md#source-manus-context)与[长上下文失效分类](../references.md#source-breunig-longctx)。

@@ -1,12 +1,13 @@
 # 参考资料与来源记录
 
-正文目前保留学习总览、模型交互与 Prompt and Context 三篇，题目化材料收在[面试题库](./interview.md)，其余主题的历史内容见[旧版归档](../archive/catalog.md)。本页保留全部来源编号与定位锚点，供各篇共同引用；编号沿用此前的核验历史，不把旧产品快照当作当前通用规范。
+本页为模型交互、Prompt Engineering 与 Context Engineering 等正文保留共享来源编号与定位锚点，题目化材料收在[面试题库](./interview.md)，历史内容见[旧版归档](../archive/catalog.md)。编号沿用此前的核验历史，不把旧产品快照当作当前通用规范。
 
 [上下文压缩](./context/compaction.md)、[Agent 记忆](./context/memory.md)、[memory、context、knowledge 的边界](./context/memory-boundaries.md)、[工具调用机制](./tools/tool-calling-mechanics.md)、[Agent 工具族](./tools/agent-tool-families.md)、[Agent Skills](./tools/skills.md)、[Agent 扩展机制](./tools/extensibility.md)、[知识如何进入一次请求](./knowledge-supply.md)、[Agent 运行时接入](./runtime/integration.md)与[Agent 运行时的工程问题](./runtime/engineering-problems.md)十篇按可独立发布维护，其来源清单随文自带、不进入本页编号，以便这几篇脱离本仓库单独分发。
 
 | 主题 | 主要来源 |
 | --- | --- |
 | 模型交互 | [消息](#source-openai-text)、[工具](#source-openai-functions)、[提示](#source-openai-prompt)、[图片](#source-openai-image-input) |
+| Prompt Engineering | [提示](#source-openai-prompt)、[工具设计](#source-anthropic-tools)、[Harness 工程](#source-openai-harness) |
 | 上下文 | [上下文工程](#source-anthropic-context)、[四大操作](#source-langchain-context)、[生产实践](#source-manus-context)、[RAG](#source-rag-paper)、[记忆](#source-langgraph-memory)、[长上下文失效](#source-breunig-longctx) |
 | 记忆与边界 | 见[记忆篇](./context/memory.md#参考文献)与[边界篇](./context/memory-boundaries.md#参考文献)文末自带的来源清单 |
 | 知识供给 | 见[知识如何进入一次请求](./knowledge-supply.md#参考文献)文末自带的来源清单 |
