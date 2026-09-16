@@ -141,15 +141,6 @@ const levelText = (v: number) => ["无", "勉强", "可用", "成立"][v]
 			<p class="mgs__solves"><i>解决了什么</i>{{ cur.solves }}</p>
 			<p class="mgs__remains"><i>还剩什么没解决</i>{{ cur.remains }}</p>
 		</article>
-
-		<p class="pc-note">
-			这条推导链的起点只有一句话：<b>模型每一次调用都是无状态的</b>——它没有任何跨调用保存信息的地方，
-			所以任何形式的「记住」都必须由外部机制实现。沿着「还剩什么没解决」一路往下走，
-			三套机制是被依次逼出来的，而不是被人为划分出来的：
-			第 2 步逼出 context（本次让它看见什么），第 3 步逼出 memory（跨调用的经历如何存续），
-			第 4 步逼出 knowledge（参数里没有的客观事实从哪来）。
-			三者之所以不能互相替代，正因为它们各自回答的是链条上不同位置的问题。
-		</p>
 	</div>
 </template>
 
@@ -163,18 +154,18 @@ const levelText = (v: number) => ["无", "勉强", "可用", "成立"][v]
 .mgs__step-idx { font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); }
 .mgs__step-name { font-size: var(--cs-text-xs); line-height: var(--cs-leading-tight); color: var(--cs-color-text); }
 .mgs__step.is-on .mgs__step-name { color: var(--cs-color-brand); font-weight: 600; }
-.mgs__panel { margin-top: var(--cs-space-4); background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-lg); padding: var(--cs-space-5) var(--cs-space-6); }
-.mgs__panel p { margin: 0 0 var(--cs-space-4); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
+.mgs__panel { margin-top: var(--cs-space-3); background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-lg); padding: var(--cs-space-4) var(--cs-space-5); }
+.mgs__panel p { margin: 0 0 var(--cs-space-3); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
 .mgs__panel i { display: block; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); letter-spacing: .08em; font-style: normal; color: var(--cs-color-text-subtle); margin-bottom: var(--cs-space-1); }
-.mgs__caps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-4); margin-bottom: var(--cs-space-4); }
+.mgs__caps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-3); margin-bottom: var(--cs-space-3); }
 .mgs__cap-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cs-space-2); margin-bottom: var(--cs-space-1); }
 .mgs__cap-top span { font-size: var(--cs-text-2xs); color: var(--cs-color-text-muted); }
 .mgs__cap-top b { font-size: var(--cs-text-3xs); color: var(--cs-color-text); }
-.mgs__scene { list-style: none; margin: 0 0 var(--cs-space-4); padding: 0; display: grid; gap: var(--cs-space-2); }
-.mgs__scene li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--cs-space-3); padding: var(--cs-space-2) var(--cs-space-4); border-radius: var(--cs-radius-sm); }
+.mgs__scene { list-style: none; margin: 0 0 var(--cs-space-3); padding: 0; display: grid; gap: var(--cs-space-2); }
+.mgs__scene li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--cs-space-3); padding: var(--cs-space-2) var(--cs-space-3); border-radius: var(--cs-radius-sm); }
 .mgs__scene-turn { font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-text-muted); }
 .mgs__scene-sees { font-size: var(--cs-text-sm); line-height: var(--cs-leading-normal); color: var(--cs-color-text); }
-.mgs__remains { margin-bottom: 0 !important; padding-top: var(--cs-space-3); border-top: 1px dashed var(--cs-color-border); color: var(--cs-color-text-muted); }
+.mgs__remains { margin-bottom: 0 !important; padding-top: var(--cs-space-2); border-top: 1px dashed var(--cs-color-border); color: var(--cs-color-text-muted); }
 @media (max-width: 760px) {
 	.mgs__track { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.mgs__caps { grid-template-columns: 1fr; gap: var(--cs-space-2); }

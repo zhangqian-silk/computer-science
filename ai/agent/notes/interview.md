@@ -311,9 +311,9 @@
 
 ---
 
-## memory、context 与 knowledge 的边界 {#memory-boundaries}
+## context、memory 与 knowledge 的边界 {#context-boundaries}
 
-对应正文：[memory、context 与 knowledge 的边界](./context/memory-boundaries.md)。共 12 题。该篇正文按可独立发布维护，自带完整来源清单，因此本章题目的依据以正文内的编号来源为准，不再回指本页的共享参考资料。
+对应正文：[context、memory 与 knowledge 的边界](./context/context-boundaries.md)。共 12 题。该篇正文按可独立发布维护，自带完整来源清单，因此本章题目的依据以正文内的编号来源为准，不再回指本页的共享参考资料。
 
 ### 概念辨析
 
@@ -1018,4 +1018,4 @@ memory 是**过期而不自知**（旧结论一直被召回，失败是静默的
 
 ## 参考文献
 
-各题依据的来源见[参考资料](./references.md)，上下文相关题目主要对应[上下文工程](./references.md#source-anthropic-context)、[四大操作归纳](./references.md#source-langchain-context)、[生产实践](./references.md#source-manus-context)与[长上下文失效分类](./references.md#source-breunig-longctx)。上下文压缩、Agent 记忆、三者边界、工具调用机制、Agent 工具族、Agent Skills、知识供给、Agent 扩展机制、Agent 运行时接入与 Agent 运行时的工程问题十章的依据分别见[压缩篇](./context/compaction.md#参考文献)、[记忆篇](./context/memory.md#参考文献)、[边界篇](./context/memory-boundaries.md#参考文献)、[机制篇](./tools/tool-calling-mechanics.md#参考文献)、[工具族篇](./tools/agent-tool-families.md#参考文献)、[Skills 篇](./tools/skills.md#参考文献)、[知识供给篇](./knowledge-supply.md#参考文献)、[扩展机制篇](./tools/extensibility.md#参考文献)、[运行时接入篇](./runtime/integration.md#参考文献)与[运行时工程问题篇](./runtime/engineering-problems.md#参考文献)文末的来源清单，这十篇均按可独立发布维护，来源随文自带、不进入本页共享编号。题目中的数值推演按正文给定口径计算，属笔记内的参考分析，不代表任何产品实测。
+各题依据的来源见[参考资料](./references.md)，上下文相关题目主要对应[上下文工程](./references.md#source-anthropic-context)、[四大操作归纳](./references.md#source-langchain-context)、[生产实践](./references.md#source-manus-context)与[长上下文失效分类](./references.md#source-breunig-longctx)。上下文压缩、Agent 记忆、三者边界、工具调用机制、Agent 工具族、Agent Skills、知识供给、Agent 扩展机制、Agent 运行时接入与 Agent 运行时的工程问题十章的依据分别见[压缩篇](./context/compaction.md#参考文献)、[记忆篇](./context/memory.md#参考文献)、[边界篇](./context/context-boundaries.md#参考文献)、[机制篇](./tools/tool-calling-mechanics.md#参考文献)、[工具族篇](./tools/agent-tool-families.md#参考文献)、[Skills 篇](./tools/skills.md#参考文献)、[知识供给篇](./knowledge-supply.md#参考文献)、[扩展机制篇](./tools/extensibility.md#参考文献)、[运行时接入篇](./runtime/integration.md#参考文献)与[运行时工程问题篇](./runtime/engineering-problems.md#参考文献)文末的来源清单，这十篇均按可独立发布维护，来源随文自带、不进入本页共享编号。题目中的数值推演按正文给定口径计算，属笔记内的参考分析，不代表任何产品实测。
