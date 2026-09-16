@@ -38,15 +38,15 @@
 
 ---
 
-## Prompt and Context {#prompt-and-context}
+## Context Engineering {#context-engineering}
 
-对应正文：[Prompt and Context](./context/context-engineering.md)。共 18 题。
+对应正文：[Context Engineering](./context/context-engineering.md)。共 18 题。
 
 ### 概念辨析
 
-**1. 提示词工程与上下文工程是什么关系？** 〔基础〕
+**1. Prompt Engineering 与 Context Engineering 是什么关系？** 〔基础〕
 
-前者是后者的一个子集，不是被替代的旧范式。提示词工程解决「这一句话怎么说，模型才照做」，操作对象是系统提示与用户消息，写好即固定；上下文工程解决「这一刻该让模型看见什么」，操作对象扩展到工具定义、示例、检索结果、记忆、历史与工具返回值，且每一轮推理前都要重新决定。判别标准是时间维度：一次性写好的是 prompt 问题，需要每步重新决策的是 context 问题。
+前者是后者的一个子集，不是被替代的旧范式。Prompt Engineering 解决「这一句话怎么说，模型才照做」，操作对象是系统提示与用户消息，写好即固定；Context Engineering 解决「这一刻该让模型看见什么」，操作对象扩展到工具定义、示例、检索结果、记忆、历史与工具返回值，且每一轮推理前都要重新决定。判别标准是时间维度：一次性写好的是 prompt 问题，需要每步重新决策的是 context 问题。
 
 **2. 「保存了资料」和「模型看到了资料」差别在哪？** 〔基础〕
 
@@ -116,7 +116,7 @@
 
 按无损优先：Select（基本无损）→ Isolate（无损，但 token 与协调成本上升）→ Compress（有损）→ Write（额外读写往返）。顺序依据是信息损失风险，而非实现难度。先做无损操作，能在不牺牲信息的前提下解决相当一部分问题；Compress 放在后面，因为你无法预知第 10 步丢掉的观测会不会在第 30 步变成关键，任何不可还原的压缩都是在下注。因此压缩要尽量**可还原**——丢网页正文但留 URL，省文档内容但留沙箱路径，把文件系统当成容量无限、天然持久的外部记忆。
 
-**18. 什么时候该上多 Agent？它在上下文工程里的定位是什么？** 〔深入〕
+**18. 什么时候该上多 Agent？它在 Context Engineering 里的定位是什么？** 〔深入〕
 
 它是 **Isolate 的一种手段**，不是架构偏好，也不是能力更强的默认选择。适用条件是存在真正隔离的信息或执行边界：多个独立来源可并行调查、子任务需要不同工具或权限、独立结果可用明确协议合并。代价是 token 用量显著上升（有公开报告称相比对话最多约 15 倍）、需要额外的规划与协调。一个明确反例是多个 Agent 使用相同资料、相同模型并互相复述结论——表面上「多人同意」，实际证据高度相关，独立性存疑。判断落点始终是：隔离带来的收益是否值得这份 token 与协调开销。
 
@@ -126,7 +126,7 @@
 
 | 问题 | 落点 |
 | --- | --- |
-| 上下文工程的目标 | 最大化目标达成概率的、尽可能小的高信号 token 集合 |
+| Context Engineering 的目标 | 最大化目标达成概率的、尽可能小的高信号 token 集合 |
 | 七来源三性质 | 静态写好、动态召回、累积治理；问题多在累积 |
 | 必须治理的四个理由 | 注意力预算、召回衰减、成本延迟、状态腐坏 |
 | 四种失效模式 | 中毒、干扰、混淆、冲突 |
@@ -1018,4 +1018,4 @@ memory 是**过期而不自知**（旧结论一直被召回，失败是静默的
 
 ## 参考文献
 
-各题依据的来源见[参考资料](./references.md)，上下文相关题目主要对应[上下文工程](./references.md#source-anthropic-context)、[四大操作归纳](./references.md#source-langchain-context)、[生产实践](./references.md#source-manus-context)与[长上下文失效分类](./references.md#source-breunig-longctx)。上下文压缩、Agent 记忆、三者边界、工具调用机制、Agent 工具族、Agent Skills、知识供给、Agent 扩展机制、Agent 运行时接入与 Agent 运行时的工程问题十章的依据分别见[压缩篇](./context/compaction.md#参考文献)、[记忆篇](./context/memory.md#参考文献)、[边界篇](./context/memory-boundaries.md#参考文献)、[机制篇](./tools/tool-calling-mechanics.md#参考文献)、[工具族篇](./tools/agent-tool-families.md#参考文献)、[Skills 篇](./tools/skills.md#参考文献)、[知识供给篇](./knowledge-supply.md#参考文献)、[扩展机制篇](./tools/extensibility.md#参考文献)、[运行时接入篇](./runtime/integration.md#参考文献)与[运行时工程问题篇](./runtime/engineering-problems.md#参考文献)文末的来源清单，这十篇均按可独立发布维护，来源随文自带、不进入本页共享编号。题目中的数值推演按正文给定口径计算，属笔记内的参考分析，不代表任何产品实测。
+各题依据的来源见[参考资料](./references.md)，上下文相关题目主要对应[Context Engineering](./references.md#source-anthropic-context)、[四大操作归纳](./references.md#source-langchain-context)、[生产实践](./references.md#source-manus-context)与[长上下文失效分类](./references.md#source-breunig-longctx)。上下文压缩、Agent 记忆、三者边界、工具调用机制、Agent 工具族、Agent Skills、知识供给、Agent 扩展机制、Agent 运行时接入与 Agent 运行时的工程问题十章的依据分别见[压缩篇](./context/compaction.md#参考文献)、[记忆篇](./context/memory.md#参考文献)、[边界篇](./context/memory-boundaries.md#参考文献)、[机制篇](./tools/tool-calling-mechanics.md#参考文献)、[工具族篇](./tools/agent-tool-families.md#参考文献)、[Skills 篇](./tools/skills.md#参考文献)、[知识供给篇](./knowledge-supply.md#参考文献)、[扩展机制篇](./tools/extensibility.md#参考文献)、[运行时接入篇](./runtime/integration.md#参考文献)与[运行时工程问题篇](./runtime/engineering-problems.md#参考文献)文末的来源清单，这十篇均按可独立发布维护，来源随文自带、不进入本页共享编号。题目中的数值推演按正文给定口径计算，属笔记内的参考分析，不代表任何产品实测。
