@@ -119,23 +119,30 @@ const cols = [
 		</div>
 
 		<p class="mcb__takeaway"><i>这一行说明什么</i>{{ cur.takeaway }}</p>
+
+		<p class="pc-note">
+			注意中间那一列的特殊之处：其余两者都能回答「本体存放在哪」，只有 context 的答案是「就是它自己」。
+			由此得到两条可以直接用的判据——<b>看本体在 context 之内还是之外</b>，以及<b>移除之后能不能重建</b>。
+			需要强调的是，「能不能被丢弃」并不是判据：context 每一轮都被丢弃重建，memory 里的过期条目也应当被丢弃，
+			knowledge 检索到的片段用完即弃。可丢弃性是三者共有的现象，用它区分不了任何东西。
+		</p>
 	</div>
 </template>
 
 <style scoped>
 .mcb { margin: 1rem 0; }
-.mcb__dims { display: flex; flex-wrap: wrap; gap: var(--cs-space-1); margin-bottom: var(--cs-space-3); }
+.mcb__dims { display: flex; flex-wrap: wrap; gap: var(--cs-space-1); margin-bottom: var(--cs-space-4); }
 .mcb__dim { min-height: var(--cs-tap-target); padding: 0 var(--cs-space-3); cursor: pointer; font-size: var(--cs-text-xs); color: var(--cs-color-text-muted); background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-pill); transition: var(--cs-transition-colors); }
 .mcb__dim:hover { background: var(--cs-color-bg-soft); }
 .mcb__dim.is-on { background: var(--cs-color-brand-soft); border-color: var(--cs-color-brand); color: var(--cs-color-brand); font-weight: 600; }
 .mcb__cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cs-space-3); align-items: stretch; }
 .mcb__col { display: flex; flex-direction: column; background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-top: 3px solid var(--c); border-radius: var(--cs-radius-lg); overflow: hidden; }
-.mcb__col > header { padding: var(--cs-space-2) var(--cs-space-4); background: var(--cs-color-bg-soft); border-bottom: 1px solid var(--cs-color-border); }
+.mcb__col > header { padding: var(--cs-space-3) var(--cs-space-4); background: var(--cs-color-bg-soft); border-bottom: 1px solid var(--cs-color-border); }
 .mcb__col > header b { font-size: var(--cs-text-md); color: var(--c); }
 .mcb__col > header span { font-size: var(--cs-text-3xs); color: var(--cs-color-text-muted); margin-left: var(--cs-space-2); }
 .mcb__col > header i { display: block; margin-top: var(--cs-space-1); font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); font-style: normal; color: var(--cs-color-text-subtle); }
-.mcb__val { flex: 1; margin: 0; padding: var(--cs-space-3) var(--cs-space-4); font-size: var(--cs-text-sm); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
-.mcb__takeaway { margin: var(--cs-space-3) 0 0; padding: var(--cs-space-2) var(--cs-space-4); border-left: 3px solid var(--cs-color-border-strong); background: var(--cs-color-bg-soft); border-radius: var(--cs-radius-sm); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
+.mcb__val { flex: 1; margin: 0; padding: var(--cs-space-4); font-size: var(--cs-text-sm); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
+.mcb__takeaway { margin: var(--cs-space-4) 0 0; padding: var(--cs-space-3) var(--cs-space-4); border-left: 3px solid var(--cs-color-border-strong); background: var(--cs-color-bg-soft); border-radius: var(--cs-radius-sm); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
 .mcb__takeaway i { display: block; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); letter-spacing: .08em; font-style: normal; color: var(--cs-color-text-subtle); margin-bottom: var(--cs-space-1); }
 @media (max-width: 760px) {
 	.mcb__cols { grid-template-columns: 1fr; }

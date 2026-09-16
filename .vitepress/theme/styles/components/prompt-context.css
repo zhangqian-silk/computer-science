@@ -30,56 +30,73 @@
 	color: var(--cs-color-text-muted);
 }
 
-/* 七来源三性质：单表 + 分组标题行，避免三张重复表头的小表 */
-.pc-scroll {
-	overflow-x: auto;
-	overflow-y: hidden;
-	-webkit-overflow-scrolling: touch;
+/* Prompt & Context 中少量确实适合直接内联的静态 SVG。
+ * 仅提供图形语义，不承载任何客户端状态。 */
+.pc-static-figures {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--cs-space-4);
 	margin: var(--cs-space-6) 0;
 }
 
-.pc-sources {
-	width: 100%;
-	table-layout: fixed;
-	border-collapse: collapse;
-	font-size: var(--cs-text-sm);
+.pc-static-figures > figure {
+	margin: 0;
+	padding: var(--cs-space-5) var(--cs-space-6) var(--cs-space-4);
+	background: var(--cs-color-bg);
+	border: var(--cs-border);
+	border-radius: var(--cs-radius-lg);
 }
 
-.VPDoc .vp-doc .pc-sources th {
-	padding: var(--cs-space-3) var(--cs-space-4);
-	border-bottom: 1.5px solid var(--cs-color-text);
+.pc-static-figures figcaption {
+	margin-bottom: var(--cs-space-3);
+	font-family: "Noto Serif SC", "Songti SC", ui-serif, Georgia, "Times New Roman", serif;
+	font-size: var(--cs-text-lg);
+	font-weight: var(--cs-font-weight-bold);
+}
+
+.pc-static-figures svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.pc-static-figures p {
+	margin: var(--cs-space-3) 0 0;
+	font-size: var(--cs-text-sm);
+	line-height: var(--cs-leading-normal);
+	color: var(--cs-color-text-subtle);
+}
+
+.pc-axis {
+	stroke: var(--cs-color-border-strong);
+	stroke-width: var(--cs-border-width);
+}
+
+.pc-tick {
+	fill: var(--cs-color-text-subtle);
 	font-family: var(--cs-font-mono);
 	font-size: var(--cs-text-2xs);
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: var(--cs-color-text-subtle);
-	white-space: nowrap;
 }
 
-.VPDoc .vp-doc .pc-sources td {
-	padding: var(--cs-space-4);
-	border-bottom: 1px solid var(--cs-color-border);
-	line-height: var(--cs-leading-normal);
-	vertical-align: top;
+.pc-bar {
+	fill: var(--cs-color-success);
 }
 
-.VPDoc .vp-doc .pc-sources td:first-child {
-	font-weight: var(--cs-font-weight-bold);
+.pc-line {
+	fill: none;
+	stroke: var(--cs-color-danger);
+	stroke-width: var(--cs-border-width-emphasis);
+	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 
-.VPDoc .vp-doc .pc-sources .pc-sources__group td {
-	padding: var(--cs-space-3) var(--cs-space-4);
-	background: var(--cs-color-bg-soft);
-	border-left: var(--cs-border-width-emphasis) solid var(--cs-color-border);
-	font-weight: var(--cs-font-weight-bold);
+.pc-area {
+	fill: color-mix(in srgb, var(--cs-color-danger) 12%, transparent);
+	stroke: none;
 }
 
-.VPDoc .vp-doc .pc-sources .pc-sources__group span {
-	margin-left: var(--cs-space-5);
-	font-weight: 400;
-	color: var(--cs-color-text-muted);
+@media (max-width: 720px) {
+	.pc-static-figures {
+		grid-template-columns: 1fr;
+	}
 }
-
-.VPDoc .vp-doc .pc-sources .pc-sources__group--s td { border-left-color: var(--cs-color-info); }
-.VPDoc .vp-doc .pc-sources .pc-sources__group--d td { border-left-color: var(--cs-color-success); }
-.VPDoc .vp-doc .pc-sources .pc-sources__group--a td { border-left-color: var(--cs-color-warning); }

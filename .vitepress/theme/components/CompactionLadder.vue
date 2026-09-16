@@ -103,6 +103,9 @@ const cur = computed(() => levels[detail.value])
 			>{{ s.pct > 9 ? `${s.tier} −${fmt(s.freed)}` : "" }}</span>
 			<span class="cld__seg cld__seg--rest" :style="{ width: `${remainPct}%` }">{{ remainPct > 12 ? `剩余 ${fmt(remaining)}` : "" }}</span>
 		</div>
+		<p class="cld__rest-out" :class="{ 'is-wide-hidden': remainPct > 12 }">
+			↑ 最右侧灰色一段为压缩后的剩余水位 <b>{{ fmt(remaining) }}</b>
+		</p>
 		<p class="cld__read">
 			未加治理的峰值 <b>{{ fmt(PEAK) }}</b>；当前启用的级别共回收 <b>{{ fmt(PEAK - remaining) }}</b>，
 			其中 <b>{{ fmt(cheapFreed) }}</b> 来自 L0–L3 这四级零 API 开销、可回退的操作。
@@ -120,27 +123,32 @@ const cur = computed(() => levels[detail.value])
 				:aria-pressed="enabled.has(l.key)"
 				@click="detail = i"
 			>
-				<span class="cld__title"><i class="cld__tier">{{ l.tier }}</i><strong>{{ l.name }}</strong></span>
-				<span class="cld__meta">{{ l.actor }} · {{ l.cost }}</span>
-				<span class="cld__foot">
-					<span class="cld__rev" :class="l.reversible ? 'is-ok' : 'is-no'">{{ l.reversible ? "可回退" : "不可逆" }}</span>
-					<label class="cld__sw" @click.stop>
-						<input type="checkbox" :checked="enabled.has(l.key)" @change="toggle(l.key)" />
-						<span>计入</span>
-					</label>
-				</span>
+				<span class="cld__tier">{{ l.tier }}</span>
+				<strong>{{ l.name }}</strong>
+				<span class="cld__meta">{{ l.actor }}</span>
+				<span class="cld__cost">{{ l.cost }}</span>
+				<span class="cld__rev" :class="l.reversible ? 'is-ok' : 'is-no'">{{ l.reversible ? "可回退" : "不可逆" }}</span>
+				<label class="cld__sw" @click.stop>
+					<input type="checkbox" :checked="enabled.has(l.key)" @change="toggle(l.key)" />
+					<span>计入</span>
+				</label>
 			</button>
 		</div>
 
 		<article class="cld__panel" :style="{ '--c': cur.color }">
 			<header>
-				<b>{{ cur.tier }} · {{ cur.name }}</b>
+				<b class="pc-serif">{{ cur.tier }} · {{ cur.name }}</b>
 				<span class="cld__badge">{{ cur.trigger }}</span>
 			</header>
 			<p class="cld__what">{{ cur.what }}</p>
-			<p class="cld__guard"><b>护栏</b>{{ cur.guard }}</p>
+			<p class="cld__guard"><i>护栏</i>{{ cur.guard }}</p>
 		</article>
 
+		<p class="pc-note">
+			条形图的 token 数是便于对照的量级估算，不是实测：真实回收量取决于任务形态——检索密集的任务里 L0 的占比会更高，
+			长链排查的任务里 L2 更突出。可迁移的结论只有次序本身：<b>前四级不产生额外模型调用、随时可回退，
+			只有 L4 需要一次采样且不可逆</b>，所以它应当是兜底而非首选。
+		</p>
 	</div>
 </template>
 
@@ -149,41 +157,39 @@ const cur = computed(() => levels[detail.value])
 .cld__bar { display: flex; height: 30px; border-radius: var(--cs-radius-sm); overflow: hidden; border: 1px solid var(--cs-color-border); }
 .cld__seg { display: flex; align-items: center; justify-content: center; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-on-brand); white-space: nowrap; transition: width var(--cs-duration-base) var(--cs-ease-standard); }
 .cld__seg--rest { background: var(--cs-color-neutral-soft); color: var(--cs-color-text-muted); }
-.cld__read { margin: var(--cs-space-2) 0 var(--cs-space-4); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text-muted); }
+.cld__rest-out { margin: var(--cs-space-2) 0 0; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); text-align: right; }
+/* 宽屏且剩余段足够宽时，数值已显示在条内，无须重复 */
+.cld__rest-out.is-wide-hidden { display: none; }
+.cld__rest-out b { color: var(--cs-color-text-muted); }
+.cld__read { margin: var(--cs-space-3) 0 var(--cs-space-5); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text-muted); }
 .cld__read b { color: var(--cs-color-text); font-family: var(--cs-font-mono); }
 .cld__grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--cs-space-2); }
-.cld__card { position: relative; display: grid; gap: 1px; text-align: left; cursor: pointer; background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-top: 3px solid var(--c); border-radius: var(--cs-radius-lg); padding: var(--cs-space-2) var(--cs-space-3); transition: var(--cs-transition-colors); }
+.cld__card { position: relative; display: grid; gap: var(--cs-space-1); text-align: left; cursor: pointer; background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-top: 3px solid var(--c); border-radius: var(--cs-radius-lg); padding: var(--cs-space-3); transition: var(--cs-transition-colors); }
 .cld__card:hover { background: var(--cs-color-bg-soft); }
 .cld__card.is-open { background: color-mix(in srgb, var(--c) 10%, transparent); border-color: var(--c); }
 .cld__card.is-off { opacity: .55; }
-.cld__title { display: flex; align-items: baseline; gap: var(--cs-space-2); }
-.cld__tier { font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); letter-spacing: .1em; color: var(--c); font-style: normal; }
-.cld__card strong { font-size: var(--cs-text-sm); line-height: var(--cs-leading-tight); }
+.cld__tier { font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); letter-spacing: .1em; color: var(--c); }
+.cld__card strong { font-size: var(--cs-text-md); line-height: var(--cs-leading-tight); }
 .cld__meta { font-size: var(--cs-text-3xs); color: var(--cs-color-text-muted); }
-.cld__foot { display: flex; align-items: center; gap: var(--cs-space-2); }
+.cld__cost { font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); }
 .cld__rev { font-size: var(--cs-text-3xs); }
 .cld__rev.is-ok { color: var(--cs-color-success); }
 .cld__rev.is-no { color: var(--cs-color-danger); }
-.cld__sw { display: inline-flex; align-items: center; gap: var(--cs-space-1); margin-left: auto; min-height: var(--cs-tap-target); font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); cursor: pointer; }
-.cld__panel { margin-top: var(--cs-space-2); background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-left: 3px solid var(--c); border-radius: var(--cs-radius-lg); padding: var(--cs-space-2) var(--cs-space-4); }
+.cld__sw { display: inline-flex; align-items: center; gap: var(--cs-space-1); min-height: var(--cs-tap-target); font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); cursor: pointer; }
+.cld__panel { margin-top: var(--cs-space-4); background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-left: 3px solid var(--c); border-radius: var(--cs-radius-lg); padding: var(--cs-space-5) var(--cs-space-6); }
 .cld__panel header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--cs-space-3); }
-.cld__panel header b { font-size: var(--cs-text-sm); }
+.cld__panel header b { font-size: var(--cs-text-lg); }
 .cld__badge { font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--c); border: 1px solid var(--c); border-radius: var(--cs-radius-pill); padding: var(--cs-space-1) var(--cs-space-3); }
-.cld__what { margin: var(--cs-space-1) 0; font-size: var(--cs-text-sm); line-height: var(--cs-leading-normal); color: var(--cs-color-text); }
-.cld__guard { margin: 0; padding-top: var(--cs-space-1); border-top: 1px dashed var(--cs-color-border); font-size: var(--cs-text-xs); line-height: var(--cs-leading-normal); color: var(--cs-color-text-muted); }
-.cld__guard b { font-weight: 600; color: var(--cs-color-text-subtle); margin-right: var(--cs-space-1); }
+.cld__what { margin: var(--cs-space-3) 0 var(--cs-space-3); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
+.cld__guard { margin: 0; padding-top: var(--cs-space-3); border-top: 1px dashed var(--cs-color-border); font-size: var(--cs-text-sm); line-height: var(--cs-leading-normal); color: var(--cs-color-text-muted); }
+.cld__guard i { display: block; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); letter-spacing: .08em; font-style: normal; color: var(--cs-color-text-subtle); margin-bottom: var(--cs-space-1); }
 @media (max-width: 860px) {
 	.cld__grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 520px) {
-	.cld__grid { grid-template-columns: 1fr; gap: var(--cs-space-1); }
-	.cld__card { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cs-space-2); padding: var(--cs-space-2) var(--cs-space-3); }
-	.cld__tier { width: auto; }
-	.cld__card strong { font-size: var(--cs-text-sm); }
-	.cld__meta { display: none; }
-	.cld__cost { margin-left: auto; }
-	.cld__sw { min-height: auto; }
+	.cld__grid { grid-template-columns: 1fr; }
 	/* 窄屏各段太窄放不下文字，一律隐去；数值由条形图下方的说明文字承担 */
 	.cld__seg { font-size: 0; }
+	.cld__rest-out.is-wide-hidden { display: block; }
 }
 </style>

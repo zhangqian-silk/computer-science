@@ -51,14 +51,27 @@
  * 链接同权渲染，连排十余条时条目边界消失。用弱化配色
  * 加一道左侧引线把它降到背景层，条目之间自然分组。
  */
-.VPDoc .vp-doc .source-scope {
+.VPDoc .vp-doc details.source-scope {
 	margin: var(--cs-space-5) 0 var(--cs-space-8);
-	padding-left: var(--cs-space-6);
-	border-left: var(--cs-border);
+	padding: var(--cs-space-4) var(--cs-space-5);
+	border: var(--cs-border);
+	border-left: var(--cs-border-width-emphasis) solid var(--cs-color-brand);
+	border-radius: var(--cs-radius-sm);
+	background: var(--cs-color-bg-soft);
 }
 
-.VPDoc .vp-doc .source-scope > p {
+.VPDoc .vp-doc .source-scope > summary {
+	cursor: pointer;
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-2xs);
+	letter-spacing: 0.08em;
+	color: var(--cs-color-text-subtle);
+}
+
+.VPDoc .vp-doc .source-scope > p,
+.VPDoc .vp-doc .source-scope > summary + * {
 	margin: 0;
+	margin-top: var(--cs-space-3);
 	color: var(--cs-color-text-muted);
 	font-size: var(--cs-text-md);
 }
@@ -198,11 +211,8 @@
 }
 
 /* ---------- 窄屏 Markdown 表格 ----------
- * 无 class 的是正文 Markdown 表格（组件自带 class 的表格自行适配）。
- * 三列以上的中文表在 390px 屏宽下每列不足百字，允许横向滑动并保
- * 留合理最小宽度，比强行压缩成多字一行更可读。
- * VitePress 会把表格包进无 class 的 div，滚动容器必须是包裹层；
- * 直接给 table 设 min-width + overflow 只会让表格自身撑破正文列。 */
+ * 无 class 的正文 Markdown 表格在窄屏上保留横向滚动，避免强行压缩列宽。
+ * VitePress 会把 table 包进无 class 的 div，滚动容器必须是包裹层。 */
 @media (max-width: 640px) {
 	.VPDoc .vp-doc div:not([class]):has(> table:not([class])) {
 		max-width: 100%;
@@ -213,9 +223,8 @@
 
 	.VPDoc .vp-doc table:not([class]) {
 		min-width: 32rem;
-	}
+}
 
-	/* 列数越多，等宽最小宽度下每列越窄；按列数放宽，宁可多滑一点也不折成三字一行 */
 	.VPDoc .vp-doc div:not([class]):has(> table:not([class]) td:nth-child(4)) > table:not([class]) {
 		min-width: 36rem;
 	}
