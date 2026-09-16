@@ -51,8 +51,15 @@ const disposals: { key: Disposal; label: string; desc: string; api: string; colo
 ]
 
 const active = ref<Disposal>("clear")
+const layer = ref(0)
 const PLACEHOLDER_TOKENS = 24
 const SUMMARY_TOKENS = 900
+
+const LAYERS = [
+	{ key: 0, label: "① 事件日志", hint: "磁盘 · append-only" },
+	{ key: 1, label: "② 工作集", hint: "内存 · 带标记" },
+	{ key: 2, label: "③ 请求载荷", hint: "本次调用实际发出" }
+] as const
 
 /** 请求载荷层：按当前处置动作投影出模型真正看到的内容 */
 const payload = computed(() => {
@@ -124,9 +131,24 @@ const marks = computed(() =>
 
 		<p class="cpj__desc" :style="{ '--c': current.color }">{{ current.desc }}</p>
 
+		<div class="cpj__layers" role="tablist" aria-label="切换查看哪一层">
+			<button
+				v-for="l in LAYERS"
+				:key="l.key"
+				type="button"
+				role="tab"
+				:aria-selected="layer === l.key"
+				class="cpj__layer"
+				:class="{ 'is-active': layer === l.key }"
+				@click="layer = l.key"
+			>
+				{{ l.label }}
+			</button>
+		</div>
+
 		<div class="cpj__cols">
-			<section class="cpj__col">
-				<header>
+			<section class="cpj__col" :class="{ 'is-mobile-active': layer === 0 }">
+				<header class="cpj__col-head">
 					<b>① 事件日志</b>
 					<span>磁盘 · append-only</span>
 				</header>
@@ -142,8 +164,8 @@ const marks = computed(() =>
 				</footer>
 			</section>
 
-			<section class="cpj__col">
-				<header>
+			<section class="cpj__col" :class="{ 'is-mobile-active': layer === 1 }">
+				<header class="cpj__col-head">
 					<b>② 工作集</b>
 					<span>内存 · 带标记的数组</span>
 				</header>
@@ -160,8 +182,8 @@ const marks = computed(() =>
 				</footer>
 			</section>
 
-			<section class="cpj__col cpj__col--out">
-				<header>
+			<section class="cpj__col cpj__col--out" :class="{ 'is-mobile-active': layer === 2 }">
+				<header class="cpj__col-head">
 					<b>③ 请求载荷</b>
 					<span>本次 API 调用实际发出</span>
 				</header>
@@ -184,16 +206,11 @@ const marks = computed(() =>
 			</section>
 		</div>
 
-		<p class="pc-note">
-			示意用的 token 数为便于对照的量级估算，非实测。三列同时呈现同一段轨迹：磁盘那一列在四种动作下逐字不变，
-			工作集的条目数也始终是 {{ entries.length }} 条——变的只有第三列。所以「把内容从上下文中移除」的准确含义是
-			<b>组装下一次请求时不投影它</b>；只有摘要压缩才真正生成了新内容，也只有它不可逆。
-		</p>
 	</div>
 </template>
 
 <style scoped>
-.cpj { margin: 1rem 0; }
+.cpj { margin: 1rem 0; max-width: 100%; }
 .cpj__tabs { display: flex; flex-wrap: wrap; gap: .35rem; }
 .cpj__tab { flex: 1 1 150px; min-width: 140px; min-height: var(--cs-tap-target); text-align: left; cursor: pointer; background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-top: 3px solid var(--c); border-radius: var(--cs-radius-lg); padding: var(--cs-space-3) var(--cs-space-4); transition: var(--cs-transition-colors); }
 .cpj__tab:hover { background: var(--cs-color-bg-soft); }
@@ -201,27 +218,33 @@ const marks = computed(() =>
 .cpj__tab strong { display: block; font-size: var(--cs-text-base); color: var(--c); }
 .cpj__tab span { display: block; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); margin-top: var(--cs-space-1); }
 .cpj__desc { margin: var(--cs-space-4) 0 var(--cs-space-4); padding-left: var(--cs-space-4); border-left: 3px solid var(--c); font-size: var(--cs-text-base); line-height: var(--cs-leading-relaxed); color: var(--cs-color-text); }
-.cpj__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--cs-space-3); align-items: start; }
-.cpj__col { background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-lg); overflow: hidden; }
+.cpj__layers { display: none; }
+.cpj__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--cs-space-3); align-items: start; min-width: 0; }
+.cpj__col { background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-lg); overflow: hidden; min-width: 0; }
 .cpj__col--out { border-color: var(--cs-color-border-strong); }
-.cpj__col > header { padding: var(--cs-space-3) var(--cs-space-4); background: var(--cs-color-bg-soft); border-bottom: 1px solid var(--cs-color-border); }
-.cpj__col > header b { display: block; font-size: var(--cs-text-md); }
-.cpj__col > header span { display: block; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); }
+.cpj__col-head { padding: var(--cs-space-3) var(--cs-space-4); background: var(--cs-color-bg-soft); border-bottom: 1px solid var(--cs-color-border); }
+.cpj__col-head b { display: block; font-size: var(--cs-text-md); }
+.cpj__col-head span { display: block; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-text-subtle); }
 .cpj__list { list-style: none; margin: 0; padding: var(--cs-space-2) 0; }
-.cpj__list li { display: grid; grid-template-columns: 1fr auto; gap: 0 var(--cs-space-2); padding: var(--cs-space-2) var(--cs-space-4); border-bottom: 1px dashed var(--cs-color-border); }
+.cpj__list li { display: grid; grid-template-columns: 1fr auto; gap: 0 var(--cs-space-2); padding: var(--cs-space-2) var(--cs-space-4); border-bottom: 1px dashed var(--cs-color-border); min-width: 0; }
 .cpj__list li:last-child { border-bottom: 0; }
 .cpj__list li.is-marked { background: var(--cs-color-neutral-soft); }
 .cpj__list li.is-ph { background: var(--cs-color-success-soft); }
 .cpj__list li.is-summary { background: var(--cs-color-danger-soft); }
 .cpj__kind { grid-column: 1 / -1; font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); letter-spacing: .04em; color: var(--cs-color-text-subtle); font-style: normal; }
-.cpj__lab { font-size: var(--cs-text-xs); line-height: var(--cs-leading-tight); color: var(--cs-color-text); }
+.cpj__lab { font-size: var(--cs-text-xs); line-height: var(--cs-leading-tight); color: var(--cs-color-text); overflow-wrap: break-word; word-break: break-word; min-width: 0; }
 .cpj__tok { font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--cs-color-text-muted); font-style: normal; align-self: end; }
 .cpj__mark { font-family: var(--cs-font-mono); font-size: var(--cs-text-3xs); color: var(--c); font-style: normal; align-self: end; }
 .cpj__col > footer { padding: var(--cs-space-3) var(--cs-space-4); border-top: 1px solid var(--cs-color-border); font-size: var(--cs-text-2xs); line-height: var(--cs-leading-normal); color: var(--cs-color-text-muted); }
 .cpj__inv { color: var(--cs-color-text-subtle); }
 .cpj__hi { color: var(--cs-color-brand); font-family: var(--cs-font-mono); }
 @media (max-width: 860px) {
+	.cpj__layers { display: flex; gap: .35rem; margin-bottom: var(--cs-space-3); }
+	.cpj__layer { flex: 1 1 0; min-width: 0; min-height: var(--cs-tap-target); cursor: pointer; background: var(--cs-color-bg); border: 1px solid var(--cs-color-border); border-radius: var(--cs-radius-lg); padding: var(--cs-space-2) var(--cs-space-1); font-size: var(--cs-text-2xs); color: var(--cs-color-text-muted); transition: var(--cs-transition-colors); }
+	.cpj__layer.is-active { background: var(--cs-color-bg-soft); border-color: var(--cs-color-border-strong); color: var(--cs-color-text); font-weight: 600; }
 	.cpj__cols { grid-template-columns: 1fr; }
+	.cpj__col { display: none; }
+	.cpj__col.is-mobile-active { display: block; }
 	.cpj__tab { flex-basis: 46%; }
 }
 </style>
