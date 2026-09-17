@@ -1,10 +1,9 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { defineConfig, type DefaultTheme } from 'vitepress'
 import texmath from 'markdown-it-texmath'
 import katex from 'katex'
 import { withMermaid } from 'vitepress-plugin-mermaid'
-import { installAgentArchive } from './agent-archive.mjs'
 import { csThemeInlineScript } from './theme/theme-registry'
 
 const repoName = 'computer-science'
@@ -334,26 +333,11 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 	},
 	{
 		text: 'Agent 系统',
-		link: '/ai/agent/',
+		link: '/ai/agent/notes/',
 		collapsed: false,
 		items: [
 			{ text: '学习总览', link: '/ai/agent/notes/' },
-			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' },
-			{ text: 'Prompt Engineering', link: '/ai/agent/notes/context/prompt-engineering' },
-			{ text: 'Context Engineering', link: '/ai/agent/notes/context/context-engineering' },
-			{ text: '上下文压缩', link: '/ai/agent/notes/context/compaction' },
-			{ text: 'Agent 记忆', link: '/ai/agent/notes/context/memory' },
-			{ text: 'memory / context / knowledge 边界', link: '/ai/agent/notes/context/memory-boundaries' },
-			{ text: '知识如何进入一次请求', link: '/ai/agent/notes/knowledge-supply' },
-			{ text: '工具调用机制', link: '/ai/agent/notes/tools/tool-calling-mechanics' },
-			{ text: 'Agent 工具族', link: '/ai/agent/notes/tools/agent-tool-families' },
-			{ text: 'Agent Skills', link: '/ai/agent/notes/tools/skills' },
-			{ text: 'Agent 扩展机制', link: '/ai/agent/notes/tools/extensibility' },
-			{ text: 'Agent 运行时接入', link: '/ai/agent/notes/runtime/integration' },
-			{ text: 'Agent 运行时的工程问题', link: '/ai/agent/notes/runtime/engineering-problems' },
-			{ text: '面试题库', link: '/ai/agent/notes/interview' },
-			{ text: '参考资料', link: '/ai/agent/notes/references' },
-			{ text: '旧版归档', link: '/ai/agent/archive/catalog' }
+			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' }
 		]
 	}
 ]
@@ -364,71 +348,6 @@ const sidebar = Object.fromEntries(
 		key === 'ai' ? aiSidebar : buildItems(key)
 	])
 )
-
-function archiveHeading(link: string) {
-	return readFileSync(path.join(process.cwd(), `${link.slice(1)}.md`), 'utf8').match(/^# (.+)$/m)?.[1]
-}
-
-// 归档按代存放，每代结构不同：逐代读取实际存在的分组，避免把某一代的目录假设套到另一代。
-function archiveSection(generation: string, section: string, text: string) {
-	const relativeDir = `ai/agent/archive/${generation}/notes/${section}`
-
-	if (!existsSync(path.join(process.cwd(), relativeDir))) {
-		return []
-	}
-
-	return [{
-		text,
-		collapsed: true,
-		items: buildItems(relativeDir).map((item) => ({
-			...item,
-			text: archiveHeading(item.link!) ?? item.text
-		}))
-	}]
-}
-
-const archiveSectionText: Record<string, string> = {
-	model: '模型交互',
-	context: '上下文与记忆',
-	tools: '工具与扩展',
-	control: '流程与协作',
-	runtime: '运行系统与质量',
-	quality: '评测与优化'
-}
-
-function archiveGeneration(generation: string, extras: DefaultTheme.SidebarItem[]) {
-	return [
-		{ text: '本代归档目录', link: `/ai/agent/archive/${generation}/catalog` },
-		...extras,
-		...Object.entries(archiveSectionText).flatMap(([section, text]) =>
-			archiveSection(generation, section, text)
-		),
-		...['implementation-index', 'labs', 'references']
-			.map((name) => `/ai/agent/archive/${generation}/notes/${name}`)
-			.filter((link) => existsSync(path.join(process.cwd(), `${link.slice(1)}.md`)))
-			.map((link) => ({ text: archiveHeading(link) ?? link, link }))
-	]
-}
-
-const archiveNav: DefaultTheme.SidebarItem[] = [
-	{ text: '返回新版学习总览', link: '/ai/agent/notes/' },
-	{ text: '归档总目录', link: '/ai/agent/archive/catalog' }
-]
-
-sidebar['/ai/agent/archive/v1-pre-rewrite/'] = [
-	...archiveNav,
-	...archiveGeneration('v1-pre-rewrite', [
-		{ text: '旧版 Agent 入口', link: '/ai/agent/archive/v1-pre-rewrite/' },
-		{ text: '旧版学习总览', link: '/ai/agent/archive/v1-pre-rewrite/notes/' }
-	])
-]
-
-sidebar['/ai/agent/archive/v2-six-modules/'] = [
-	...archiveNav,
-	...archiveGeneration('v2-six-modules', [])
-]
-
-sidebar['/ai/agent/archive/'] = archiveNav
 
 export default withMermaid(
 	defineConfig({
@@ -443,10 +362,7 @@ export default withMermaid(
 		srcExclude: [
 			'**/AGENTS.md',
 			// 面向贡献者的工程文档，与 CONTRIBUTING.md 同类，不作为站点页面构建
-			'docs/**',
-			// Agent 笔记的参考代码与模板按源码方式保留（可在 GitHub 浏览），不作为站点页面构建
-			'**/ai/agent/**/examples/**',
-			'**/ai/agent/**/templates/**'
+			'docs/**'
 		],
 		ignoreDeadLinks: [
 			/^https?:\/\//
@@ -459,7 +375,6 @@ export default withMermaid(
 			lineNumbers: true,
 			config(md) {
 				installBracketMathBlock(md)
-				installAgentArchive(md)
 
 				md.use(texmath, {
 					engine: katex,

@@ -122,7 +122,7 @@ Encoder-only、Decoder-only 与 Encoder-decoder 首先是信息可见性和输�
 2. 正确资料是否进入候选集？检查[向量检索](../representation/vector-retrieval.md)及 Recall。
 3. 重排是否丢掉正确文档？检查[检索评估](../evaluation/retrieval-evaluation.md)。
 4. 证据进入上下文后，模型是否混淆主客体？检查[生成评估](../evaluation/generation-evaluation.md)与位置、长度切片。
-5. 回答正确但实际动作错误？检查 [Agent](../agent/index.md) 的参数校验、权限与工具结果。
+5. 回答正确但实际动作错误？检查 [Agent](../agent/notes/index.md) 的参数校验、权限与工具结果。
 
 这种拆分把「增加数据」「换机制」「扩大模型」「修系统」转成可检验的选择，而不是互相替代的口号。
 

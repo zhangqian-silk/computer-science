@@ -2,7 +2,7 @@
 
 模型调用把任务、资料和可用工具组织成输入，返回回答或工具调用。理解交互首先要看清**模型看到了什么、生成了什么、结果表达了什么**；多轮对话则是在这个基础上继续传入指令、历史消息和工具结果。
 
-本章按「单次输入输出 → 多轮交互 → 生成机制」展开。单次调用与基础多轮构成完整学习单元；对话资料的存取、选择与压缩可在掌握消息关系后继续学习[上下文管理](../context/context-engineering.md)。
+本章按「单次输入输出 → 多轮交互 → 生成机制」展开。单次调用与基础多轮构成完整学习单元；对话资料的存取、选择与压缩建立在本章的消息关系之上。
 
 ---
 
@@ -78,7 +78,7 @@ server:
 要求：仅依据已提供字段；未提供的信息明确说明。
 ```
 
-若输出形式不容易用文字说清，可以补充少量「输入 → 期望输出」示例（few-shot）。示例应服务于格式或判断规则，而不是用大量相似内容掩盖不明确的任务。[[19]](../references.md#source-openai-prompt)
+若输出形式不容易用文字说清，可以补充少量「输入 → 期望输出」示例（few-shot）。示例应服务于格式或判断规则，而不是用大量相似内容掩盖不明确的任务。[19](https://developers.openai.com/api/docs/guides/prompt-engineering)
 
 ### Zero-shot 与 few-shot：规则与示例 {#few-shot}
 
@@ -109,11 +109,11 @@ Zero-shot 提示直接提供任务要求和待处理内容；few-shot 在此基�
 
 示例一说明取值和输出格式，示例二说明缺失字段的处理。当前输入对应的目标结果是 `{"port":9090}`，不是复用示例中的 8080。**示例提供的是规则的具体表现，当前输入提供本次要处理的事实。**
 
-这些示例是提示设计者给定的内容，不需要为每个示例分别调用模型，也不是通过本次交互更新模型权重。Zero-shot 同样可能完成任务；few-shot 的价值在于帮助表达难以仅靠文字说明的格式或分类边界，而不是保证示例越多效果越好。[[19]](../references.md#source-openai-prompt)
+这些示例是提示设计者给定的内容，不需要为每个示例分别调用模型，也不是通过本次交互更新模型权重。Zero-shot 同样可能完成任务；few-shot 的价值在于帮助表达难以仅靠文字说明的格式或分类边界，而不是保证示例越多效果越好。[19](https://developers.openai.com/api/docs/guides/prompt-engineering)
 
 ### 多模态输入：文字与图片共同构成消息 {#multimodal}
 
-输入可以不只有文字。对于具备视觉理解能力的模型，一条用户消息可以同时包含文字任务和图片内容：文字说明关注什么，图片提供待观察的信息。角色仍然是 `user`，图片是一种内容类型，不是新的消息角色。[[75]](../references.md#source-openai-image-input)
+输入可以不只有文字。对于具备视觉理解能力的模型，一条用户消息可以同时包含文字任务和图片内容：文字说明关注什么，图片提供待观察的信息。角色仍然是 `user`，图片是一种内容类型，不是新的消息角色。[75](https://developers.openai.com/api/docs/guides/images-vision)
 
 设一张配置界面截图清晰显示「服务端口：8080」「超时：30 秒」，一次图片问答可以这样组织：
 
@@ -135,7 +135,7 @@ Zero-shot 提示直接提供任务要求和待处理内容；few-shot 在此基�
 
 同一请求也可以携带多张图片。比较修改前后的配置时，应明确标出图片 A、图片 B，以及比较的字段；不要让图片顺序、文字描述和指代对象彼此含混。
 
-在后续追问中，原图片或与问题相关的视觉信息仍需处于当前可用输入中；上一轮的文本回答不是整张图片的替代品。小字、模糊、旋转和遮挡会影响判断，图片也会占用输入预算，不能只按文字长度估算。[[75]](../references.md#source-openai-image-input)
+在后续追问中，原图片或与问题相关的视觉信息仍需处于当前可用输入中；上一轮的文本回答不是整张图片的替代品。小字、模糊、旋转和遮挡会影响判断，图片也会占用输入预算，不能只按文字长度估算。[75](https://developers.openai.com/api/docs/guides/images-vision)
 
 ### 从文本回答到结构化结果 {#structured-output}
 
@@ -165,7 +165,7 @@ Zero-shot 提示直接提供任务要求和待处理内容；few-shot 在此基�
 
 输入同时说明「只提取已提供的端口；没有该字段时返回 null」。正常完成且未拒绝时，`message.content` 承载 JSON 文本；程序解析外层响应后，再解析这段文本，才能取得数值 `port`。
 
-提示中要求 JSON、JSON mode、严格 JSON Schema 分别提供自然语言要求、可解析形式和字段约束。**Schema 约束结构，不核实事实**；字段类型正确，也仍需核对数值是否来自输入。[[10]](../references.md#source-openai-structured)
+提示中要求 JSON、JSON mode、严格 JSON Schema 分别提供自然语言要求、可解析形式和字段约束。**Schema 约束结构，不核实事实**；字段类型正确，也仍需核对数值是否来自输入。[10](https://developers.openai.com/api/docs/guides/structured-outputs)
 
 ### 从工具声明到调用参数 {#tools}
 
@@ -200,11 +200,11 @@ Zero-shot 提示直接提供任务要求和待处理内容；few-shot 在此基�
 }
 ```
 
-工具定义中的 `name` 标识操作，`description` 解释什么时候使用，`parameters` 描述参数名称、类型和必填项。`strict: true` 在支持的 schema 范围内约束生成参数；本例要求 `path` 必填且不接受额外字段。[[2]](../references.md#source-openai-functions)
+工具定义中的 `name` 标识操作，`description` 解释什么时候使用，`parameters` 描述参数名称、类型和必填项。`strict: true` 在支持的 schema 范围内约束生成参数；本例要求 `path` 必填且不接受额外字段。[2](https://developers.openai.com/api/docs/guides/function-calling)
 
 `tool_choice: "auto"` 允许模型选择回答或提出工具调用；`none` 禁止调用，`required` 要求产生一个或多个调用。指定某个函数时可使用 `{"type":"function","function":{"name":"read_file"}}`。
 
-**请求携带的是工具说明，不是函数代码，也不是执行结果。** 模型据此生成名称和参数，实际文件读取仍由程序完成。[[72]](../references.md#source-openai-chat-functions)
+**请求携带的是工具说明，不是函数代码，也不是执行结果。** 模型据此生成名称和参数，实际文件读取仍由程序完成。[72](https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models)
 
 如果模型选择工具，`message` 则可能是：
 
@@ -223,7 +223,7 @@ Zero-shot 提示直接提供任务要求和待处理内容；few-shot 在此基�
 }
 ```
 
-这里 `arguments` 是**包含 JSON 的字符串**。读取响应对象中的 `message` 后，还要解析 `function.arguments` 中的 JSON 文本，才能取出 `path`。外层消息结构和内部参数数据是两个读取层次。[[72]](../references.md#source-openai-chat-functions)
+这里 `arguments` 是**包含 JSON 的字符串**。读取响应对象中的 `message` 后，还要解析 `function.arguments` 中的 JSON 文本，才能取出 `path`。外层消息结构和内部参数数据是两个读取层次。[72](https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models)
 
 读取顺序可以保持简单：
 
@@ -261,7 +261,7 @@ Zero-shot 提示直接提供任务要求和待处理内容；few-shot 在此基�
 | `delta.tool_calls` | 按候选索引和工具条目索引关联 ID、名称，分别累积参数片段 |
 | 非空 `finish_reason` | 判断对应候选是正常结束、工具调用还是截断 |
 
-工具参数片段不一定是完整 JSON，应拼装完再解析；网络读取边界也不等于 SSE 事件边界。连接中断、收到了第一段文字，都不能替代完整的结束判断。[[73]](../references.md#source-openai-chat-stream)
+工具参数片段不一定是完整 JSON，应拼装完再解析；网络读取边界也不等于 SSE 事件边界。连接中断、收到了第一段文字，都不能替代完整的结束判断。[73](https://developers.openai.com/cookbook/examples/how_to_stream_completions)
 
 ### 参数与响应字段速查 {#parameter-reference}
 
@@ -332,9 +332,9 @@ System prompt 放稳定的任务范围、回答依据、表达方式和信息不
 | `assistant` | 保留模型之前的回答或工具调用消息 |
 | `tool` | 把某次工具调用的结果交回模型 |
 
-角色是消息结构的一部分，把 `System:` 写进用户正文并不会改变角色。不同模型对 `system`／`developer` 的支持应按其接口选择。[[1]](../references.md#source-openai-text)
+角色是消息结构的一部分，把 `System:` 写进用户正文并不会改变角色。不同模型对 `system`／`developer` 的支持应按其接口选择。[1](https://developers.openai.com/api/docs/guides/text)
 
-使用自行管理的 `messages` 时，每轮都应继续包含需要生效的 system prompt，不能只在第一轮发送一次就假定下一次独立请求会自动继承。System prompt 规定如何回答，但不会补回未提供的配置事实。[[8]](../references.md#source-openai-state)
+使用自行管理的 `messages` 时，每轮都应继续包含需要生效的 system prompt，不能只在第一轮发送一次就假定下一次独立请求会自动继承。System prompt 规定如何回答，但不会补回未提供的配置事实。[8](https://developers.openai.com/api/docs/guides/conversation-state)
 
 ### 用户的多轮消息怎样组织 {#conversation}
 
@@ -372,7 +372,7 @@ System prompt 放稳定的任务范围、回答依据、表达方式和信息不
 | 第二次请求 | 发送更新后的 `messages`；如仍允许继续使用工具，同时携带 `tools` |
 | 第二次响应 | 模型依据已看到的文件内容生成端口说明 |
 
-第二次请求不一定需要新的用户问题，工具结果本身就是新增输入。它属于 `role: "tool"`，不应伪装成用户发言；`tool_calls` 是模型输出，也不应误放到声明能力的 `tools` 参数中。[[72]](../references.md#source-openai-chat-functions)
+第二次请求不一定需要新的用户问题，工具结果本身就是新增输入。它属于 `role: "tool"`，不应伪装成用户发言；`tool_calls` 是模型输出，也不应误放到声明能力的 `tools` 参数中。[72](https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models)
 
 <details>
 <summary>查看第二次调用的完整 messages：原始问题、调用消息与工具结果</summary>
@@ -461,11 +461,11 @@ Top_p 则按概率从高到低保留累计概率达到阈值的最小候选集�
 | `stop` | 在接口支持时遇到指定序列就停止 | 停止不等于语义完整 |
 | 推理预算／effort | 在支持的模型上控制推理投入 | 不等于可见回答长度或正确率保证 |
 
-上式只用于正温度；贪心选择直接取最高分候选，应与正温度下的概率采样区分。低温度可以减少采样随机性，但 `temperature = 0` 不能作为跨请求、跨版本完全复现的承诺。输入与执行条件也会影响结果。[[71]](../references.md#source-openai-reproducibility)
+上式只用于正温度；贪心选择直接取最高分候选，应与正温度下的概率采样区分。低温度可以减少采样随机性，但 `temperature = 0` 不能作为跨请求、跨版本完全复现的承诺。输入与执行条件也会影响结果。[71](https://developers.openai.com/cookbook/examples/reproducible_outputs_with_the_seed_parameter)
 
 ### 上下文窗口与输出预算 {#context-window}
 
-上下文窗口是一次生成可使用的 Token 容量。输入包括 system prompt、历史、当前问题、工具说明和结果等内容；生成部分包括回答，在部分模型中还包括推理 Token。**可见文本短，不代表生成 Token 少。**[[8]](../references.md#source-openai-state)
+上下文窗口是一次生成可使用的 Token 容量。输入包括 system prompt、历史、当前问题、工具说明和结果等内容；生成部分包括回答，在部分模型中还包括推理 Token。**可见文本短，不代表生成 Token 少。**[8](https://developers.openai.com/api/docs/guides/conversation-state)
 
 设窗口为 $W$，输入为 $T_{\mathrm{in}}$，生成部分为 $T_{\mathrm{gen}}$，容量约束为：
 
@@ -485,7 +485,7 @@ $$
 | 跨请求前缀缓存／Prompt Cache | 已计算过的相同输入前缀 | 要，还需处理新输入并生成回答 |
 | 结果缓存 | 之前得到的完整答案 | 直接返回命中结果时，不再调用模型 |
 
-多轮问答中，system prompt 和早期消息保持不变，新问题追加在末尾，就可能复用共同前缀。是否命中还取决于实际 Token、模型配置、缓存可用性及产品规则；语义相似不等于前缀相同。[[18]](../references.md#source-openai-cache)
+多轮问答中，system prompt 和早期消息保持不变，新问题追加在末尾，就可能复用共同前缀。是否命中还取决于实际 Token、模型配置、缓存可用性及产品规则；语义相似不等于前缀相同。[18](https://developers.openai.com/api/docs/guides/prompt-caching)
 
 **缓存复用计算，不会把前文移出上下文窗口，也不等于模型获得长期记忆。** KV Cache 省去历史 K／V 的重复计算，后续生成仍需读取相关状态。
 
@@ -531,17 +531,23 @@ $$
 | 推理 80 | 是生成 200 中的一部分 | 其余 120 是其他生成用量，不应把推理再计入一次 |
 | 总计 1,200 | 输入 1,000 + 生成 200 | 不是把总量和所有细项全部相加 |
 
-其他生成用量还可能包含非可见格式等内容，因此不能直接用「生成量减推理量」断言可见回答恰好有多少 Token。图片也有相应输入计量，不能把图片输入视为零成本或只统计文字。[[11]](../references.md#source-openai-reasoning) [[75]](../references.md#source-openai-image-input)
+其他生成用量还可能包含非可见格式等内容，因此不能直接用「生成量减推理量」断言可见回答恰好有多少 Token。图片也有相应输入计量，不能把图片输入视为零成本或只统计文字。[11](https://developers.openai.com/api/docs/guides/reasoning) [75](https://developers.openai.com/api/docs/guides/images-vision)
 
 ---
 
 ## 参考资料
 
-- 工具声明、响应解析与结果回传：[Chat Completions Function Calling](../references.md#source-openai-chat-functions)、[Function calling](../references.md#source-openai-functions)。
-- 消息角色与提示：[Text generation](../references.md#source-openai-text)、[Prompt engineering](../references.md#source-openai-prompt)。
-- 图片输入与视觉理解：[Images and vision](../references.md#source-openai-image-input)。
-- 多轮输入与窗口：[Conversation state](../references.md#source-openai-state)。
-- 推理与生成用量：[Reasoning models](../references.md#source-openai-reasoning)。
-- 输出格式：[Structured model outputs](../references.md#source-openai-structured)。
-- 流式与缓存：[Streaming Chat Completions](../references.md#source-openai-chat-stream)、[Hugging Face Caching](../references.md#source-hf-cache)、[Prompt caching](../references.md#source-openai-cache)。
-- 生成复现边界：[OpenAI：Reproducible outputs](../references.md#source-openai-reproducibility)。
+- [1] [OpenAI：Text generation](https://developers.openai.com/api/docs/guides/text)：消息输入、消息角色与指令跟随。
+- [2] [OpenAI：Function calling](https://developers.openai.com/api/docs/guides/function-calling)：结构化调用、工具结果关联、参数 Schema 与流式边界。
+- [4] [Hugging Face：Caching](https://huggingface.co/docs/transformers/cache_explanation)：传统自回归注意力中的 KV 缓存机制。
+- [8] [OpenAI：Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)：多轮消息续接、上下文窗口与状态成本。
+- [10] [OpenAI：Structured model outputs](https://developers.openai.com/api/docs/guides/structured-outputs)：结构化输出、Schema 约束与业务校验边界。
+- [11] [OpenAI：Reasoning models](https://developers.openai.com/api/docs/guides/reasoning)：推理 Token、生成用量与上下文保留。
+- [18] [OpenAI：Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching)：前缀缓存、模型差异与缓存命中条件。
+- [19] [OpenAI：Prompt engineering](https://developers.openai.com/api/docs/guides/prompt-engineering)：指令、示例、输出要求与提示版本。
+- [71] [OpenAI：How to make your completions outputs reproducible](https://developers.openai.com/cookbook/examples/reproducible_outputs_with_the_seed_parameter)：固定输入、采样参数与复现边界。
+- [72] [OpenAI：How to call functions with chat models](https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models)：Chat Completions 的工具声明、`tool_calls`、参数解析与结果回传。
+- [73] [OpenAI：How to stream completions](https://developers.openai.com/cookbook/examples/how_to_stream_completions)：流式增量、空增量与结束信号。
+- [75] [OpenAI：Images and vision](https://developers.openai.com/api/docs/guides/images-vision)：多模态消息、图片输入计量和视觉判断限制。
+
+以上在线文档核验于 2026-09-12；具体参数、模型支持和计量口径以当前接口文档为准。
