@@ -18,7 +18,7 @@
 | [模型](./model/index.md) | 从 N-gram 到 Transformer 与状态空间模型，完整建模对象如何变化 | [模型地图](./model/index.md) |
 | [AI Infra](./infra/index.md) | GPU、通信、训练和推理 Runtime 如何把模型变成可运行系统 | [AI Infra 总览](./infra/index.md) |
 | [评估](./evaluation/index.md) | 概率、检索、生成和长上下文能力如何被可靠测量 | [评估设计](./evaluation/index.md) |
-| [Agent](./agent/index.md) | 如何把模型、工具、状态和控制流组成可执行系统 | [Agent 系统](./agent/index.md) |
+| [Agent](./agent/notes/index.md) | 如何把模型、工具、状态和控制流组成可执行系统 | [Agent 系统](./agent/notes/index.md) |
 
 ---
 
@@ -40,7 +40,7 @@
 
 ### 长上下文与系统主线
 
-[Self-Attention](./mechanism/self-attention.md) → [位置表示](./mechanism/positional-encoding.md) → [长上下文](./mechanism/long-context.md) → [稀疏注意力](./mechanism/sparse-attention.md) / [状态空间模型](./model/state-space-model.md) → [长上下文评估](./evaluation/long-context-evaluation.md) → [Agent 系统](./agent/index.md)
+[Self-Attention](./mechanism/self-attention.md) → [位置表示](./mechanism/positional-encoding.md) → [长上下文](./mechanism/long-context.md) → [稀疏注意力](./mechanism/sparse-attention.md) / [状态空间模型](./model/state-space-model.md) → [长上下文评估](./evaluation/long-context-evaluation.md) → [Agent 系统](./agent/notes/index.md)
 
 这条路线同时检查能力与代价，避免把名义窗口长度、理论复杂度或工具数量直接等同于系统效果。
 
@@ -58,7 +58,7 @@
 
 ### 检索增强与 Agent 主线
 
-[文本嵌入](./representation/text-embedding.md) → [向量检索](./representation/vector-retrieval.md) → [检索评估](./evaluation/retrieval-evaluation.md) → [GPT](./model/gpt.md) → [生成评估](./evaluation/generation-evaluation.md) → [Agent 系统](./agent/index.md)
+[文本嵌入](./representation/text-embedding.md) → [向量检索](./representation/vector-retrieval.md) → [检索评估](./evaluation/retrieval-evaluation.md) → [GPT](./model/gpt.md) → [生成评估](./evaluation/generation-evaluation.md) → [Agent 系统](./agent/notes/index.md)
 
 这条路线把外部证据、语言生成和真实动作分成独立接口。检索到文档不代表回答忠实，模型输出工具调用也不代表动作已经授权或成功执行。
 

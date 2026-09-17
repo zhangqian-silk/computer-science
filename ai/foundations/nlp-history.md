@@ -98,7 +98,7 @@ Transformer 随后分化出三种常见结构接口：
 
 统计模型与早期神经模型常围绕单一任务训练。预训练范式先在大规模语料上学习通用参数，再通过微调、提示或参数高效适配转向具体任务。[LoRA](../mechanism/lora.md)等方法改变的是适配成本，而不是基座模型的基本预测接口。
 
-当模型进入检索、工具调用和长任务执行，研究对象又从单个网络扩展为系统：[文本嵌入](../representation/text-embedding.md)与检索提供外部证据，[评估层](../evaluation/index.md)验证能力主张，[Agent 系统](../agent/index.md)管理动作、状态与权限。
+当模型进入检索、工具调用和长任务执行，研究对象又从单个网络扩展为系统：[文本嵌入](../representation/text-embedding.md)与检索提供外部证据，[评估层](../evaluation/index.md)验证能力主张，[Agent 系统](../agent/notes/index.md)管理动作、状态与权限。
 
 这并不意味着旧方法全部失效。N-gram 仍可作为可解释基线，RNN 适合某些流式与资源受限任务，word2vec 仍是轻量离散对象表示。历史演化改变的是默认折中，而不是给所有场景规定唯一答案。
 
