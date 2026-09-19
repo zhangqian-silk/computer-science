@@ -337,6 +337,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		collapsed: false,
 		items: [
 			{ text: '学习总览', link: '/ai/agent/notes/' },
+			{ text: 'Context 边界', link: '/ai/agent/notes/context-boundary' },
 			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' }
 		]
 	}
