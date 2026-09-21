@@ -105,6 +105,16 @@
 .ctxc-result-card ul{margin:0 auto 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:3px;margin-top:auto;padding-top:var(--cs-space-2);width:100%}
 .ctxc-result-card li{padding:3px 7px;border-radius:var(--cs-radius-xs);background:color-mix(in srgb,var(--rc) 9%,var(--cs-color-bg));font-size:9px;line-height:1.35;color:var(--cs-color-text-muted)}
 .ctxc-result-card li.keep{color:var(--cs-color-text)}
+.ctxc-win{display:flex;flex-direction:column;gap:4px;margin-top:var(--cs-space-3)}
+.ctxc-win-block{border:1px solid var(--rc);border-radius:var(--cs-radius-xs);padding:var(--cs-space-2) var(--cs-space-3);font-size:9px;line-height:1.35;color:var(--cs-color-text-muted);position:relative}
+.ctxc-win-block b{display:block;font-weight:600;color:var(--cs-color-text);font-size:10px;margin-bottom:1px}
+.ctxc-win-block .tok{position:absolute;top:var(--cs-space-2);right:var(--cs-space-3);font-family:var(--cs-font-mono);font-size:9px;color:var(--cs-color-text-subtle)}
+.ctxc-win-block.is-keep{background:color-mix(in srgb,var(--rc) 12%,var(--cs-color-bg));border-color:var(--rc)}
+.ctxc-win-block.is-replace{background:color-mix(in srgb,var(--rc) 5%,var(--cs-color-bg));border-style:dashed;border-color:color-mix(in srgb,var(--rc) 50%,var(--cs-color-border))}
+.ctxc-win-block.is-new{background:color-mix(in srgb,var(--rc) 8%,var(--cs-color-bg));border-color:color-mix(in srgb,var(--rc) 70%,var(--cs-color-border))}
+.ctxc-win-block.is-gone{opacity:.35;border-style:dotted}
+.ctxc-win-label{font-family:var(--cs-font-mono);font-size:8px;letter-spacing:.06em;color:var(--cs-color-text-subtle);margin:var(--cs-space-1) 0 0}
+.ctxc-win-arrow{display:flex;align-items:center;justify-content:center;color:var(--rc);font-family:var(--cs-font-mono);font-size:14px;line-height:1;margin:var(--cs-space-1) 0}
 .rc-blob{--rc:var(--cs-color-brand)}.rc-visible{--rc:var(--cs-color-warning)}.rc-soft{--rc:var(--cs-color-success)}.rc-event{--rc:var(--cs-color-info)}
 @media(max-width:820px){.ctxc-result-grid{grid-template-columns:1fr 1fr}.ctxc-result-before-list{grid-template-columns:1fr}}
 @media(max-width:480px){.ctxc-result-grid{grid-template-columns:1fr}}
@@ -457,59 +467,57 @@ $C_{\text{saved}}$ 是后续请求少发送内容的收益，$C_{\text{rewrite}}
 	<div class="ctxc-result-before">
 		<div class="ctxc-result-before-head">
 			<span class="ctxc-result-before-title">压缩前 · 同一上下文</span>
-			<span class="ctxc-result-before-size">约 420K tokens（示意，非实测）</span>
+			<span class="ctxc-result-before-size">约 420K tokens（示意）</span>
 		</div>
-		<div class="ctxc-result-before-list">
-			<span>用户原话「加缓存层」 6K</span>
-			<span>git commit a3f9b1 24K</span>
-			<span class="dim">检索正文 ×12 篇 210K</span>
-			<span class="dim">测试日志 ×5 轮 180K</span>
+		<div class="ctxc-win" style="margin-top:0">
+			<div class="ctxc-win-block is-keep" style="border-color:var(--cs-color-success)"><b>用户原话「加缓存层」</b>需求、约束与硬约束<span class="tok">6K</span></div>
+			<div class="ctxc-win-block is-gone" style="border-color:var(--cs-color-danger)"><b>检索正文 ×12 篇</b>网页与代码搜索返回的完整正文<span class="tok">210K</span></div>
+			<div class="ctxc-win-block is-gone" style="border-color:var(--cs-color-danger)"><b>测试日志 ×5 轮</b>构建输出、堆栈与完整日志<span class="tok">180K</span></div>
+			<div class="ctxc-win-block is-keep" style="border-color:var(--cs-color-info)"><b>git commit a3f9b1</b>已完成写操作的事实凭证<span class="tok">24K</span></div>
 		</div>
 	</div>
 	<div class="ctxc-result-grid">
 		<section class="ctxc-result-card rc-blob">
-			<div class="ctxc-result-card-name">Codex CLI</div>
-			<div class="ctxc-result-card-size">约 12K · 服务端 blob</div>
-			<p>旧历史压缩为不透明 blob，初始上下文重新注入。</p>
-			<ul>
-				<li class="keep">用户原话 6K（逐字）</li>
-				<li>加密 blob：不可读，含 SHA 与下一步</li>
-				<li class="keep">系统提示重新注入</li>
-				<li>再压一次：旧 blob → 新 blob</li>
-			</ul>
+			<div class="ctxc-result-card-name">Codex CLI → 12K</div>
+			<div class="ctxc-win">
+				<div class="ctxc-win-block is-keep"><b>系统提示</b>初始上下文重新注入</div>
+				<div class="ctxc-win-block is-keep"><b>用户原话 6K</b>逐字保留</div>
+				<div class="ctxc-win-block is-replace"><b>加密 blob</b>含 SHA a3f9b1、方案结论与下一步；检索正文与日志不再可读</div>
+				<div class="ctxc-win-block is-gone"><b>检索正文 ×12</b>已收入 blob</div>
+				<div class="ctxc-win-block is-gone"><b>测试日志 ×5</b>已收入 blob</div>
+			</div>
+			<div class="ctxc-win-label">再压缩：旧 blob 进 → 新 blob 出</div>
 		</section>
 		<section class="ctxc-result-card rc-visible">
 			<div class="ctxc-result-card-name">Claude Code</div>
-			<div class="ctxc-result-card-size">本地完整 · 服务端屏蔽</div>
-			<p>本地 messages 不删除，服务端通过 cache_edits 隐藏旧槽位。</p>
-			<ul>
-				<li class="keep">最近 N 条工具结果保留</li>
-				<li>旧结果对模型不可见但可恢复</li>
-				<li>sub-agent 生成结构化摘要</li>
-				<li>前缀缓存不被清理破坏</li>
-			</ul>
+			<div class="ctxc-win">
+				<div class="ctxc-win-block is-keep"><b>系统提示与工具定义</b>前缀缓存命中</div>
+				<div class="ctxc-win-block is-keep"><b>用户原话与最近消息</b>keep_recent 窗口保留</div>
+				<div class="ctxc-win-block is-new"><b>结构化摘要</b>sub-agent 生成，替代旧历史</div>
+				<div class="ctxc-win-block is-replace"><b>检索/日志槽位</b>本地完整；服务端 cache_edits 屏蔽</div>
+				<div class="ctxc-win-block is-keep"><b>git commit 凭证</b>保留在最近窗口</div>
+			</div>
+			<div class="ctxc-win-label">旧结果对模型不可见，按句柄可恢复</div>
 		</section>
 		<section class="ctxc-result-card rc-soft">
-			<div class="ctxc-result-card-name">OpenCode</div>
-			<div class="ctxc-result-card-size">约 40K 最近窗口</div>
-			<p>旧消息打 compacted 时间戳，数据库保留，请求时不投影。</p>
-			<ul>
-				<li class="keep">最近 40K + 2 个用户回合</li>
-				<li>五段固定摘要结构</li>
-				<li>最后一条用户消息重放</li>
-				<li>原文可通过时间戳回查</li>
-			</ul>
+			<div class="ctxc-result-card-name">OpenCode → 40K</div>
+			<div class="ctxc-win">
+				<div class="ctxc-win-block is-keep"><b>最近 40K + 2 回合</b>近期消息与工具结果保留</div>
+				<div class="ctxc-win-block is-new"><b>五段摘要</b>目标、决策、待办、文件、下一步</div>
+				<div class="ctxc-win-block is-replace"><b>最后一条用户消息</b>从摘要中重放</div>
+				<div class="ctxc-win-block is-gone"><b>检索/日志旧消息</b>打 compacted 时间戳，不投影</div>
+			</div>
+			<div class="ctxc-win-label">原文留在数据库，按时间戳回查</div>
 		</section>
 		<section class="ctxc-result-card rc-event">
 			<div class="ctxc-result-card-name">OpenHands</div>
-			<div class="ctxc-result-card-size">事件流 · 读时投影</div>
-			<p>原始交互与压缩都是事件，调模型前应用投影生成载荷。</p>
-			<ul>
-				<li class="keep">完整 EventLog 可回放</li>
-				<li>CondensationEvent 记录压缩</li>
-				<li>压缩器无状态、可重放</li>
-				<li>需要明确事件 schema</li>
-			</ul>
+			<div class="ctxc-win">
+				<div class="ctxc-win-block is-keep"><b>投影后的近期事件</b>按 schema 筛选的消息与观察</div>
+				<div class="ctxc-win-block is-new"><b>CondensationEvent</b>压缩本身也是一条事件</div>
+				<div class="ctxc-win-block is-replace"><b>检索/日志正文</b>读时不投影；EventLog 保留原文</div>
+				<div class="ctxc-win-block is-keep"><b>git commit 事件</b>在投影中保留</div>
+			</div>
+			<div class="ctxc-win-label">压缩器无状态，事件链可完整回放</div>
 		</section>
 	</div>
 </div>
