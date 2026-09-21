@@ -89,7 +89,26 @@
 	.ctxc-flow-loop{position:relative;margin-top:var(--cs-space-4);padding:var(--cs-space-4) var(--cs-space-5);border:0;border-left:3px solid var(--cs-color-brand);border-radius:0 var(--cs-radius-sm) var(--cs-radius-sm) 0;background:color-mix(in srgb,var(--cs-color-brand) 8%,var(--cs-color-bg-soft));color:var(--cs-color-text-muted);font-size:var(--cs-text-3xs);line-height:1.55}
 	.ctxc-flow-bypass{padding:var(--cs-space-4);font-size:var(--cs-text-3xs);line-height:1.55}
 	.ctxc-flow-loop::before{content:"↻ 事件回写";display:block;margin-bottom:var(--cs-space-2);color:var(--cs-color-brand);font-family:var(--cs-font-mono);font-size:var(--cs-text-sm);font-weight:600;line-height:1}
-}</style>
+}
+.ctxc-result{margin:var(--cs-space-7) 0}
+.ctxc-result-before{border:1px solid var(--cs-color-border);border-radius:var(--cs-radius-sm);padding:var(--cs-space-5);background:color-mix(in srgb,var(--cs-color-info) 4%,var(--cs-color-bg-soft));margin-bottom:var(--cs-space-4)}
+.ctxc-result-before-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--cs-space-3);margin-bottom:var(--cs-space-3)}
+.ctxc-result-before-title{font-family:var(--cs-font-mono);font-size:var(--cs-text-xs);letter-spacing:.08em;color:var(--cs-color-text-subtle)}
+.ctxc-result-before-size{font-family:var(--cs-font-mono);font-size:var(--cs-text-sm);color:var(--cs-color-text)}
+.ctxc-result-before-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.ctxc-result-before-list span{display:block;padding:var(--cs-space-2) var(--cs-space-3);border-radius:var(--cs-radius-xs);background:var(--cs-color-bg-elevated);font-size:var(--cs-text-3xs);color:var(--cs-color-text-muted);line-height:1.4}
+.ctxc-result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--cs-space-3)}
+.ctxc-result-card{--rc:var(--cs-color-brand);border-top:2px solid var(--rc);border-radius:0 0 var(--cs-radius-sm) var(--cs-radius-sm);background:color-mix(in srgb,var(--rc) 6%,var(--cs-color-bg-soft));padding:var(--cs-space-4);display:flex;flex-direction:column}
+.ctxc-result-card-name{font-family:var(--cs-font-mono);font-size:var(--cs-text-xs);font-weight:700;color:var(--rc);margin-bottom:2px}
+.ctxc-result-card-size{font-family:var(--cs-font-mono);font-size:var(--cs-text-3xs);color:var(--cs-color-text-subtle);margin-bottom:var(--cs-space-3)}
+.ctxc-result-card p{margin:0 0 var(--cs-space-2);color:var(--cs-color-text-muted);font-size:var(--cs-text-3xs);line-height:1.5}
+.ctxc-result-card ul{margin:0 auto 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:3px;margin-top:auto;padding-top:var(--cs-space-2);width:100%}
+.ctxc-result-card li{padding:3px 7px;border-radius:var(--cs-radius-xs);background:color-mix(in srgb,var(--rc) 9%,var(--cs-color-bg));font-size:9px;line-height:1.35;color:var(--cs-color-text-muted)}
+.ctxc-result-card li.keep{color:var(--cs-color-text)}
+.rc-blob{--rc:var(--cs-color-brand)}.rc-visible{--rc:var(--cs-color-warning)}.rc-soft{--rc:var(--cs-color-success)}.rc-event{--rc:var(--cs-color-info)}
+@media(max-width:820px){.ctxc-result-grid{grid-template-columns:1fr 1fr}.ctxc-result-before-list{grid-template-columns:1fr}}
+@media(max-width:480px){.ctxc-result-grid{grid-template-columns:1fr}}
+</style>
 
 # Agent 上下文压缩
 
@@ -430,51 +449,158 @@ $C_{\text{saved}}$ 是后续请求少发送内容的收益，$C_{\text{rewrite}}
 
 ---
 
-## 9. 产品实现应抽象成范式，而不是照搬常量
+## 9. 实现范式的横向对照
 
-源手册列举了多个产品，但知识库页面更应保留可迁移的设计范式。产品名只是不同控制权下的例子，具体常量会随版本变化。
+不同实现在「什么时候压、压什么、谁来摘要、如何处理缓存和历史」上有不同取舍。核心分歧可以沿八个维度比较；具体阈值和字段随版本变化，正文只呈现机制差异。
+
+<div class="ctxc-result">
+	<div class="ctxc-result-before">
+		<div class="ctxc-result-before-head">
+			<span class="ctxc-result-before-title">压缩前 · 同一上下文</span>
+			<span class="ctxc-result-before-size">约 420K tokens（示意，非实测）</span>
+		</div>
+		<div class="ctxc-result-before-list">
+			<span>用户原话「加缓存层」 6K</span>
+			<span>git commit a3f9b1 24K</span>
+			<span class="dim">检索正文 ×12 篇 210K</span>
+			<span class="dim">测试日志 ×5 轮 180K</span>
+		</div>
+	</div>
+	<div class="ctxc-result-grid">
+		<section class="ctxc-result-card rc-blob">
+			<div class="ctxc-result-card-name">Codex CLI</div>
+			<div class="ctxc-result-card-size">约 12K · 服务端 blob</div>
+			<p>旧历史压缩为不透明 blob，初始上下文重新注入。</p>
+			<ul>
+				<li class="keep">用户原话 6K（逐字）</li>
+				<li>加密 blob：不可读，含 SHA 与下一步</li>
+				<li class="keep">系统提示重新注入</li>
+				<li>再压一次：旧 blob → 新 blob</li>
+			</ul>
+		</section>
+		<section class="ctxc-result-card rc-visible">
+			<div class="ctxc-result-card-name">Claude Code</div>
+			<div class="ctxc-result-card-size">本地完整 · 服务端屏蔽</div>
+			<p>本地 messages 不删除，服务端通过 cache_edits 隐藏旧槽位。</p>
+			<ul>
+				<li class="keep">最近 N 条工具结果保留</li>
+				<li>旧结果对模型不可见但可恢复</li>
+				<li>sub-agent 生成结构化摘要</li>
+				<li>前缀缓存不被清理破坏</li>
+			</ul>
+		</section>
+		<section class="ctxc-result-card rc-soft">
+			<div class="ctxc-result-card-name">OpenCode</div>
+			<div class="ctxc-result-card-size">约 40K 最近窗口</div>
+			<p>旧消息打 compacted 时间戳，数据库保留，请求时不投影。</p>
+			<ul>
+				<li class="keep">最近 40K + 2 个用户回合</li>
+				<li>五段固定摘要结构</li>
+				<li>最后一条用户消息重放</li>
+				<li>原文可通过时间戳回查</li>
+			</ul>
+		</section>
+		<section class="ctxc-result-card rc-event">
+			<div class="ctxc-result-card-name">OpenHands</div>
+			<div class="ctxc-result-card-size">事件流 · 读时投影</div>
+			<p>原始交互与压缩都是事件，调模型前应用投影生成载荷。</p>
+			<ul>
+				<li class="keep">完整 EventLog 可回放</li>
+				<li>CondensationEvent 记录压缩</li>
+				<li>压缩器无状态、可重放</li>
+				<li>需要明确事件 schema</li>
+			</ul>
+		</section>
+	</div>
+</div>
 
 <div class="ctxc-table-wrap">
 	<table class="ctxc-table">
-		<thead><tr><th>范式</th><th>代表机制</th><th>守住的东西</th><th>代价与边界</th></tr></thead>
+		<thead><tr><th>维度</th><th>Codex CLI</th><th>Claude Code</th><th>Gemini CLI</th><th>OpenCode</th></tr></thead>
 		<tbody>
-			<tr><td><strong>客户端 / 服务端摘要 blob</strong></td><td>服务端生成不透明 compaction 项，后续请求重放该 blob；旧 blob 可改写为新 blob。</td><td>用户意图和初始上下文可重注入；重复压缩时控制摘要膨胀。</td><td>摘要不可读、不可审计；访问控制不能只依赖「不透明」。</td></tr>
-			<tr><td><strong>本地消息 + 服务端可见性编辑</strong></td><td>本地保留消息，服务端通过类似 <code>cache_edits</code> 的协议字段屏蔽旧槽位。</td><td>细粒度清理与前缀缓存共存。</td><td>需要模型服务协议支持，普通应用客户端无法单独实现。</td></tr>
-			<tr><td><strong>软删除 / 时间戳</strong></td><td>消息仍在数据库，给旧消息打 <code>compacted</code> 标记，请求时不投影。</td><td>审计、回放和重新取回。</td><td>存储与状态管理更复杂，本身不保护缓存。</td></tr>
-			<tr><td><strong>事件溯源 / CondensationEvent</strong></td><td>原始交互和压缩结果都是事件，调模型前应用压缩投影。</td><td>压缩器可无状态化，完整事件链可回放。</td><td>需要清晰的事件 schema 和投影顺序。</td></tr>
-			<tr><td><strong>模型自主压缩工具</strong></td><td>把压缩暴露为模型可调用工具，阈值仍作为兜底。</td><td>模型可选择方案定稿、研究结束、新材料读取前等好时机。</td><td>模型可能保守或误判，必须保留外置文件和审计。</td></tr>
-			<tr><td><strong>固定百分比裁剪</strong></td><td>按窗口比例触发摘要并保留最近百分比。</td><td>实现简单，较少进入反应式兜底。</td><td>无法适配不同窗口和摘要输出预算，通常偏保守。</td></tr>
+			<tr>
+				<td><strong>摘要由谁生成</strong></td>
+				<td>服务端生成不透明 blob，亦有客户端路径。</td>
+				<td>fork 一个 sub-agent，禁用工具、单轮生成。</td>
+				<td>客户端生成 XML 状态快照。</td>
+				<td>隐藏专用 Agent，输出固定五段结构。</td>
+			</tr>
+			<tr>
+				<td><strong>历史可逆性</strong></td>
+				<td>不可逆替换；blob 可跨会话重放。</td>
+				<td>本地消息完整，只改服务端可见性。</td>
+				<td>不可逆替换。</td>
+				<td>软删除，打 compacted 时间戳。</td>
+			</tr>
+			<tr>
+				<td><strong>缓存保护</strong></td>
+				<td>blob 恒定在尾部，适配 append-only 前缀。</td>
+				<td>协议级 cache_edits，缓存层屏蔽旧槽位。</td>
+				<td>无专门机制。</td>
+				<td>无专门机制。</td>
+			</tr>
+			<tr>
+				<td><strong>多次压缩</strong></td>
+				<td>旧 blob 改写为新 blob，体积不累积。</td>
+				<td>层叠，摘要含前次摘要。</td>
+				<td>层叠。</td>
+				<td>层叠。</td>
+			</tr>
+			<tr>
+				<td><strong>用户原话</strong></td>
+				<td>逐字保留（约 64K 预算）。</td>
+				<td>纳入摘要。</td>
+				<td>纳入摘要。</td>
+				<td>纳入摘要，但重放最后一条。</td>
+			</tr>
+			<tr>
+				<td><strong>廉价层</strong></td>
+				<td>超长工具输出就地截断。</td>
+				<td>五层管线：落盘 → 截断 → Microcompact → Collapse → 摘要。</td>
+				<td>summarizeToolOutput，仅 shell 工具。</td>
+				<td>Prune：预计释放超过阈值才执行。</td>
+			</tr>
 		</tbody>
 	</table>
 </div>
 
-<div class="ctxc-callout"><strong>选择依据：</strong>只控制客户端时，更适合外置文件、软删除、读时投影和显式占位符；能控制模型服务时，才可能做协议级缓存编辑；模型与服务端都可控时，才考虑服务端训练的压缩模型或不透明 blob。</div>
+除上述 CLI 产品外，Agent 框架提供的是编排原语而非完整压缩策略，需要自行组合触发、摘要和状态管理。
+
+<div class="ctxc-table-wrap">
+	<table class="ctxc-table">
+		<thead><tr><th>框架</th><th>压缩原语</th><th>触发决定者</th><th>历史形态</th><th>主要代价</th></tr></thead>
+		<tbody>
+			<tr><td><strong>Deep Agents</strong></td><td>把压缩暴露为模型可调用工具，阈值仍作为兜底。</td><td>模型选择语义时机。</td><td>外置文件 + 摘要。</td><td>模型可能保守或误判，须保留硬阈值。</td></tr>
+			<tr><td><strong>OpenHands</strong></td><td>CondensationEvent 作为事件流中的压缩记录。</td><td>框架水位。</td><td>append-only 事件日志，读时投影。</td><td>需要设计事件 schema 和投影顺序。</td></tr>
+			<tr><td><strong>LangGraph</strong></td><td>图节点执行摘要与裁剪；trim_messages 等工具函数。</td><td>图编排代码。</td><td>checkpointer 持久化状态。</td><td>压缩点嵌入图结构，复用性受拓扑约束。</td></tr>
+			<tr><td><strong>Pi</strong></td><td>保留最近窗口，超过缓冲后由隐藏 Agent 增量更新摘要。</td><td>框架固定缓冲。</td><td>摘要 + 最近 token 双层。</td><td>摘要提示词与格式与框架耦合，可定制性低。</td></tr>
+		</tbody>
+	</table>
+</div>
+
+三条设计分歧决定了其余选择：
+
+- **摘要在哪执行**：服务端可以利用协议做缓存编辑和不透明 blob，但牺牲可读性和审计；客户端摘要可审计、可定制，但无法保护服务端前缀缓存。
+- **历史是否保留**：软删除和事件溯源保留回放能力，但需要独立维护存储和投影；不可逆替换简单，但压缩后的信息损失无法撤销。
+- **廉价层的深度**：在摘要前做越多确定性处理（落盘、截断、批量清理），全量摘要的触发频率和采样成本越低；只依赖摘要的实现更简单，但每次压缩都更贵。
 
 <details>
-	<summary>源手册中哪些产品细节不宜作为正文主线</summary>
-	<p>47 个事件的虚拟推演、具体内部 item、Fernet blob 的逆向结构、某次安全研究的跨账号结果、固定 5/5K/50K 配额、特定模型的工具调用泄漏比例、面试 Q&A 等，都可以作为来源材料或扩展阅读，但不应替代机制主线。它们依赖产品版本、作者估算或社区解读，长期维护成本高。</p>
+	<summary>版本相关的触发阈值与保留窗口（不作为通用默认值）</summary>
+	<div class="ctxc-table-wrap" style="margin-top:var(--cs-space-3)">
+		<table class="ctxc-table">
+			<thead><tr><th>维度</th><th>Codex CLI</th><th>Claude Code</th><th>Gemini CLI</th><th>OpenCode</th></tr></thead>
+			<tbody>
+				<tr><td><strong>触发阈值</strong></td><td class="ctxc-mono">model_auto_compact_token_limit，可配置，默认随模型</td><td class="ctxc-mono">有效窗口 − 13K；有效窗口 = 窗口 − min(最大输出, 20K)</td><td class="ctxc-mono">0.5 × tokenLimit；compressionThreshold 可配</td><td class="ctxc-mono">窗口 − 20K；COMPACTION_BUFFER</td></tr>
+				<tr><td><strong>保留窗口</strong></td><td>最近用户消息，上限约 20K（客户端路径）</td><td>最近 N 条工具结果（keep_recent）</td><td>保留最近约 30%</td><td>始终保留最近 40K + 最近 2 个用户回合</td></tr>
+			</tbody>
+		</table>
+	</div>
+	<p style="margin-top:var(--cs-space-2);color:var(--cs-color-text-subtle);font-size:var(--cs-text-3xs)">以上数值来自特定版本的官方文档与社区源码解读，会随模型窗口、SDK 和产品迭代变化；工程实现应以当时文档和自有任务评测为准。</p>
 </details>
+
+<div class="ctxc-callout"><strong>控制权决定可选路径：</strong>只控制客户端时，可选外置文件、软删除、读时投影和显式占位符；能控制模型服务协议时，才可能实现 cache_edits 或服务端 blob；两者都可控时，才适合训练专用压缩模型。</div>
 
 ---
-
-## 自测
-
-<details>
-	<summary>为什么有 1M 窗口仍不能把所有工具结果都留在上下文？</summary>
-	<p>窗口扩大只降低压缩频率，不消除召回衰减、重复输入成本和旧状态污染。大窗口还会放大一次全量摘要与缓存重写成本，因此仍需要源头收窄、外置和分层清理。</p>
-</details>
-<details>
-	<summary>工具结果清理时为什么要保留 tool_use？</summary>
-	<p><code>tool_use</code> 记录曾经发起过什么动作，也维持工具协议配对。只替换 <code>tool_result</code> 正文并写明结论与恢复路径，模型才不会重复调用或把清理误判为空结果。</p>
-</details>
-<details>
-	<summary>哪些信息不能只指望摘要保存？</summary>
-	<p>安全约束、用户原话、精确数值、配置、提交或部署凭证、后台任务状态、验收所需文件清单。它们应进入系统提示、持久记忆、结构化产物或 pin 状态。</p>
-</details>
-<details>
-	<summary>清理和 KV Cache 冲突时怎么权衡？</summary>
-	<p>计算节省的后续输入与缓存重写成本，设置单次最少清理量，优先批量处理；也可把破坏性操作放到缓存即将过期时。若模型服务支持协议级编辑，可在缓存可见性层屏蔽旧结果。</p>
-</details>
 
 ## 参考资料
 
