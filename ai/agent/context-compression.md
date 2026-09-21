@@ -91,13 +91,12 @@
 	.ctxc-flow-loop::before{content:"↻ 事件回写";display:block;margin-bottom:var(--cs-space-2);color:var(--cs-color-brand);font-family:var(--cs-font-mono);font-size:var(--cs-text-sm);font-weight:600;line-height:1}
 }
 .ctxc-result{margin:var(--cs-space-7) 0}
-.ctxc-result-before{margin-bottom:var(--cs-space-3)}
-.ctxc-result-before-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--cs-space-3);margin-bottom:var(--cs-space-2)}
+.ctxc-result-before{margin-bottom:0}
+.ctxc-result-before-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--cs-space-3);margin-bottom:var(--cs-space-2);padding:0 2px}
 .ctxc-result-before-title{font-family:var(--cs-font-mono);font-size:var(--cs-text-3xs);letter-spacing:.08em;color:var(--cs-color-text-subtle)}
 .ctxc-result-before-size{font-family:var(--cs-font-mono);font-size:var(--cs-text-3xs);color:var(--cs-color-text-subtle)}
-.ctxc-result-before-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--cs-space-3)}
-.ctxc-result-before-list span{display:block;padding:var(--cs-space-2) var(--cs-space-3);border-radius:var(--cs-radius-xs);font-size:9px;line-height:1.35;color:var(--cs-color-text-muted)}
-.ctxc-result-before-list span{padding:var(--cs-space-1) var(--cs-space-3);min-height:0}
+.ctxc-result-before .ctxc-win{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--cs-space-3);margin:0;flex-direction:row}
+.ctxc-result-arrow{display:flex;align-items:center;justify-content:center;height:30px;color:var(--cs-color-brand);font-family:var(--cs-font-mono);font-size:18px;line-height:1}
 .ctxc-result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--cs-space-3)}
 .ctxc-result-card{--rc:var(--cs-color-brand);border-top:2px solid var(--rc);border-radius:0 0 var(--cs-radius-sm) var(--cs-radius-sm);background:color-mix(in srgb,var(--rc) 6%,var(--cs-color-bg-soft));padding:var(--cs-space-4);display:flex;flex-direction:column}
 .ctxc-result-card-name{font-family:var(--cs-font-mono);font-size:var(--cs-text-xs);font-weight:700;color:var(--rc);margin-bottom:2px}
@@ -110,10 +109,11 @@
 .ctxc-win-block{border:1px solid var(--rc);border-radius:var(--cs-radius-xs);padding:var(--cs-space-2) var(--cs-space-3);font-size:9px;line-height:1.35;color:var(--cs-color-text-muted);position:relative}
 .ctxc-win-block b{display:block;font-weight:600;color:var(--cs-color-text);font-size:10px;margin-bottom:1px}
 .ctxc-win-block .tok{position:absolute;top:var(--cs-space-2);right:var(--cs-space-3);font-family:var(--cs-font-mono);font-size:9px;color:var(--cs-color-text-subtle)}
-.ctxc-win-block.is-keep{background:color-mix(in srgb,var(--rc) 12%,var(--cs-color-bg));border-color:var(--rc)}
-.ctxc-win-block.is-replace{background:color-mix(in srgb,var(--rc) 5%,var(--cs-color-bg));border-style:dashed;border-color:color-mix(in srgb,var(--rc) 50%,var(--cs-color-border))}
+.ctxc-win-block.is-keep{background:color-mix(in srgb,var(--rc) 10%,var(--cs-color-bg));border-color:var(--rc)}
+.ctxc-win-block.is-replace{background:color-mix(in srgb,var(--rc) 4%,var(--cs-color-bg));border-style:dashed;border-color:color-mix(in srgb,var(--rc) 45%,var(--cs-color-border))}
 .ctxc-win-block.is-new{background:color-mix(in srgb,var(--rc) 8%,var(--cs-color-bg));border-color:color-mix(in srgb,var(--rc) 70%,var(--cs-color-border))}
-.ctxc-win-block.is-gone{opacity:.35;border-style:dotted}
+.ctxc-win-block.is-gone{opacity:.4;background:var(--cs-color-bg-soft);border-style:solid;border-color:var(--cs-color-border)}
+.ctxc-result-before .ctxc-win-block{min-height:62px}
 .ctxc-win-label{font-family:var(--cs-font-mono);font-size:8px;letter-spacing:.06em;color:var(--cs-color-text-subtle);margin:var(--cs-space-1) 0 0}
 .ctxc-win-arrow{display:flex;align-items:center;justify-content:center;color:var(--rc);font-family:var(--cs-font-mono);font-size:14px;line-height:1;margin:var(--cs-space-1) 0}
 .rc-blob{--rc:var(--cs-color-brand)}.rc-visible{--rc:var(--cs-color-warning)}.rc-soft{--rc:var(--cs-color-success)}.rc-event{--rc:var(--cs-color-info)}
@@ -471,12 +471,13 @@ $C_{\text{saved}}$ 是后续请求少发送内容的收益，$C_{\text{rewrite}}
 			<span class="ctxc-result-before-size">约 420K tokens（示意）</span>
 		</div>
 		<div class="ctxc-win" style="margin-top:0">
-			<div class="ctxc-win-block is-keep" style="border-color:var(--cs-color-success)"><b>用户原话「加缓存层」</b>需求、约束与硬约束<span class="tok">6K</span></div>
-			<div class="ctxc-win-block is-gone" style="border-color:var(--cs-color-danger)"><b>检索正文 ×12 篇</b>网页与代码搜索返回的完整正文<span class="tok">210K</span></div>
-			<div class="ctxc-win-block is-gone" style="border-color:var(--cs-color-danger)"><b>测试日志 ×5 轮</b>构建输出、堆栈与完整日志<span class="tok">180K</span></div>
-			<div class="ctxc-win-block is-keep" style="border-color:var(--cs-color-info)"><b>git commit a3f9b1</b>已完成写操作的事实凭证<span class="tok">24K</span></div>
+			<div class="ctxc-win-block is-keep" style="--rc:var(--cs-color-success);border-color:var(--rc)"><b>用户原话</b>需求与硬约束<span class="tok">6K</span></div>
+			<div class="ctxc-win-block is-gone" style="--rc:var(--cs-color-danger);border-color:var(--rc)"><b>检索正文 ×12</b>网页与代码搜索<span class="tok">210K</span></div>
+			<div class="ctxc-win-block is-gone" style="--rc:var(--cs-color-danger);border-color:var(--rc)"><b>测试日志 ×5</b>构建输出与堆栈<span class="tok">180K</span></div>
+			<div class="ctxc-win-block is-keep" style="--rc:var(--cs-color-info);border-color:var(--rc)"><b>git commit</b>写操作凭证<span class="tok">24K</span></div>
 		</div>
 	</div>
+	<div class="ctxc-result-arrow">↓</div>
 	<div class="ctxc-result-grid">
 		<section class="ctxc-result-card rc-blob">
 			<div class="ctxc-result-card-name">Codex CLI → 12K</div>
