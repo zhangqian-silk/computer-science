@@ -91,12 +91,13 @@
 	.ctxc-flow-loop::before{content:"↻ 事件回写";display:block;margin-bottom:var(--cs-space-2);color:var(--cs-color-brand);font-family:var(--cs-font-mono);font-size:var(--cs-text-sm);font-weight:600;line-height:1}
 }
 .ctxc-result{margin:var(--cs-space-7) 0}
-.ctxc-result-before{border:1px solid var(--cs-color-border);border-radius:var(--cs-radius-sm);padding:var(--cs-space-5);background:color-mix(in srgb,var(--cs-color-info) 4%,var(--cs-color-bg-soft));margin-bottom:var(--cs-space-4)}
-.ctxc-result-before-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--cs-space-3);margin-bottom:var(--cs-space-3)}
-.ctxc-result-before-title{font-family:var(--cs-font-mono);font-size:var(--cs-text-xs);letter-spacing:.08em;color:var(--cs-color-text-subtle)}
-.ctxc-result-before-size{font-family:var(--cs-font-mono);font-size:var(--cs-text-sm);color:var(--cs-color-text)}
-.ctxc-result-before-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
-.ctxc-result-before-list span{display:block;padding:var(--cs-space-2) var(--cs-space-3);border-radius:var(--cs-radius-xs);background:var(--cs-color-bg-elevated);font-size:var(--cs-text-3xs);color:var(--cs-color-text-muted);line-height:1.4}
+.ctxc-result-before{margin-bottom:var(--cs-space-3)}
+.ctxc-result-before-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--cs-space-3);margin-bottom:var(--cs-space-2)}
+.ctxc-result-before-title{font-family:var(--cs-font-mono);font-size:var(--cs-text-3xs);letter-spacing:.08em;color:var(--cs-color-text-subtle)}
+.ctxc-result-before-size{font-family:var(--cs-font-mono);font-size:var(--cs-text-3xs);color:var(--cs-color-text-subtle)}
+.ctxc-result-before-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--cs-space-3)}
+.ctxc-result-before-list span{display:block;padding:var(--cs-space-2) var(--cs-space-3);border-radius:var(--cs-radius-xs);font-size:9px;line-height:1.35;color:var(--cs-color-text-muted)}
+.ctxc-result-before-list span{padding:var(--cs-space-1) var(--cs-space-3);min-height:0}
 .ctxc-result-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--cs-space-3)}
 .ctxc-result-card{--rc:var(--cs-color-brand);border-top:2px solid var(--rc);border-radius:0 0 var(--cs-radius-sm) var(--cs-radius-sm);background:color-mix(in srgb,var(--rc) 6%,var(--cs-color-bg-soft));padding:var(--cs-space-4);display:flex;flex-direction:column}
 .ctxc-result-card-name{font-family:var(--cs-font-mono);font-size:var(--cs-text-xs);font-weight:700;color:var(--rc);margin-bottom:2px}
@@ -116,8 +117,8 @@
 .ctxc-win-label{font-family:var(--cs-font-mono);font-size:8px;letter-spacing:.06em;color:var(--cs-color-text-subtle);margin:var(--cs-space-1) 0 0}
 .ctxc-win-arrow{display:flex;align-items:center;justify-content:center;color:var(--rc);font-family:var(--cs-font-mono);font-size:14px;line-height:1;margin:var(--cs-space-1) 0}
 .rc-blob{--rc:var(--cs-color-brand)}.rc-visible{--rc:var(--cs-color-warning)}.rc-soft{--rc:var(--cs-color-success)}.rc-event{--rc:var(--cs-color-info)}
-@media(max-width:820px){.ctxc-result-grid{grid-template-columns:1fr 1fr}.ctxc-result-before-list{grid-template-columns:1fr}}
-@media(max-width:480px){.ctxc-result-grid{grid-template-columns:1fr}}
+@media(max-width:820px){.ctxc-result-grid{grid-template-columns:1fr 1fr}.ctxc-result-before-list{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.ctxc-result-grid{grid-template-columns:1fr}.ctxc-result-before-list{grid-template-columns:1fr}}
 </style>
 
 # Agent 上下文压缩
@@ -572,19 +573,7 @@ $C_{\text{saved}}$ 是后续请求少发送内容的收益，$C_{\text{rewrite}}
 	</table>
 </div>
 
-除上述 CLI 产品外，Agent 框架提供的是编排原语而非完整压缩策略，需要自行组合触发、摘要和状态管理。
-
-<div class="ctxc-table-wrap">
-	<table class="ctxc-table">
-		<thead><tr><th>框架</th><th>压缩原语</th><th>触发决定者</th><th>历史形态</th><th>主要代价</th></tr></thead>
-		<tbody>
-			<tr><td><strong>Deep Agents</strong></td><td>把压缩暴露为模型可调用工具，阈值仍作为兜底。</td><td>模型选择语义时机。</td><td>外置文件 + 摘要。</td><td>模型可能保守或误判，须保留硬阈值。</td></tr>
-			<tr><td><strong>OpenHands</strong></td><td>CondensationEvent 作为事件流中的压缩记录。</td><td>框架水位。</td><td>append-only 事件日志，读时投影。</td><td>需要设计事件 schema 和投影顺序。</td></tr>
-			<tr><td><strong>LangGraph</strong></td><td>图节点执行摘要与裁剪；trim_messages 等工具函数。</td><td>图编排代码。</td><td>checkpointer 持久化状态。</td><td>压缩点嵌入图结构，复用性受拓扑约束。</td></tr>
-			<tr><td><strong>Pi</strong></td><td>保留最近窗口，超过缓冲后由隐藏 Agent 增量更新摘要。</td><td>框架固定缓冲。</td><td>摘要 + 最近 token 双层。</td><td>摘要提示词与格式与框架耦合，可定制性低。</td></tr>
-		</tbody>
-	</table>
-</div>
+Deep Agents、LangGraph、Pi 等 Agent 框架不引入新的压缩机制，只是把上述策略编排成工具、图节点或固定缓冲；OpenHands 的事件溯源与 OpenCode 的软删除在历史处理上属于同一范式。真正的分歧仍只有摘要执行位置、历史可逆性和廉价层深度三条。
 
 三条设计分歧决定了其余选择：
 
