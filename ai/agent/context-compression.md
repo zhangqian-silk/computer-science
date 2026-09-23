@@ -322,25 +322,27 @@ Shell 是最容易误处理的工具。只读探查可以重放；大输出应�
 
 主链路可以压缩为一个按水位逐级升级的调度函数：
 
-<pre class="ctxc-code"><code>def sweep(history, water, budget):
+```python
+def sweep(history, water, budget):
     for message in order_by_tier(history):
         if message.pinned or message in last_n(history, budget.recent):
             continue
         if message.tier == "extract_then_drop":
-            ok = persist_extract(message)
+            ok = persist_extract(message)  # 先落盘
             if not ok:
-                continue
+                continue                  # 写失败不清
             message.content = placeholder(message, recovery=path)
         elif message.tier == "drop_after_read" and message.idempotent:
             message.content = placeholder(message, recovery=query)
-        if water.freed(history) >= budget.min_sweep:
+        if water.freed(history) >= budget.min_sweep:  # 攒够量才打破缓存
             return
 
-    projected = project_payload(history, water)
+    projected = project_payload(history, water)       # 读时投影，不改原文
     if projected.tokens > water.summary_line:
         summary = summarize(history, tools_disabled=True)
         return rebuild(system, summary, files, task_state, transcript_path)
-    return projected</code></pre>
+    return projected
+```
 
 关键不变量：落盘成功后才替换正文；清理量不足时不打破前缀；摘要请求禁用工具并带递归标记。
 
@@ -445,6 +447,15 @@ $C_{\text{saved}}$ 是后续请求少发送内容的收益，$C_{\text{rewrite}}
 </div>
 
 缓存友好的纪律是：更正旧事实时追加一条新记录，而不是回改旧观察；禁用工具时在解码或路由层遮蔽，而不是从系统提示中删除工具；序列化字段顺序、时间戳和空白必须确定，避免语义不变却打碎缓存。协议级 <code>cache_edits</code> 可以在服务端缓存层屏蔽旧槽位，但这需要模型服务协议配合，普通客户端无法单独实现。
+
+两种代表性方案利用不同的控制权解决了缓存与压缩的冲突：
+
+<div class="ctxc-grid ctxc-grid-2">
+	<div class="ctxc-card ctxc-card-s"><h3>服务端 blob：压缩即尾部项</h3><p>Codex 的服务端压缩把旧历史改写为一个不透明的 compaction blob，作为输入项追加在消息链尾部。由于每轮只在尾部追加，blob 之前的系统提示和工具定义前缀始终命中缓存；再次压缩时旧 blob 被改写为新 blob，体积不随压缩次数累积。代价是 blob 对客户端和模型都不可读，审计与访问控制必须在服务端完成。</p></div>
+	<div class="ctxc-card ctxc-card-w"><h3>cache_edits：不改字节，只改可见性</h3><p>Claude Code 在请求中附加编辑指令，告诉服务端「从模型的可见上下文中屏蔽这些旧槽位」。本地 messages 数组保持完整，服务端缓存的原始 token 字节不发生变化，因此前缀缓存不被打碎；被屏蔽的内容在后续请求中仍可恢复。代价是它要求模型服务提供协议级可见性编辑能力，纯应用层客户端无法单独实现。</p></div>
+</div>
+
+两者的共同前提是<strong>压缩操作不改变已缓存前缀的字节</strong>：blob 把所有变更集中到尾部新项，cache_edits 只改服务端可见性而不改请求字节。纯客户端的历史重写无法满足这个前提，只能通过攒够清理量或选择缓存过期时机来降低重写成本。
 
 ---
 
