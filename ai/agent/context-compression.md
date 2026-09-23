@@ -583,17 +583,17 @@ Deep Agents、LangGraph、Pi 等 Agent 框架不引入新的压缩机制，只�
 - **廉价层的深度**：在摘要前做越多确定性处理（落盘、截断、批量清理），全量摘要的触发频率和采样成本越低；只依赖摘要的实现更简单，但每次压缩都更贵。
 
 <details>
-	<summary>版本相关的触发阈值与保留窗口（不作为通用默认值）</summary>
+	<summary>各实现的触发与保留策略（约数，随版本变化）</summary>
 	<div class="ctxc-table-wrap" style="margin-top:var(--cs-space-3)">
 		<table class="ctxc-table">
 			<thead><tr><th>维度</th><th>Codex CLI</th><th>Claude Code</th><th>Gemini CLI</th><th>OpenCode</th></tr></thead>
 			<tbody>
-				<tr><td><strong>触发阈值</strong></td><td class="ctxc-mono">model_auto_compact_token_limit，可配置，默认随模型</td><td class="ctxc-mono">有效窗口 − 13K；有效窗口 = 窗口 − min(最大输出, 20K)</td><td class="ctxc-mono">0.5 × tokenLimit；compressionThreshold 可配</td><td class="ctxc-mono">窗口 − 20K；COMPACTION_BUFFER</td></tr>
-				<tr><td><strong>保留窗口</strong></td><td>最近用户消息，上限约 20K（客户端路径）</td><td>最近 N 条工具结果（keep_recent）</td><td>保留最近约 30%</td><td>始终保留最近 40K + 最近 2 个用户回合</td></tr>
+				<tr><td><strong>触发策略</strong></td><td>剩余约 5%–15% 时触发（随模型窗口变化，约 13K–24K 缓冲）</td><td>剩余约 13K 时触发（固定缓冲，与窗口大小无关）</td><td>用掉约 50% 时触发（窗口一半即压缩，偏保守）</td><td>剩余约 20K 时触发（固定缓冲）</td></tr>
+				<tr><td><strong>保留窗口</strong></td><td>最近用户消息，约 20K 以内</td><td>最近几条工具结果（按条数而非 token）</td><td>保留最近约 30%</td><td>最近约 40K + 2 个用户回合</td></tr>
 			</tbody>
 		</table>
 	</div>
-	<p style="margin-top:var(--cs-space-2);color:var(--cs-color-text-subtle);font-size:var(--cs-text-3xs)">以上数值来自特定版本的官方文档与社区源码解读，会随模型窗口、SDK 和产品迭代变化；工程实现应以当时文档和自有任务评测为准。</p>
+	<p style="margin-top:var(--cs-space-2);color:var(--cs-color-text-subtle);font-size:var(--cs-text-3xs)">约数仅用于直观比较策略差异：固定缓冲在大窗口下更晚触发，百分比缓冲在大窗口下更早触发。实际数值随模型窗口、SDK 和产品版本变化。</p>
 </details>
 
 <div class="ctxc-callout"><strong>控制权决定可选路径：</strong>只控制客户端时，可选外置文件、软删除、读时投影和显式占位符；能控制模型服务协议时，才可能实现 cache_edits 或服务端 blob；两者都可控时，才适合训练专用压缩模型。</div>
