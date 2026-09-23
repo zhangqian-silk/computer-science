@@ -320,6 +320,30 @@ Shell 是最容易误处理的工具。只读探查可以重放；大输出应�
 	<div class="ctxc-card ctxc-card-w"><h3>模型做语义判断</h3><ul><li>判断材料是否仍相关；</li><li>提炼结论并写入外置文件；</li><li>识别方案定稿或任务切换；</li><li>决定哪些冷门数值必须持久化。</li></ul></div>
 </div>
 
+主链路可以压缩为一个按水位逐级升级的调度函数：
+
+<pre class="ctxc-code"><code>def sweep(history, water, budget):
+    for message in order_by_tier(history):
+        if message.pinned or message in last_n(history, budget.recent):
+            continue
+        if message.tier == "extract_then_drop":
+            ok = persist_extract(message)
+            if not ok:
+                continue
+            message.content = placeholder(message, recovery=path)
+        elif message.tier == "drop_after_read" and message.idempotent:
+            message.content = placeholder(message, recovery=query)
+        if water.freed(history) >= budget.min_sweep:
+            return
+
+    projected = project_payload(history, water)
+    if projected.tokens > water.summary_line:
+        summary = summarize(history, tools_disabled=True)
+        return rebuild(system, summary, files, task_state, transcript_path)
+    return projected</code></pre>
+
+关键不变量：落盘成功后才替换正文；清理量不足时不打破前缀；摘要请求禁用工具并带递归标记。
+
 ---
 
 ### 触发时机
