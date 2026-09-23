@@ -570,9 +570,25 @@ $C_{\text{saved}}$ 是后续请求少发送内容的收益，$C_{\text{rewrite}}
 				<td>summarizeToolOutput，仅 shell 工具。</td>
 				<td>Prune：预计释放超过阈值才执行。</td>
 			</tr>
+			<tr>
+				<td><strong>触发策略</strong></td>
+				<td>剩余约 5%–15%，随模型窗口变化。</td>
+				<td>剩余约 13K，固定缓冲。</td>
+				<td>用掉约 50%，百分比缓冲，偏保守。</td>
+				<td>剩余约 20K，固定缓冲。</td>
+			</tr>
+			<tr>
+				<td><strong>保留窗口</strong></td>
+				<td>最近用户消息，约 20K。</td>
+				<td>最近几条工具结果，按条数。</td>
+				<td>保留最近约 30%。</td>
+				<td>最近约 40K + 2 个用户回合。</td>
+			</tr>
 		</tbody>
 	</table>
 </div>
+
+<p style="margin:var(--cs-space-3) 0 0;color:var(--cs-color-text-subtle);font-size:var(--cs-text-3xs)">以上为约数，仅用于比较策略差异：固定缓冲在大窗口下更晚触发，百分比缓冲在大窗口下更早触发；实际数值随模型窗口和产品版本变化。</p>
 
 Deep Agents、LangGraph、Pi 等 Agent 框架不引入新的压缩机制，只是把上述策略编排成工具、图节点或固定缓冲；OpenHands 的事件溯源与 OpenCode 的软删除在历史处理上属于同一范式。真正的分歧仍只有摘要执行位置、历史可逆性和廉价层深度三条。
 
@@ -581,20 +597,6 @@ Deep Agents、LangGraph、Pi 等 Agent 框架不引入新的压缩机制，只�
 - **摘要在哪执行**：服务端可以利用协议做缓存编辑和不透明 blob，但牺牲可读性和审计；客户端摘要可审计、可定制，但无法保护服务端前缀缓存。
 - **历史是否保留**：软删除和事件溯源保留回放能力，但需要独立维护存储和投影；不可逆替换简单，但压缩后的信息损失无法撤销。
 - **廉价层的深度**：在摘要前做越多确定性处理（落盘、截断、批量清理），全量摘要的触发频率和采样成本越低；只依赖摘要的实现更简单，但每次压缩都更贵。
-
-<details>
-	<summary>各实现的触发与保留策略（约数，随版本变化）</summary>
-	<div class="ctxc-table-wrap" style="margin-top:var(--cs-space-3)">
-		<table class="ctxc-table">
-			<thead><tr><th>维度</th><th>Codex CLI</th><th>Claude Code</th><th>Gemini CLI</th><th>OpenCode</th></tr></thead>
-			<tbody>
-				<tr><td><strong>触发策略</strong></td><td>剩余约 5%–15% 时触发（随模型窗口变化，约 13K–24K 缓冲）</td><td>剩余约 13K 时触发（固定缓冲，与窗口大小无关）</td><td>用掉约 50% 时触发（窗口一半即压缩，偏保守）</td><td>剩余约 20K 时触发（固定缓冲）</td></tr>
-				<tr><td><strong>保留窗口</strong></td><td>最近用户消息，约 20K 以内</td><td>最近几条工具结果（按条数而非 token）</td><td>保留最近约 30%</td><td>最近约 40K + 2 个用户回合</td></tr>
-			</tbody>
-		</table>
-	</div>
-	<p style="margin-top:var(--cs-space-2);color:var(--cs-color-text-subtle);font-size:var(--cs-text-3xs)">约数仅用于直观比较策略差异：固定缓冲在大窗口下更晚触发，百分比缓冲在大窗口下更早触发。实际数值随模型窗口、SDK 和产品版本变化。</p>
-</details>
 
 <div class="ctxc-callout"><strong>控制权决定可选路径：</strong>只控制客户端时，可选外置文件、软删除、读时投影和显式占位符；能控制模型服务协议时，才可能实现 cache_edits 或服务端 blob；两者都可控时，才适合训练专用压缩模型。</div>
 
