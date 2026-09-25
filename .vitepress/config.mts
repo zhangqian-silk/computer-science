@@ -344,6 +344,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{ text: '共享知识与 RAG', link: '/ai/agent/notes/knowledge' },
 			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' },
 			{ text: '工具调用机制', link: '/ai/agent/notes/tool-mechanics' },
+			{ text: '扩展机制', link: '/ai/agent/notes/extension-mechanisms' },
 			{ text: '工程接入', link: '/ai/agent/notes/coding-agent-integration' }
 		]
 	}
