@@ -339,7 +339,8 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{ text: '学习总览', link: '/ai/agent/notes/' },
 			{ text: 'Context 边界', link: '/ai/agent/notes/context-boundary' },
 			{ text: 'Agent Skills', link: '/ai/agent/skill' },
-			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' }
+			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' },
+			{ text: '工具调用机制', link: '/ai/agent/notes/tool-mechanics' }
 		]
 	}
 ]

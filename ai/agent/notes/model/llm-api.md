@@ -200,7 +200,7 @@ Zero-shot 提示直接提供任务要求和待处理内容；few-shot 在此基�
 }
 ```
 
-工具定义中的 `name` 标识操作，`description` 解释什么时候使用，`parameters` 描述参数名称、类型和必填项。`strict: true` 在支持的 schema 范围内约束生成参数；本例要求 `path` 必填且不接受额外字段。[2](https://developers.openai.com/api/docs/guides/function-calling)
+工具定义中的 `name` 标识操作，`description` 解释什么时候使用，`parameters` 描述参数名称、类型和必填项。`strict: true` 在支持的 schema 范围内约束生成参数；本例要求 `path` 必填且不接受额外字段。这里的 schema 只约束调用参数，不完成业务校验和授权。[2](https://developers.openai.com/api/docs/guides/function-calling)
 
 `tool_choice: "auto"` 允许模型选择回答或提出工具调用；`none` 禁止调用，`required` 要求产生一个或多个调用。指定某个函数时可使用 `{"type":"function","function":{"name":"read_file"}}`。
 
