@@ -340,6 +340,7 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{ text: '上下文压缩', link: '/ai/agent/context-compression' },
 			{ text: 'Context 边界', link: '/ai/agent/notes/context-boundary' },
 			{ text: 'Agent Skills', link: '/ai/agent/skill' },
+			{ text: 'Memory 记忆系统', link: '/ai/agent/notes/memory' },
 			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' },
 			{ text: '工具调用机制', link: '/ai/agent/notes/tool-mechanics' }
 		]

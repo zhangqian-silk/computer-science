@@ -1,0 +1,143 @@
+/* Memory 记忆系统专题页：
+ * 只包含本页静态结构图（总览图、分类图、读写流水线、删除级联）所需样式。
+ * 颜色与尺度全部消费语义 token，随四套主题与浅深色切换。 */
+
+/* 静态图：无边框容器，仅在窄屏横向滚动；说明文字写在正文 */
+.mem-svg-scroll {
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	margin: var(--cs-space-6) 0;
+}
+
+.mem-svg-scroll .mem-svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	min-width: 38rem;
+}
+
+/* 导读数据流图更宽，移动端横向滚动、桌面尽量铺满 */
+.mem-svg-scroll--wide .mem-svg {
+	min-width: 34rem;
+}
+
+
+/* 提示块：定义 / 风险 / 裁决三类 */
+.mem-callout {
+	margin: var(--cs-space-7) 0;
+	padding: var(--cs-space-5) var(--cs-space-6);
+	border: 1px solid color-mix(in srgb, var(--cs-color-brand) 24%, var(--cs-color-border));
+	border-left: 4px solid var(--cs-color-brand);
+	border-radius: var(--cs-radius-md);
+	background:
+		linear-gradient(90deg,
+			color-mix(in srgb, var(--cs-color-brand) 7%, transparent),
+			color-mix(in srgb, var(--cs-color-brand) 2%, transparent) 42%,
+			var(--cs-color-bg));
+}
+
+.mem-callout--danger {
+	border-color: color-mix(in srgb, var(--cs-color-danger) 28%, var(--cs-color-border));
+	border-left-color: var(--cs-color-danger);
+	background:
+		linear-gradient(90deg,
+			color-mix(in srgb, var(--cs-color-danger) 8%, transparent),
+			color-mix(in srgb, var(--cs-color-danger) 2%, transparent) 42%,
+			var(--cs-color-bg));
+}
+
+.mem-callout--warning {
+	border-color: color-mix(in srgb, var(--cs-color-warning) 30%, var(--cs-color-border));
+	border-left-color: var(--cs-color-warning);
+	background:
+		linear-gradient(90deg,
+			color-mix(in srgb, var(--cs-color-warning) 9%, transparent),
+			color-mix(in srgb, var(--cs-color-warning) 2%, transparent) 42%,
+			var(--cs-color-bg));
+}
+
+.mem-callout__tag {
+	display: block;
+	margin-bottom: var(--cs-space-3);
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-2xs);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--cs-color-brand);
+}
+
+.mem-callout--danger .mem-callout__tag { color: var(--cs-color-danger); }
+.mem-callout--warning .mem-callout__tag { color: var(--cs-color-warning); }
+
+.VPDoc .vp-doc .mem-callout p {
+	margin: 0;
+	font-size: var(--cs-text-base);
+	line-height: var(--cs-leading-relaxed);
+	color: var(--cs-color-text-muted);
+}
+
+.VPDoc .vp-doc .mem-callout p + p { margin-top: var(--cs-space-3); }
+.VPDoc .vp-doc .mem-callout strong { color: var(--cs-color-text); }
+
+/* 四个写入操作卡 */
+.mem-ops {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--cs-space-4);
+	margin: var(--cs-space-7) 0;
+}
+
+.mem-op {
+	padding: var(--cs-space-5);
+	border: 1px solid var(--cs-color-border);
+	border-top: 3px solid var(--cs-color-border-strong);
+	border-radius: var(--cs-radius-md);
+	background: var(--cs-color-bg);
+}
+
+.mem-op b {
+	display: block;
+	margin-bottom: var(--cs-space-2);
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-base);
+}
+
+.VPDoc .vp-doc .mem-op p {
+	margin: 0;
+	font-size: var(--cs-text-sm);
+	line-height: var(--cs-leading-normal);
+	color: var(--cs-color-text-muted);
+}
+
+.mem-op--add { border-top-color: var(--cs-color-success); }
+.mem-op--add b { color: var(--cs-color-success); }
+.mem-op--update { border-top-color: var(--cs-color-info); }
+.mem-op--update b { color: var(--cs-color-info); }
+.mem-op--delete { border-top-color: var(--cs-color-danger); }
+.mem-op--delete b { color: var(--cs-color-danger); }
+.mem-op--noop { border-top-color: var(--cs-color-text-subtle); }
+.mem-op--noop b { color: var(--cs-color-text-subtle); }
+
+/* 注入标注样例 */
+.mem-tag {
+	margin: var(--cs-space-6) 0;
+	padding: var(--cs-space-5) var(--cs-space-6);
+	border-left: 3px solid var(--cs-color-border-strong);
+	border-radius: 0 var(--cs-radius-sm) var(--cs-radius-sm) 0;
+	background: var(--cs-color-bg-soft);
+	font-family: var(--cs-font-mono);
+	font-size: var(--cs-text-sm);
+	line-height: var(--cs-leading-relaxed);
+	white-space: pre-wrap;
+	color: var(--cs-color-text-muted);
+	overflow-x: auto;
+}
+
+@media (max-width: 760px) {
+	.mem-ops { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+	.mem-ops { grid-template-columns: 1fr; }
+}
