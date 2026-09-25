@@ -333,19 +333,19 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 	},
 	{
 		text: 'Agent 系统',
-		link: '/ai/agent/notes/',
+		link: '/ai/agent/',
 		collapsed: false,
 		items: [
-			{ text: '学习总览', link: '/ai/agent/notes/' },
+			{ text: '学习总览', link: '/ai/agent/' },
 			{ text: '上下文压缩', link: '/ai/agent/context-compression' },
-			{ text: 'Context 边界', link: '/ai/agent/notes/context-boundary' },
+			{ text: 'Context 边界', link: '/ai/agent/context-boundary' },
 			{ text: 'Agent Skills', link: '/ai/agent/skill' },
-			{ text: 'Memory 记忆系统', link: '/ai/agent/notes/memory' },
-			{ text: '共享知识与 RAG', link: '/ai/agent/notes/knowledge' },
-			{ text: '模型交互', link: '/ai/agent/notes/model/llm-api' },
-			{ text: '工具调用机制', link: '/ai/agent/notes/tool-mechanics' },
-			{ text: '扩展机制', link: '/ai/agent/notes/extension-mechanisms' },
-			{ text: '工程接入', link: '/ai/agent/notes/coding-agent-integration' }
+			{ text: 'Memory 记忆系统', link: '/ai/agent/memory' },
+			{ text: '共享知识与 RAG', link: '/ai/agent/knowledge' },
+			{ text: '模型交互', link: '/ai/agent/model' },
+			{ text: '工具调用机制', link: '/ai/agent/tool-mechanics' },
+			{ text: '扩展机制', link: '/ai/agent/extension-mechanisms' },
+			{ text: '工程接入', link: '/ai/agent/coding-agent-integration' }
 		]
 	}
 ]
