@@ -342,7 +342,8 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{ text: 'Agent Skills', link: '/ai/agent/skill' },
 			{ text: 'Memory 记忆系统', link: '/ai/agent/memory' },
 			{ text: '共享知识与 RAG', link: '/ai/agent/knowledge' },
-			{ text: '模型交互', link: '/ai/agent/model' },
+			{ text: '模型交互：应用接口', link: '/ai/agent/model' },
+			{ text: '模型生成原理', link: '/ai/agent/model-internals' },
 			{ text: '工具调用机制', link: '/ai/agent/tool-mechanics' },
 			{ text: '扩展机制', link: '/ai/agent/extension-mechanisms' },
 			{ text: '工程接入', link: '/ai/agent/coding-agent-integration' }
