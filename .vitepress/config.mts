@@ -339,10 +339,12 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 			{ text: '学习总览', link: '/ai/agent/' },
 			{ text: '上下文压缩', link: '/ai/agent/context-compression' },
 			{ text: 'Context 边界', link: '/ai/agent/context-boundary' },
+			{ text: '上下文工程', link: '/ai/agent/context-engineering' },
 			{ text: 'Agent Skills', link: '/ai/agent/skill' },
 			{ text: 'Memory 记忆系统', link: '/ai/agent/memory' },
 			{ text: '共享知识与 RAG', link: '/ai/agent/knowledge' },
 			{ text: '模型交互', link: '/ai/agent/model' },
+			{ text: 'Prompt 工程', link: '/ai/agent/prompt-engineering' },
 			{ text: '工具调用机制', link: '/ai/agent/tool-mechanics' },
 			{ text: '扩展机制', link: '/ai/agent/extension-mechanisms' },
 			{ text: '工程接入', link: '/ai/agent/coding-agent-integration' }
