@@ -704,7 +704,7 @@ withDefaults(defineProps<{
 	.atms-evolution-row > :nth-child(4) { grid-area: chip; }
 }
 
-/* 桌面端利用正文两侧留白扩幅，与 context-boundary 图保持一致；
+/* 桌面端利用正文两侧留白扩幅，与其他文档宽图保持一致；
    四列卡片在 832–920px 幅宽下每张约 190–210px，避免被压成窄条。 */
 @media (min-width: 1280px) {
 	.atms-figure {

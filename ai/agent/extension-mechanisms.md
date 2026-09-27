@@ -55,7 +55,7 @@ Hook 的位置沿循环分布。位置决定扩展能拿到什么、能否改变
 <text class="agx-sm" x="564" y="308">此时副作用已经落地，拒绝不能撤销已写入的内容</text>
 <text class="agx-sm agx-c-danger" x="564" y="326">要防副作用，挂载点必须在执行前</text>
 <text class="agx-sm agx-c-danger" x="14" y="372">工具执行是循环中唯一产生外部副作用的节点；它右侧的 Hook 都只能改 observation，不能回滚磁盘与网络动作。</text>
-<text class="agx-sm agx-c-subtle" x="14" y="396">压缩、记忆与上下文可见性的机制见 <tspan class="agx-c-info">Context、Memory 与 Knowledge 的边界</tspan>；Skill 是能力与知识供给，不是 Hook。</text>
+<text class="agx-sm agx-c-subtle" x="14" y="396">压缩、记忆与上下文可见性的机制见 <tspan class="agx-c-info">上下文工程</tspan>；Skill 是能力与知识供给，不是 Hook。</text>
 </svg>
 </div>
 
@@ -159,7 +159,7 @@ Hook 以什么进程形式运行，决定决策如何传回运行时，也决定
 下列对象都可能出现在 Agent 运行时里，但它们不是 Hook，回答的问题不同：
 
 - **参数校验、授权审批、沙箱确认**：属于[工具调用机制](./tool-mechanics)模块，在「工具执行前」Hook 里实现。它们是 Hook 的使用者，扩展机制只提供拦截时机和 `allow/deny/modify` 通道；挂起等人、跨进程恢复属于审批实现自身的语义。
-- **规则文件、上下文压缩、记忆装配**：属于上下文供给，在「每轮开始」「压缩前后」等位置影响模型能看见什么，边界见 [Context、Memory 与 Knowledge 的边界](./context-boundary)。
+- **规则文件、上下文压缩、记忆装配**：属于上下文供给，在「每轮开始」「压缩前后」等位置影响模型能看见什么，边界见 [上下文工程](./context-engineering)。
 - **Skill**：按需加载的过程性知识包，由模型按描述选择，触发是概率性的，不能承载护栏；机制见 [Agent Skills](./skill)。
 - **Command**：用户显式调用的入口，确定执行但不阻断主循环。
 - **Subagent**：在独立上下文中执行子任务的组织方式，不能阻断父循环。
