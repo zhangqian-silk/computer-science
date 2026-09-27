@@ -1,10 +1,70 @@
-/* 组件：数据展示（结果卡片、条形图、芯片、序列节点、指标行、状态色）
+/* 组件：数据展示（结果卡片、条形图、芯片、序列节点、指标行、状态色、横线表格）
  *
  * 这里收敛了原先散落在 39 个 <style scoped> 里的重复模式：
  *   - 「有色边框 + 浅色底」的状态块  → .cs-state--*
  *   - 「圆点 + 名称 + 条 + 数值」的行 → .cs-legend-row
  *   - 「选中 / 弱化」的芯片          → .token-chip 修饰类
  */
+
+/* ---------- 正文横线表格 ----------
+ * 保留原生 table 语义，只覆盖 VitePress 默认的外框、竖线和斑马底色。 */
+.VPDoc .vp-doc table.cs-line-table {
+	width: 100%;
+	border: 0;
+	border-collapse: collapse;
+	table-layout: fixed;
+	background: transparent;
+}
+
+.VPDoc .vp-doc table.cs-line-table .cs-line-table__label {
+	width: 28%;
+}
+
+.VPDoc .vp-doc table.cs-line-table tr,
+.VPDoc .vp-doc table.cs-line-table tr:nth-child(2n),
+.VPDoc .vp-doc table.cs-line-table th,
+.VPDoc .vp-doc table.cs-line-table td {
+	border: 0;
+	background: transparent;
+}
+
+.VPDoc .vp-doc table.cs-line-table th,
+.VPDoc .vp-doc table.cs-line-table td {
+	padding: var(--cs-space-5) var(--cs-space-6) var(--cs-space-5) 0;
+	border-bottom: var(--cs-border);
+	color: var(--cs-color-text);
+	line-height: var(--cs-leading-relaxed);
+	text-align: left;
+	vertical-align: top;
+	overflow-wrap: anywhere;
+}
+
+.VPDoc .vp-doc table.cs-line-table th {
+	white-space: normal;
+}
+
+.VPDoc .vp-doc table.cs-line-table th:last-child,
+.VPDoc .vp-doc table.cs-line-table td:last-child {
+	padding-right: 0;
+}
+
+.VPDoc .vp-doc table.cs-line-table tbody tr:last-child > th,
+.VPDoc .vp-doc table.cs-line-table tbody tr:last-child > td {
+	border-bottom: 0;
+}
+
+@media (max-width: 640px) {
+	.VPDoc .vp-doc table.cs-line-table .cs-line-table__label {
+		width: 32%;
+	}
+
+	.VPDoc .vp-doc table.cs-line-table th,
+	.VPDoc .vp-doc table.cs-line-table td {
+		padding-top: var(--cs-space-4);
+		padding-bottom: var(--cs-space-4);
+		padding-right: var(--cs-space-4);
+	}
+}
 
 /* ---------- 结果与卡片 ---------- */
 .infra-result,

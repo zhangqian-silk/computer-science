@@ -45,6 +45,7 @@
 - 图例与静态比例条：`.cs-legend-row` 系列、`.infra-bar > i`。
 - 状态块：`.cs-state` 与 `.cs-state--pass`、`.cs-state--warn`、`.cs-state--fail`。
 - 数字与等宽文本：`.cs-num`、`.cs-mono`。
+- 原生横线表格：`.cs-line-table`，窄标签列使用 `.cs-line-table__label`。
 
 HTML 表格的结构与阅读形式按根规范选择。`base.css` 提供单元格间距和顶对齐；VitePress 的默认边框、背景与窄屏行为仍可能影响最终呈现，必要时用局部类调整。局部样式限定在当前展示范围内，避免影响整页其他表格或标题。
 
