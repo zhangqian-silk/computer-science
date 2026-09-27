@@ -5,7 +5,7 @@
  *
  * 新增一套主题：
  *   1. 在 styles/themes.css 追加 [data-cs-theme='<id>'] 与 .dark[data-cs-theme='<id>'] 两个块；
- *   2. 在下面的 csThemes 数组登记同一个 id；
+ *   2. 在下面的 CsThemeId 与 csThemes 数组登记同一个 id；
  *   3. 结束——组件只消费语义 token，无需任何改动。
  */
 

@@ -6,7 +6,7 @@
  *
  * 新增主题的完整步骤：
  *   1. 在本文件按下方模板追加一组 [data-cs-theme='<id>'] 与 .dark[data-cs-theme='<id>']；
- *   2. 在 theme/theme-registry.ts 的 csThemes 数组登记 id / 名称 / 预览色；
+ *   2. 在 theme/theme-registry.ts 更新 CsThemeId 与 csThemes，登记 id / 名称 / 预览色；
  *   3. 无需改动任何组件——组件只消费语义 token。
  *
  * 每套主题必须提供以下语义 token，缺一项都会回退到 :root 默认值：
@@ -35,7 +35,7 @@
 
 	--cs-color-text: var(--cs-slate-900);
 	--cs-color-text-muted: var(--cs-slate-600);
-	/* slate-400 对白底仅 2.56:1，不满足 WCAG 图形/大字 3:1；降一档到 slate-500 */
+	/* 弱化标签仍是普通文字，与正文一样按 4.5:1 检查 */
 	--cs-color-text-subtle: var(--cs-slate-500);
 
 	--cs-color-border: var(--cs-slate-200);
@@ -76,7 +76,7 @@
 
 	--cs-color-text: rgb(255 255 245 / 86%);
 	--cs-color-text-muted: rgb(235 235 245 / 60%);
-	--cs-color-text-subtle: rgb(235 235 245 / 38%);
+	--cs-color-text-subtle: rgb(235 235 245 / 56%);
 
 	--cs-color-border: #2e2e32;
 	--cs-color-border-strong: #3c3f44;
@@ -119,8 +119,7 @@
 
 	--cs-color-text: #10222b;
 	--cs-color-text-muted: #46626c;
-	/* 兼顾 --cs-color-bg 与 --cs-color-bg-soft 两种底色，均达到 3:1 */
-	--cs-color-text-subtle: #6d8c97;
+	--cs-color-text-subtle: #577580;
 
 	--cs-color-border: #d7e6e6;
 	--cs-color-border-strong: #b6d0d1;
@@ -161,7 +160,7 @@
 
 	--cs-color-text: rgb(233 246 246 / 88%);
 	--cs-color-text-muted: rgb(199 224 226 / 62%);
-	--cs-color-text-subtle: rgb(199 224 226 / 40%);
+	--cs-color-text-subtle: rgb(199 224 226 / 56%);
 
 	--cs-color-border: #22343b;
 	--cs-color-border-strong: #2f4952;
@@ -188,7 +187,7 @@
 }
 
 /* ============================================================
- * 主题 C：graphite——中性灰底 + 绿色强调，适合长时间读代码
+ * 主题 C：graphite——中性灰底与灰色强调
  * ============================================================ */
 [data-cs-theme='graphite'] {
 	/* 品牌色须与 --cs-color-success 明显区分，否则「激活」与「通过」两种
@@ -205,7 +204,7 @@
 
 	--cs-color-text: var(--cs-slate-800);
 	--cs-color-text-muted: var(--cs-slate-600);
-	--cs-color-text-subtle: var(--cs-slate-500);
+	--cs-color-text-subtle: #5f6e84;
 
 	--cs-color-border: var(--cs-slate-200);
 	--cs-color-border-strong: var(--cs-slate-400);
@@ -245,7 +244,7 @@
 
 	--cs-color-text: rgb(240 242 245 / 88%);
 	--cs-color-text-muted: rgb(226 232 240 / 60%);
-	--cs-color-text-subtle: rgb(226 232 240 / 38%);
+	--cs-color-text-subtle: rgb(226 232 240 / 56%);
 
 	--cs-color-border: #2a2c31;
 	--cs-color-border-strong: #3b3e45;
@@ -287,8 +286,7 @@
 
 	--cs-color-text: #241b33;
 	--cs-color-text-muted: #5b5170;
-	/* 兼顾 --cs-color-bg 与 --cs-color-bg-soft 两种底色，均达到 3:1 */
-	--cs-color-text-subtle: #8b81a1;
+	--cs-color-text-subtle: #756987;
 
 	--cs-color-border: #e7e0f2;
 	--cs-color-border-strong: #cfc4e4;
@@ -327,8 +325,7 @@
 
 	--cs-color-text: rgb(243 240 250 / 88%);
 	--cs-color-text-muted: rgb(226 220 245 / 60%);
-	/* 38% 透明度在暗底上仅 2.99:1，提到 42% 以越过 3:1 */
-	--cs-color-text-subtle: rgb(226 220 245 / 42%);
+	--cs-color-text-subtle: rgb(226 220 245 / 56%);
 
 	--cs-color-border: #2b2537;
 	--cs-color-border-strong: #3d3550;
