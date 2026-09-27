@@ -4,7 +4,7 @@
  *
  * 自行解析 palette.css 与 themes.css 的 token 引用链
  * （--cs-color-brand → var(--cs-teal-700) → #0f766e），
- * 再按 WCAG 2.1 计算对比度，因此可直接在 CI 里跑，不需要 Chromium。
+ * 再按 WCAG 2.2 计算对比度，因此可直接在 CI 里跑，不需要 Chromium。
  *
  * 两个容易算错、这里专门处理的点：
  *   1. 半透明前景（如 rgb(235 235 245 / 38%)）必须先与背景合成，
@@ -12,8 +12,9 @@
  *   2. 深色取值来自 .dark[data-cs-theme='x'] 块，且 blueprint 与裸 .dark
  *      合并声明，需要一并计入。
  *
- * 门槛：正文类 4.5:1（AA 正文），弱化文字与图形类 3:1（AA 大字 / 非文本）。
- * 系列色两两之间要求 CIE76 ΔE ≥ 15，保证图例可区分。
+ * 门槛：所有普通文字（含弱化标签）4.5:1，图形类 3:1。
+ * 图形 token 用于普通文字时须另行核验。系列色的 CIE76 ΔE ≥ 15 是仓库
+ * 的差异检查阈值，不保证色觉无障碍；本脚本不代替实际页面的渲染验证。
  *
  * 用法：node scripts/check-theme-contrast.mjs
  * 退出码 0 表示通过，1 表示存在不达标组合。
@@ -35,8 +36,8 @@ const CHECKS = [
 	['正文/次级底', '--cs-color-text', '--cs-color-bg-soft', 4.5],
 	['次要文字/底', '--cs-color-text-muted', '--cs-color-bg', 4.5],
 	['次要文字/次级底', '--cs-color-text-muted', '--cs-color-bg-soft', 4.5],
-	['弱化文字/底', '--cs-color-text-subtle', '--cs-color-bg', 3.0],
-	['弱化文字/次级底', '--cs-color-text-subtle', '--cs-color-bg-soft', 3.0],
+	['弱化文字/底', '--cs-color-text-subtle', '--cs-color-bg', 4.5],
+	['弱化文字/次级底', '--cs-color-text-subtle', '--cs-color-bg-soft', 4.5],
 	['品牌色/底', '--cs-color-brand', '--cs-color-bg', 3.0],
 	['品牌色/次级底', '--cs-color-brand', '--cs-color-bg-soft', 3.0],
 	['反色文字/品牌块', '--cs-color-on-brand', '--cs-color-brand', 4.5],
@@ -233,7 +234,7 @@ function parseColor(value) {
 function relativeLuminance({ r, g, b }) {
 	const channel = (value) => {
 		const v = value / 255
-		return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+		return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
 	}
 
 	return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
@@ -302,7 +303,7 @@ for (const mode of ['light', 'dark']) {
 				theme: themeId,
 				name,
 				need,
-				ratio: Number(contrastRatio(fg, bg).toFixed(2))
+				ratio: contrastRatio(fg, bg)
 			})
 		}
 
@@ -373,7 +374,7 @@ if (
 		`对比度校验通过：${contrastRows.length} 项对比度 + ${semanticRows.length} 项语义色可辨性，` +
 		`覆盖 ${themes.length} 套主题 × 浅/深色。`
 	)
-	console.log(`  最紧对比度：${tightest.mode} ${tightest.theme} ${tightest.name} = ${tightest.ratio}（需 ${tightest.need}）`)
+	console.log(`  最紧对比度：${tightest.mode} ${tightest.theme} ${tightest.name} = ${tightest.ratio.toFixed(2)}（需 ${tightest.need}）`)
 	console.log(`  语义色最小差异：${closestSemantic.mode} ${closestSemantic.theme} ${closestSemantic.pair} ΔE=${closestSemantic.deltaE}（需 ≥ ${MIN_SEMANTIC_DELTA_E}）`)
 	console.log(`  系列色最小差异：${closest.mode} ${closest.theme} ${closest.worstPair} ΔE=${closest.deltaE}（需 ≥ ${MIN_SERIES_DELTA_E}）`)
 	process.exit(0)
@@ -386,7 +387,7 @@ for (const row of missing) {
 }
 
 for (const row of contrastFailures) {
-	console.error(`  ${row.mode} ${row.theme} ${row.name}：${row.ratio} < ${row.need}`)
+	console.error(`  ${row.mode} ${row.theme} ${row.name}：${row.ratio.toFixed(2)} < ${row.need}`)
 }
 
 for (const row of seriesFailures) {

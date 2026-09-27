@@ -2,11 +2,13 @@
 /**
  * 设计系统一致性校验
  *
- * 目的：让「新增文件也能保持同一主题风格」成为可检查的约束，而不是口头约定。
+ * 范围：主题目录中的 Vue／CSS，以及主题注册表的一致性。
+ * 不扫描 Markdown 内嵌 HTML／SVG 或独立 SVG，不代替渲染验证。
  *
  * 校验规则：
  *   1. 组件与样式文件里不得出现字面量色值（#hex / rgb() / hsl() / 具名色）；
- *      唯一例外是 styles/palette.css——原始色板本来就是定义字面量的地方。
+ *      styles/palette.css 与 styles/themes.css 负责定义色值，予以排除；
+ *      注册表预览色另与主题品牌色核对。
  *   2. 组件不得直接引用原始色板变量 --cs-<色相>-<台阶>，必须走语义 token；
  *      只有 styles/themes.css 可以引用。
  *   3. themes.css 里每套主题都必须提供全部必需的语义 token，缺项会静默回退。
@@ -286,6 +288,7 @@ const scanned = scanTargets.length
 
 if (violations.length === 0) {
 	console.log(`设计系统校验通过：已扫描 ${scanned} 个文件，主题 ${registeredThemes.length} 套（${registeredThemes.join('、')}）。`)
+	console.log('  范围：主题 Vue／CSS 与注册表；未覆盖 Markdown 内嵌 HTML／SVG、独立 SVG 或实际渲染。')
 	process.exit(0)
 }
 
