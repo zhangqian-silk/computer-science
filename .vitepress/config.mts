@@ -338,7 +338,6 @@ const aiSidebar: DefaultTheme.SidebarItem[] = [
 		items: [
 			{ text: '学习总览', link: '/ai/agent/' },
 			{ text: '上下文压缩', link: '/ai/agent/context-compression' },
-			{ text: 'Context 边界', link: '/ai/agent/context-boundary' },
 			{ text: '上下文工程', link: '/ai/agent/context-engineering' },
 			{ text: 'Agent Skills', link: '/ai/agent/skill' },
 			{ text: 'Memory 记忆系统', link: '/ai/agent/memory' },

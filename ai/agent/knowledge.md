@@ -1,6 +1,6 @@
 # Knowledge 与 RAG：共享知识的索引与检索链路
 
-Context、memory 与 knowledge 的边界已经由专门的边界导引页区分：context 是当轮输入，memory 是绑定主体的可变状态，knowledge 是按权限共享、随来源版本更新的资料。本页只展开 knowledge 一侧：共享资料如何从来源同步为可检索的索引投影，又如何在生成时被取回、过滤、引用并注入 context。tool observation 读取的是业务系统当前状态，不属于本页范围。
+Context、memory 与 knowledge 的完整边界统一由上下文工程说明。本页只展开 knowledge 一侧：共享资料如何从来源同步为可检索的索引投影，又如何在生成时被取回、过滤、引用并注入 context。tool observation 读取的是业务系统当前状态，不属于本页范围。
 
 ---
 
